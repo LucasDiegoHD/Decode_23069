@@ -24,13 +24,11 @@ public class AutoShootCommand extends SequentialCommandGroup {
     public AutoShootCommand(DrivetrainSubsystem drivetrain, VisionSubsystem vision, ShooterSubsystem shooter, IntakeSubsystem intake, IndexerSubsystem indexer) {
         addCommands(
                 new UpdatePoseLimelightCommand(drivetrain, vision),
-                //new AimByPoseCommand(drivetrain, 144, 144),
                 new AdjustHoodCommand(shooter, vision),
                 new AdjustShooterCommand(shooter, vision),
 
                 new ShootCommand(shooter, intake, indexer)
-                // Note: The shooter is left running after the sequence.
-                // This allows for rapid subsequent shots. A separate button is used to stop it.
+                // Add more commands as needed
         );
     }
 }

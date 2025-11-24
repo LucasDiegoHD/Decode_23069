@@ -6,56 +6,70 @@ import com.pedropathing.geometry.Pose;
 import org.firstinspires.ftc.teamcode.subsystems.DrivetrainSubsystem;
 import org.firstinspires.ftc.teamcode.subsystems.VisionSubsystem;
 
-import java.util.concurrent.atomic.AtomicReference;
-
 /**
- * A command that continuously updates the Limelight camera's internal robot yaw orientation.
- * This helps the Limelight provide a more accurate field-relative pose estimation by combining
- * its vision data with the robot's odometry/IMU heading.
+ * Atualiza a pose do PedroPathing usando a pose da Limelight,
+ * porém rejeita estimativas da LL se estiverem muito longe (>2m)
+ * ou se a pose da Limelight for nula.
  */
 public class UpdatePoseLimelightCommand extends CommandBase {
 
     private final DrivetrainSubsystem drivetrain;
     private final VisionSubsystem vision;
-    private final Pose pose;
+    private final Pose initialPose;
 
-    /**
-     * Creates a new UpdateLimelightYawCommand.
-     *
-     * @param drivetrain The DrivetrainSubsystem to get the robot's heading from.
-     * @param vision     The VisionSubsystem to update.
-     */
-    public UpdatePoseLimelightCommand(DrivetrainSubsystem drivetrain, VisionSubsystem vision, Pose initialPose) {
+    private static final double MAX_DELTA_INCHES = 39.73; // 1  metros
+
+    public UpdatePoseLimelightCommand(
+            DrivetrainSubsystem drivetrain,
+            VisionSubsystem vision,
+            Pose initialPose
+    ) {
         this.drivetrain = drivetrain;
         this.vision = vision;
-        this.pose = initialPose;
-        addRequirements(vision); // This command modifies the state of the vision subsystem
+        this.initialPose = initialPose;
+        addRequirements(vision);
     }
 
-    public UpdatePoseLimelightCommand(DrivetrainSubsystem drivetrain, VisionSubsystem vision) {
+    public UpdatePoseLimelightCommand(
+            DrivetrainSubsystem drivetrain,
+            VisionSubsystem vision
+    ) {
         this(drivetrain, vision, drivetrain.getFollower().getPose());
     }
 
-
-    /**
-     * Called repeatedly while the command is scheduled. Gets the robot's current yaw from the
-     * drivetrain and sends it to the vision subsystem.
-     */
     @Override
     public void initialize() {
-        drivetrain.getFollower().setPose(pose);
 
-        vision.getRobotPose().ifPresent(pose -> {
-            vision.getRobotPose(pose.getHeading()).ifPresent(pose1 -> drivetrain.getFollower().setPose(pose));
+        drivetrain.getFollower().setPose(initialPose);
+
+        Pose currentPose = drivetrain.getFollower().getPose();
+
+        vision.getRobotPose().ifPresentOrElse(llPoseRaw -> {
+
+            vision.getRobotPose(llPoseRaw.getHeading()).ifPresentOrElse(llPose -> {
+
+                double dx = Math.abs(llPose.getX() - currentPose.getX());
+                double dy = Math.abs(llPose.getY() - currentPose.getY());
+
+                if (dx > MAX_DELTA_INCHES || dy > MAX_DELTA_INCHES) {
+                    drivetrain.getFollower().setPose(currentPose);
+                    return;
+                }
+
+                drivetrain.getFollower().setPose(llPose);
+
+            }, () -> {
+                drivetrain.getFollower().setPose(currentPose);
+            });
+
+        }, () -> {
+            drivetrain.getFollower().setPose(currentPose);
         });
-
-
     }
 
     @Override
     public boolean isFinished() {
         return true;
     }
-
-
 }
+    
