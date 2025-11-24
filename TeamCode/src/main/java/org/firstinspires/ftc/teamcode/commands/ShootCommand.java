@@ -84,9 +84,16 @@ public class ShootCommand extends CommandBase {
 
         switch (state) {
             case Conveyor:
-                if (indexer.getExitSensor() || timer.milliseconds()>ShooterConstants.TRIGGER_TIMER_TO_SHOOT) {
-                    state = SHOOT_STATES.Acceleration;
-                    intake.stop();
+                if (indexer.getExitSensor() || timer.milliseconds() > ShooterConstants.TRIGGER_TIMER_TO_SHOOT) {
+
+                    if (shooter.getShooterAtTarget()) {
+                        state = SHOOT_STATES.Shooting;
+                        intake.runTrigger();
+                        timer.reset();
+                    } else {
+                        state = SHOOT_STATES.Acceleration;
+                        intake.stop();
+                    }
                 }
                 break;
 
@@ -94,9 +101,13 @@ public class ShootCommand extends CommandBase {
                 if (shooter.getShooterAtTarget()) {
                     state = SHOOT_STATES.Shooting;
                     intake.runTrigger();
+
+                    intake.run();
+
                     timer.reset();
                 }
                 break;
+
             case Shooting:
                 if (!indexer.getExitSensor() || timer.milliseconds()>ShooterConstants.TRIGGER_TIMER_TRIGGERING) {
                     state = SHOOT_STATES.Conveyor;

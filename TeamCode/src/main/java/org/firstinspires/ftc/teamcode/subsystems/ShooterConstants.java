@@ -9,7 +9,7 @@ import com.bylazar.configurables.annotations.Configurable;
 public class ShooterConstants {
 
 
-    public static double kP = 5.0;
+    public static double kP = 10.0;
 
 
     public static double kI = 0.0;
@@ -54,7 +54,7 @@ public class ShooterConstants {
     public static double INTAKE_TIME_TO_SHOOT = 350;
     /** The time in milliseconds to wait after triggering before shooting. */
     public static double TRIGGER_TIMER_TO_SHOOT = 500;
-    public static double TRIGGER_TIMER_TRIGGERING = 2000;
+    public static double TRIGGER_TIMER_TRIGGERING = 500;
 
     /**
      * Equations for hood

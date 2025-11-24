@@ -7,6 +7,7 @@ import com.arcrobotics.ftclib.controller.PIDFController;
 import com.bylazar.telemetry.TelemetryManager;
 import com.pedropathing.control.PIDFCoefficients;
 import com.pedropathing.follower.Follower;
+import com.pedropathing.geometry.BezierPoint;
 import com.pedropathing.geometry.Pose;
 
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
@@ -42,8 +43,8 @@ public class AimByPoseCommand extends CommandBase {
     @Override
     public void initialize() {
         turnController.reset();
-        turnController.setSetPoint(0);   // Queremos erro angular = 0
-        turnController.setTolerance(0.03);  // ~2 graus
+        turnController.setSetPoint(0);
+        turnController.setTolerance(0.000872664626);  // ~0.05 graus
     }
 
     @Override
@@ -57,15 +58,12 @@ public class AimByPoseCommand extends CommandBase {
 
         double robotX = pose.getX();
         double robotY = pose.getY();
-        double heading = pose.getHeading();   // EM RADIANOS (Pedro padrão)
+        double heading = pose.getHeading();
 
-        // Ângulo desejado do robô até o ponto
         double desired = Math.atan2( targetY - robotY,targetX - robotX);
 
-        // Erro angular igual ao AlignToAprilTag (referência = 0)
         double error = angleDifference(desired, heading);
 
-        // PIDF usando erro como entrada
         double turnPower = turnController.calculate(error);
 
         // Limita rotação igual ao AlignToAprilTag
@@ -86,7 +84,6 @@ public class AimByPoseCommand extends CommandBase {
         follower.setTeleOpDrive(0, 0, 0, true);
     }
 
-    // Normalização EXATAMENTE igual ao comportamento do Tx
     private double angleDifference(double target, double current) {
         double diff = target - current;
         while (diff > Math.PI) diff -= 2 * Math.PI;
