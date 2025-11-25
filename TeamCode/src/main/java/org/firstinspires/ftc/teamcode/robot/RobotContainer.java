@@ -63,7 +63,7 @@ public class RobotContainer {
 
         // Initialize robot's starting pose, attempting to use Vision first
 
-        //vision.setDefaultCommand(new VisionFusionCommand(drivetrain, vision));
+        vision.setDefaultCommand(new VisionFusionCommand(drivetrain, vision));
 
         // Set default commands
         //vision.setDefaultCommand(new UpdateLimelightYawCommand(drivetrain, vision));
@@ -118,7 +118,7 @@ public class RobotContainer {
 
     public void updateRobotPose(AllianceEnum alliance, Pose robotPose) {
 
-        double yaw = vision.getRobotPose().orElse(robotPose).getHeading();
+        double yaw = robotPose.getHeading();
         robotPose = vision.getRobotPose(yaw).orElse(robotPose);
         drivetrain.getFollower().setPose(robotPose);
 

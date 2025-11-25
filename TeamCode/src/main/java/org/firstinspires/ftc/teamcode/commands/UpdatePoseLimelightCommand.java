@@ -47,31 +47,22 @@ public class UpdatePoseLimelightCommand extends CommandBase {
         drivetrain.getFollower().setPose(initialPose);
         Pose currentPose = drivetrain.getFollower().getPose();
 
-        // 1) tenta pegar posição MT2 (+ heading MT1 se possível)
-        Optional<Pose> optMT2 = vision.getRobotPose();
+
         if (vision.getDirectDistanceToTarget().get() > VisionConstants.LONGEST_DISTANCE) {
             return;
         }
-        if (optMT2.isEmpty()) {
-            // Sem tag -> mantém pose atual
-            drivetrain.getFollower().setPose(currentPose);
-            return;
-        }
 
-        Pose llPoseMT2 = optMT2.get();
 
         // 2) tenta pegar apenas heading de MT1
-        Optional<Pose> optMT1HeadingOnly = vision.getRobotPose(llPoseMT2.getHeading());
-
-        double finalHeading = llPoseMT2.getHeading(); // fallback padrão = heading MT2
-
-        // Usa heading do MegaTag1 se disponível
-        // fallback final: usa heading da odometria
-        finalHeading = optMT1HeadingOnly.map(Pose::getHeading).orElseGet(currentPose::getHeading);
+        Optional<Pose> poseOptional = vision.getRobotPose(currentPose.getHeading());
+        if (!poseOptional.isPresent()) {
+            return;
+        }
+        Pose pose = poseOptional.get();
 
         // 3) valida distância (rejeição de outlier)
-        double dx = Math.abs(llPoseMT2.getX() - currentPose.getX());
-        double dy = Math.abs(llPoseMT2.getY() - currentPose.getY());
+        double dx = Math.abs(pose.getX() - currentPose.getX());
+        double dy = Math.abs(pose.getY() - currentPose.getY());
 
         if (dx > MAX_DELTA_INCHES || dy > MAX_DELTA_INCHES) {
             drivetrain.getFollower().setPose(currentPose);
@@ -80,9 +71,9 @@ public class UpdatePoseLimelightCommand extends CommandBase {
 
         // 4) monta pose final: posição MT2 + heading (MT1 → odo fallback)
         Pose finalPose = new Pose(
-                llPoseMT2.getX(),
-                llPoseMT2.getY(),
-                finalHeading
+                pose.getX(),
+                pose.getY(),
+                pose.getHeading()
         );
 
         drivetrain.getFollower().setPose(finalPose);

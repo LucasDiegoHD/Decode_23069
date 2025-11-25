@@ -47,19 +47,19 @@ public class VisionFusionCommand extends CommandBase {
         // Se não está no modo de "tentar atualizar", não faz nada
         if (!pendingUpdate)
             return;
+        Pose odoPose = drive.getFollower().getPose();
 
         // 🟡 Tenta pegar a pose da limelight (com seu subsistema atual)
-        Optional<Pose> llOpt = vision.getRobotPose();
+        Optional<Pose> llOpt = vision.getRobotPose(odoPose.getHeading());
         if (llOpt.isEmpty()) {
             // ❌ Se não conseguiu, tenta de novo no próximo loop (SEM esperar 2s)
             return;
         }
-        if (vision.getDirectDistanceToTarget().orElse((double) 0) > VisionConstants.LONGEST_DISTANCE) {
+        if (vision.getDirectDistanceToTarget().orElse((double) 100) > VisionConstants.LONGEST_DISTANCE) {
             return;
         }
 
         Pose llPose = llOpt.get();
-        Pose odoPose = drive.getFollower().getPose();
 
         // 🟡 Filtro EMA para suavizar limelight
         llPose = applyEMAFilter(llPose);
