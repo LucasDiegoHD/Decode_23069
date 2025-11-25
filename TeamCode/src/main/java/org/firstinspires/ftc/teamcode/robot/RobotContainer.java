@@ -21,6 +21,7 @@ import org.firstinspires.ftc.teamcode.commands.GoToPose;
 import org.firstinspires.ftc.teamcode.commands.ShootCommand;
 import org.firstinspires.ftc.teamcode.commands.SpinShooterCommand;
 import org.firstinspires.ftc.teamcode.commands.TeleOpDriveCommand;
+import org.firstinspires.ftc.teamcode.commands.VisionFusionCommand;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 import org.firstinspires.ftc.teamcode.subsystems.DrivetrainSubsystem;
 import org.firstinspires.ftc.teamcode.subsystems.IndexerSubsystem;
@@ -62,6 +63,7 @@ public class RobotContainer {
         // Initialize robot's starting pose, attempting to use Vision first
 
         updateRobotPose(alliance);
+        vision.setDefaultCommand(new VisionFusionCommand(drivetrain, vision, telemetry));
 
         // Set default commands
         //vision.setDefaultCommand(new UpdateLimelightYawCommand(drivetrain, vision));

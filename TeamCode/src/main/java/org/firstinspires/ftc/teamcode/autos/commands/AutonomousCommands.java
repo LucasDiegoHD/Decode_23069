@@ -10,6 +10,7 @@ import org.firstinspires.ftc.teamcode.autos.paths.PosesNames;
 import org.firstinspires.ftc.teamcode.commands.ShootCommand;
 import org.firstinspires.ftc.teamcode.commands.SpinShooterCommand;
 import org.firstinspires.ftc.teamcode.commands.UpdatePoseLimelightCommand;
+import org.firstinspires.ftc.teamcode.commands.VisionFusionCommand;
 import org.firstinspires.ftc.teamcode.subsystems.DrivetrainSubsystem;
 import org.firstinspires.ftc.teamcode.subsystems.IndexerSubsystem;
 import org.firstinspires.ftc.teamcode.subsystems.IntakeSubsystem;
@@ -59,6 +60,7 @@ public class AutonomousCommands extends SequentialCommandGroup {
     public AutonomousCommands(@NonNull DrivetrainSubsystem drivetrain, ShooterSubsystem shooter, IntakeSubsystem intake, IndexerSubsystem indexer, VisionSubsystem vision, List<Pose> poses) {
 
         addCommands(
+
                 new UpdatePoseLimelightCommand(drivetrain, vision, poses.get(PosesNames.StartPose.ordinal())),
                 new SpinShooterCommand(shooter, SpinShooterCommand.Action.LONG_SHOOT),
                 new GoToPoseCommand(drivetrain, poses.get(PosesNames.GoToShoot1.ordinal())),
