@@ -54,7 +54,7 @@ public class ShootCommand extends CommandBase {
         this.shooterCounter = shoots;
         this.shooter = shooter;
         this.intake = intake;
-        addRequirements(shooter, intake, indexer);
+        addRequirements(shooter, indexer);
     }
 
     /**

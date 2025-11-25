@@ -1,5 +1,9 @@
 package org.firstinspires.ftc.teamcode.commands;
 
+import android.util.Log;
+
+import androidx.annotation.NonNull;
+
 import com.arcrobotics.ftclib.command.CommandBase;
 import com.pedropathing.geometry.Pose;
 
@@ -9,18 +13,11 @@ import org.firstinspires.ftc.teamcode.subsystems.VisionSubsystem;
 
 import java.util.Optional;
 
-/**
- * Atualiza a pose do PedroPathing usando EXCLUSIVAMENTE a pose da Limelight
- * (sem pesos), porém rejeita estimativas se forem outliers (>1m)
- * e aplica heading de MT1; se não disponível, usa heading da odometria.
- */
 public class UpdatePoseLimelightCommand extends CommandBase {
 
     private final DrivetrainSubsystem drivetrain;
     private final VisionSubsystem vision;
-    private final Pose initialPose;
-
-    private static final double MAX_DELTA_INCHES = 39.73; // 1 metro
+    private Pose initialPose;
 
     public UpdatePoseLimelightCommand(
             DrivetrainSubsystem drivetrain,
@@ -37,50 +34,76 @@ public class UpdatePoseLimelightCommand extends CommandBase {
             DrivetrainSubsystem drivetrain,
             VisionSubsystem vision
     ) {
-        this(drivetrain, vision, drivetrain.getFollower().getPose());
+        this(drivetrain, vision, null);
     }
 
     @Override
     public void initialize() {
 
-        // Pose atual da odometria
-        drivetrain.getFollower().setPose(initialPose);
+        if (initialPose == null) {
+            initialPose = drivetrain.getFollower().getPose();
+        } else {
+            drivetrain.getFollower().setPose(initialPose);
+        }
+
+        Log.d("UpdatePose", "initialize: " + initialPose);
+
         Pose currentPose = drivetrain.getFollower().getPose();
 
-
-        if (vision.getDirectDistanceToTarget().get() > VisionConstants.LONGEST_DISTANCE) {
-            return;
-        }
-
-
-        // 2) tenta pegar apenas heading de MT1
         Optional<Pose> poseOptional = vision.getRobotPose(currentPose.getHeading());
-        if (!poseOptional.isPresent()) {
-            return;
-        }
-        Pose pose = poseOptional.get();
 
-        // 3) valida distância (rejeição de outlier)
-        double dx = Math.abs(pose.getX() - currentPose.getX());
-        double dy = Math.abs(pose.getY() - currentPose.getY());
-
-        if (dx > MAX_DELTA_INCHES || dy > MAX_DELTA_INCHES) {
+        if (poseOptional.isEmpty()) {
             drivetrain.getFollower().setPose(currentPose);
             return;
         }
 
-        // 4) monta pose final: posição MT2 + heading (MT1 → odo fallback)
-        Pose finalPose = new Pose(
-                pose.getX(),
-                pose.getY(),
-                pose.getHeading()
-        );
+        Pose llPose = poseOptional.get();
 
-        drivetrain.getFollower().setPose(finalPose);
+        // ---- Filtro: rejeita se estiver muito longe ----
+        double dx = llPose.getX() - currentPose.getX();
+        double dy = llPose.getY() - currentPose.getY();
+        double distInches = Math.hypot(dx, dy);
+
+        double maxDeltaInches =
+                VisionConstants.MAX_DELTA_METERS * VisionConstants.METERS_TO_INCHES;
+
+        if (distInches > maxDeltaInches) {
+            Log.d("UpdatePose", "LL rejeitada: dist=" + distInches);
+            drivetrain.getFollower().setPose(currentPose);
+            return;
+        }
+
+        // ---- Fusão com pesos ----
+        Pose fusedPose = getPose(currentPose, llPose);
+
+        drivetrain.getFollower().setPose(fusedPose);
+        Log.d("UpdatePose", "Pose LL=" + llPose + " | Fused=" + fusedPose);
+    }
+
+    @NonNull
+    private static Pose getPose(Pose currentPose, Pose llPose) {
+        double wOdo = VisionConstants.ODOMETRY_WEIGHT;
+        double wLL = VisionConstants.LIMELIGHT_WEIGHT;
+
+        double sum = wOdo + wLL;
+        if (sum == 0) {
+            wOdo = 1;
+            wLL = 0;
+        } else {
+            wOdo /= sum;
+            wLL /= sum;
+        }
+
+        double fusedX = currentPose.getX() * wOdo + llPose.getX() * wLL;
+        double fusedY = currentPose.getY() * wOdo + llPose.getY() * wLL;
+        double fusedHeading = currentPose.getHeading() * wOdo + llPose.getHeading() * wLL;
+
+        Pose fusedPose = new Pose(fusedX, fusedY, fusedHeading);
+        return fusedPose;
     }
 
     @Override
     public boolean isFinished() {
-        return true; // comando executa só uma vez
+        return true;
     }
 }

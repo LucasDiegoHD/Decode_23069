@@ -27,11 +27,7 @@ public class teleop extends CommandOpMode {
 
         // Passa o hardwareMap, a telemetria e os gamepads para o RobotContainer
         RobotContainer robot = new RobotContainer(hardwareMap, telemetryM, driverGamepad, operatorGamepad, DataStorage.alliance);
-        while (!isStarted()) {
-            robot.updateRobotPose(DataStorage.alliance, DataStorage.actualPose);
 
-
-        }
 
     }
 

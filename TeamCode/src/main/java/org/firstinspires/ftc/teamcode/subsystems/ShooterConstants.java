@@ -9,7 +9,7 @@ import com.bylazar.configurables.annotations.Configurable;
 public class ShooterConstants {
 
 
-    public static double kP = 20.0;
+    public static double kP = 10;
 
 
     public static double kI = 0.0;

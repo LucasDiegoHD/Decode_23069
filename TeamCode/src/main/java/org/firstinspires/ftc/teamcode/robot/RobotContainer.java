@@ -22,8 +22,6 @@ import org.firstinspires.ftc.teamcode.commands.ShootCommand;
 import org.firstinspires.ftc.teamcode.commands.SpinShooterCommand;
 import org.firstinspires.ftc.teamcode.commands.TeleOpDriveCommand;
 import org.firstinspires.ftc.teamcode.commands.UpdatePoseLimelightCommand;
-import org.firstinspires.ftc.teamcode.commands.VisionFusionCommand;
-import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 import org.firstinspires.ftc.teamcode.subsystems.DrivetrainSubsystem;
 import org.firstinspires.ftc.teamcode.subsystems.IndexerSubsystem;
 import org.firstinspires.ftc.teamcode.subsystems.IntakeSubsystem;
@@ -61,12 +59,7 @@ public class RobotContainer {
         vision = new VisionSubsystem(hardwareMap, telemetry);
         indexer = new IndexerSubsystem(hardwareMap, telemetry);
 
-        // Initialize robot's starting pose, attempting to use Vision first
 
-        vision.setDefaultCommand(new VisionFusionCommand(drivetrain, vision));
-
-        // Set default commands
-        //vision.setDefaultCommand(new UpdateLimelightYawCommand(drivetrain, vision));
         if (driver != null) {
             drivetrain.getFollower().setPose(DataStorage.actualPose);
             drivetrain.setDefaultCommand(new TeleOpDriveCommand(drivetrain, driver));
@@ -107,7 +100,7 @@ public class RobotContainer {
 
             new GamepadButton(driver, GamepadKeys.Button.B)
                     .whileHeld(new GoToPose(drivetrain,ShootPose));
-            new GamepadButton(driver, GamepadKeys.Button.START).whenActive(new UpdatePoseLimelightCommand(drivetrain, vision));
+            new GamepadButton(driver, GamepadKeys.Button.START).whenActive(new UpdatePoseLimelightCommand(drivetrain, vision, vision.getRobotPose().get()));
 
         }
 

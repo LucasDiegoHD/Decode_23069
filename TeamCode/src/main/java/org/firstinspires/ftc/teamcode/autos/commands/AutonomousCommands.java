@@ -10,13 +10,11 @@ import org.firstinspires.ftc.teamcode.autos.paths.PosesNames;
 import org.firstinspires.ftc.teamcode.commands.ShootCommand;
 import org.firstinspires.ftc.teamcode.commands.SpinShooterCommand;
 import org.firstinspires.ftc.teamcode.commands.UpdatePoseLimelightCommand;
-import org.firstinspires.ftc.teamcode.commands.VisionFusionCommand;
 import org.firstinspires.ftc.teamcode.subsystems.DrivetrainSubsystem;
 import org.firstinspires.ftc.teamcode.subsystems.IndexerSubsystem;
 import org.firstinspires.ftc.teamcode.subsystems.IntakeSubsystem;
 import org.firstinspires.ftc.teamcode.subsystems.ShooterSubsystem;
 import org.firstinspires.ftc.teamcode.subsystems.VisionSubsystem;
-import org.firstinspires.ftc.teamcode.autos.commands.GoToPoseCommand;
 
 import java.util.List;
 
@@ -65,7 +63,7 @@ public class AutonomousCommands extends SequentialCommandGroup {
                 new SpinShooterCommand(shooter, SpinShooterCommand.Action.LONG_SHOOT),
                 new GoToPoseCommand(drivetrain, poses.get(PosesNames.GoToShoot1.ordinal())),
                 new AlignAndAdjustAutoCommand(drivetrain, vision, shooter),
-                new ShootCommand(shooter, intake, indexer, 4),
+                new ShootCommand(shooter, intake, indexer, 3),
                 new SpinShooterCommand(shooter, SpinShooterCommand.Action.LONG_SHOOT),
                 new GoToPoseCommand(drivetrain, poses.get(PosesNames.GoToLine1.ordinal())),
                 new InstantCommand(intake::run),
@@ -74,7 +72,7 @@ public class AutonomousCommands extends SequentialCommandGroup {
                 new InstantCommand(intake::stop),
                 new WaitCommand(500),
                 new AlignAndAdjustAutoCommand(drivetrain, vision, shooter),
-                new ShootCommand(shooter, intake, indexer, 4),
+                new ShootCommand(shooter, intake, indexer, 3),
                 new SpinShooterCommand(shooter, SpinShooterCommand.Action.LONG_SHOOT),
                 new GoToPoseCommand(drivetrain, poses.get(PosesNames.GoToLine2.ordinal())).withTimeout(2000),
                 new WaitCommand(500),
@@ -83,7 +81,7 @@ public class AutonomousCommands extends SequentialCommandGroup {
                 new GoToPoseCommand(drivetrain, poses.get(PosesNames.GoToShoot1.ordinal())),
                 new InstantCommand(intake::stop),
                 new AlignAndAdjustAutoCommand(drivetrain, vision, shooter),
-                new ShootCommand(shooter, intake, indexer, 4).withTimeout(5000),
+                new ShootCommand(shooter, intake, indexer, 3).withTimeout(5000),
                 new SpinShooterCommand(shooter, SpinShooterCommand.Action.STOP),
                 new LeaveCommand(drivetrain, poses.get(PosesNames.EndPose.ordinal()))
 
