@@ -26,7 +26,6 @@ public class VisionSubsystem extends SubsystemBase {
     private final TelemetryManager telemetry;
 
     private static final double INCHES_IN_METER = 39.3701;
-    private static final double PEDROPATHING_OFFSET = 72.0;
 
     /**
      * Constructs a new VisionSubsystem.
@@ -53,28 +52,6 @@ public class VisionSubsystem extends SubsystemBase {
     }
 
     /**
-     * Gets the vertical offset from the crosshair to the target.
-     * @return An Optional containing the 'ty' value if a target is present.
-     */
-    public Optional<Double> getTargetTy() {
-        if (hasTarget()) {
-            return Optional.of(latestResult.getTy());
-        }
-        return Optional.empty();
-    }
-
-    /**
-     * Gets the area of the target in the frame.
-     * @return An Optional containing the 'ta' value (target area) if a target is present.
-     */
-    public Optional<Double> getTargetTa() {
-        if (hasTarget()) {
-            return Optional.of(latestResult.getTa());
-        }
-        return Optional.empty();
-    }
-
-    /**
      * Checks if the Limelight has a valid target.
      * @return True if a valid target is detected, false otherwise.
      */
@@ -82,27 +59,6 @@ public class VisionSubsystem extends SubsystemBase {
         return latestResult != null && latestResult.isValid();
     }
 
-    /**
-     * Calculates the horizontal distance (on the ground) to the target.
-     * This is ideal for most interpolations.
-     * @return An {@code Optional<Double>} containing the distance in meters.
-     */
-    public Optional<Double> getHorizontalDistanceToTarget() {
-        if (!hasTarget()) {
-            return Optional.empty();
-        }
-
-        double ty = latestResult.getTy();
-        double totalAngleRadians = Math.toRadians(VisionConstants.CAMERA_PITCH_DEGREES + ty);
-
-        if (Math.tan(totalAngleRadians) == 0) {
-            return Optional.empty();
-        }
-
-        double distance = (VisionConstants.TARGET_HEIGHT_METERS - VisionConstants.CAMERA_HEIGHT_METERS) / Math.tan(totalAngleRadians);
-
-        return Optional.of(distance);
-    }
 
     /**
      * Calculates the direct distance (hypotenuse) from the camera to the target.
@@ -174,9 +130,7 @@ public class VisionSubsystem extends SubsystemBase {
         latestResult = limelight.getLatestResult();
 
         if (latestResult != null) {
-            telemetry.addData("LL Valid", latestResult.isValid());
-            telemetry.addData("LL Pose MT2", latestResult.getBotpose_MT2());
-            getHorizontalDistanceToTarget().ifPresent(distance -> telemetry.addData("Distância Horizontal (M)", distance));
+
             getDirectDistanceToTarget().ifPresent(distance -> telemetry.addData("Distância Direta (M)", distance));
 
         } else {

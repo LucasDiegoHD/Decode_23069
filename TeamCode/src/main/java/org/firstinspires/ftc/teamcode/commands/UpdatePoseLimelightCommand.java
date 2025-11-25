@@ -49,7 +49,7 @@ public class UpdatePoseLimelightCommand extends CommandBase {
 
         // 1) tenta pegar posição MT2 (+ heading MT1 se possível)
         Optional<Pose> optMT2 = vision.getRobotPose();
-        if (vision.getDirectDistanceToTarget().orElse((double) 0) > VisionConstants.LONGEST_DISTANCE) {
+        if (vision.getDirectDistanceToTarget().get() > VisionConstants.LONGEST_DISTANCE) {
             return;
         }
         if (optMT2.isEmpty()) {

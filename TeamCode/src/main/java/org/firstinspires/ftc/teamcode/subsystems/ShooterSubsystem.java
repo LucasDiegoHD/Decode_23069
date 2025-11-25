@@ -170,9 +170,6 @@ public class ShooterSubsystem extends SubsystemBase {
         telemetry.addData("Shooter Current RPM", currentRPM);
         telemetry.addData("Shooter Power", power);
         telemetry.addData("Shooter Error", targetRPM - currentRPM);
-        telemetry.addData("Battery Voltage", voltageSensor.getVoltage());
-        telemetry.addData("L Motor Current", lShooterMotor.getCurrent(CurrentUnit.MILLIAMPS));
-        telemetry.addData("R Motor Current", rShooterMotor.getCurrent(CurrentUnit.MILLIAMPS));
         telemetry.addData("Hood Position", hoodPosition);
     }
 }

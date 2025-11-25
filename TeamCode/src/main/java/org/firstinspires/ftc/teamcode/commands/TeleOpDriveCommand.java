@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode.commands;
 import com.arcrobotics.ftclib.command.CommandBase;
 import com.arcrobotics.ftclib.gamepad.GamepadEx;
 import com.arcrobotics.ftclib.gamepad.GamepadKeys;
+import com.bylazar.telemetry.PanelsTelemetry;
 import com.pedropathing.geometry.Pose;
 import org.firstinspires.ftc.teamcode.subsystems.DrivetrainSubsystem;
 import org.firstinspires.ftc.teamcode.utils.AllianceEnum;
@@ -66,11 +67,7 @@ public class TeleOpDriveCommand extends CommandBase {
                 -driverGamepad.getRightX(), // Turn power
                 true // Specify that the control is field-centric
         );
-
-        /* Reset heading if the START button is pressed
-        if(driverGamepad.getButton(GamepadKeys.Button.START)){
-            drivetrain.getFollower().setPose(p.setHeading(Math.PI));
-        }*/
+        PanelsTelemetry.INSTANCE.getTelemetry().addData("Alliance", alliance);
 
     }
 
