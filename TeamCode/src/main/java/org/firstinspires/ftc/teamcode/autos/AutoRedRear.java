@@ -10,6 +10,9 @@ import com.bylazar.telemetry.TelemetryManager;
 import com.pedropathing.geometry.Pose;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 
+import org.firstinspires.ftc.teamcode.autos.paths.BlueRearPoses;
+import org.firstinspires.ftc.teamcode.autos.paths.PosesNames;
+import org.firstinspires.ftc.teamcode.autos.paths.RedRearPoses;
 import org.firstinspires.ftc.teamcode.robot.RobotContainer;
 import org.firstinspires.ftc.teamcode.utils.AllianceEnum;
 import org.firstinspires.ftc.teamcode.utils.DataStorage;
@@ -31,7 +34,7 @@ public class AutoRedRear extends CommandOpMode {
         Command autonomousCommand = robot.getAutonomousRedRearCommand();
         // Agenda o comando para ser executado após o START
         while (!isStarted()) {
-            robot.updateRobotPose(AllianceEnum.Red);
+            robot.updateRobotPose(AllianceEnum.Red, RedRearPoses.getPose(PosesNames.StartPose));
 
 
         }

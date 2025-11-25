@@ -21,6 +21,7 @@ import org.firstinspires.ftc.teamcode.commands.GoToPose;
 import org.firstinspires.ftc.teamcode.commands.ShootCommand;
 import org.firstinspires.ftc.teamcode.commands.SpinShooterCommand;
 import org.firstinspires.ftc.teamcode.commands.TeleOpDriveCommand;
+import org.firstinspires.ftc.teamcode.commands.UpdatePoseLimelightCommand;
 import org.firstinspires.ftc.teamcode.commands.VisionFusionCommand;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 import org.firstinspires.ftc.teamcode.subsystems.DrivetrainSubsystem;
@@ -62,8 +63,7 @@ public class RobotContainer {
 
         // Initialize robot's starting pose, attempting to use Vision first
 
-        updateRobotPose(alliance);
-        vision.setDefaultCommand(new VisionFusionCommand(drivetrain, vision, telemetry));
+        vision.setDefaultCommand(new VisionFusionCommand(drivetrain, vision));
 
         // Set default commands
         //vision.setDefaultCommand(new UpdateLimelightYawCommand(drivetrain, vision));
@@ -107,6 +107,7 @@ public class RobotContainer {
 
             new GamepadButton(driver, GamepadKeys.Button.B)
                     .whileHeld(new GoToPose(drivetrain,ShootPose));
+            new GamepadButton(driver, GamepadKeys.Button.START).whenActive(new UpdatePoseLimelightCommand(drivetrain, vision));
 
         }
 
@@ -115,11 +116,10 @@ public class RobotContainer {
         }
     }
 
-    public void updateRobotPose(AllianceEnum alliance) {
-        Pose robotPose = RedRearPoses.getPose(PosesNames.StartPose);
-        if (alliance == AllianceEnum.Blue) {
-            robotPose = BlueRearPoses.getPose(PosesNames.StartPose);
-        }
+    public void updateRobotPose(AllianceEnum alliance, Pose robotPose) {
+
+        double yaw = vision.getRobotPose().orElse(robotPose).getHeading();
+        robotPose = vision.getRobotPose(yaw).orElse(robotPose);
         drivetrain.getFollower().setPose(robotPose);
 
 

@@ -44,7 +44,7 @@ public class AimByPoseCommand extends CommandBase {
     public void initialize() {
         turnController.reset();
         turnController.setSetPoint(0);
-        turnController.setTolerance(0.000872664626);  // ~0.05 graus
+        turnController.setTolerance((Math.PI / 180.0) * ShooterConstants.ANGLE_TOLERANCE);  // ~0.2 graus
     }
 
     @Override
@@ -65,7 +65,11 @@ public class AimByPoseCommand extends CommandBase {
         double error = angleDifference(desired, heading);
 
         double turnPower = turnController.calculate(error);
+        turnPower += Math.copySign(ShooterConstants.ANGLE_KF, turnPower);
 
+        if (turnController.atSetPoint()) {
+            turnPower = 0;
+        }
         // Limita rotação igual ao AlignToAprilTag
         turnPower = Math.max(-0.4, Math.min(0.4, turnPower));
 

@@ -9,6 +9,8 @@ import com.bylazar.telemetry.PanelsTelemetry;
 import com.bylazar.telemetry.TelemetryManager;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 
+import org.firstinspires.ftc.teamcode.autos.paths.BlueRearPoses;
+import org.firstinspires.ftc.teamcode.autos.paths.PosesNames;
 import org.firstinspires.ftc.teamcode.robot.RobotContainer;
 import org.firstinspires.ftc.teamcode.utils.AllianceEnum;
 import org.firstinspires.ftc.teamcode.utils.DataStorage;
@@ -28,7 +30,7 @@ public class AutoBlueRear extends CommandOpMode {
 
         Command autonomousCommand = robot.getAutonomousBlueRearCommand();
         while (!isStarted()) {
-            robot.updateRobotPose(AllianceEnum.Blue);
+            robot.updateRobotPose(AllianceEnum.Blue, BlueRearPoses.getPose(PosesNames.StartPose));
 
 
         }
