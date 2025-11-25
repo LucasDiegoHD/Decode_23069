@@ -1,11 +1,16 @@
 package org.firstinspires.ftc.teamcode.subsystems;
 
+import android.graphics.Color;
+
 import com.arcrobotics.ftclib.command.SubsystemBase;
 import com.bylazar.telemetry.TelemetryManager;
 import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.DigitalChannel;
 import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.robotcore.hardware.NormalizedColorSensor;
+import com.qualcomm.robotcore.hardware.NormalizedRGBA;
+import com.qualcomm.robotcore.hardware.SwitchableLight;
 
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
@@ -17,15 +22,13 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 //@AutoLog
 public class IndexerSubsystem extends SubsystemBase {
 
-    private final DigitalChannel sensorEntry;
-    private final DistanceSensor sensorDistance;
     private final TelemetryManager telemetry;
-    private final ColorSensor sensorColor;
+    private final NormalizedColorSensor sensorColor;
     private int pieceCount = 0;
 
     private final boolean lastEntryState = false;
     private final boolean lastExitState = false;
-
+    private final float[] hsvValues = new float[3];
     /**
      * Constructs a new IndexerSubsystem.
      *
@@ -36,13 +39,13 @@ public class IndexerSubsystem extends SubsystemBase {
         this.telemetry = telemetry;
 
         // get a reference to the color sensor.
-        sensorColor = hardwareMap.get(ColorSensor.class, IndexerConstants.EXIT_SENSOR_NAME);
+        sensorColor = hardwareMap.get(NormalizedColorSensor.class, IndexerConstants.EXIT_SENSOR_NAME);
 
         // get a reference to the distance sensor that shares the same name.
-        sensorDistance = hardwareMap.get(DistanceSensor.class, IndexerConstants.EXIT_SENSOR_NAME);
-        sensorEntry = hardwareMap.get(DigitalChannel.class, IndexerConstants.ENTRY_SENSOR_NAME);
-        sensorEntry.setMode(DigitalChannel.Mode.INPUT);
-
+        //sensorDistance = hardwareMap.get(DistanceSensor.class, IndexerConstants.EXIT_SENSOR_NAME);
+        if (sensorColor instanceof SwitchableLight) {
+            ((SwitchableLight) sensorColor).enableLight(false);
+        }
 
     }
 
@@ -51,35 +54,29 @@ public class IndexerSubsystem extends SubsystemBase {
      */
     @Override
     public void periodic() {
-        telemetry.addData("Distance (cm)",
-                sensorDistance.getDistance(DistanceUnit.CM));
-        telemetry.addData("Entry", getEntrySensor());
-        telemetry.addData("Exit", getExitSensor());
-        telemetry.addData("R", sensorColor.red());
-        telemetry.addData("G", sensorColor.green());
-        telemetry.addData("B", sensorColor.blue());
-        telemetry.addData("ARGB", sensorColor.argb());
+        sensorColor.setGain(IndexerConstants.SENSOR_GAIN);
+        NormalizedRGBA colors = sensorColor.getNormalizedColors();
+        Color.colorToHSV(colors.toColor(), hsvValues);
+
+
+        telemetry.addData("Hue", hsvValues[0]);
+        telemetry.addData("Saturation", hsvValues[1]);
+        telemetry.addData("Value", hsvValues[2]);
+        telemetry.addData("Sensor", getExitSensor());
+
+
 
     }
 
-    /**
-     * Gets the state of the entry sensor.
-     * @return True if the sensor is triggered, false otherwise.
-     */
-    public boolean getEntrySensor() {
-        return sensorEntry.getState();
-
-    }
 
     /**
      * Gets the state of the exit sensor.
      * @return True if the sensor is triggered, false otherwise.
      */
     public boolean getExitSensor() {
-        return (sensorColor.blue() > IndexerConstants.COLOR_OFFSET ||
-                sensorColor.green() > IndexerConstants.COLOR_OFFSET ||
-                sensorColor.red() > IndexerConstants.COLOR_OFFSET) ||
-                sensorDistance.getDistance(DistanceUnit.CM) < IndexerConstants.DISTANCE_OFFSET;
+        return (hsvValues[0] > IndexerConstants.HUE_OFFSET ||
+                hsvValues[1] > IndexerConstants.SATURATION_OFFSET ||
+                hsvValues[2] > IndexerConstants.VALUE_OFFSET);
     }
 
 

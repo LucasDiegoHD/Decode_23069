@@ -22,6 +22,8 @@ public class IndexerConstants {
     /** The maximum number of game pieces the robot can hold. */
     public static int MAX_PIECE_CAPACITY = 3;
     /** The distance threshold in centimeters for the exit sensor to be considered triggered. */
-    public static double DISTANCE_OFFSET = 2.4;
-    public static int COLOR_OFFSET = 200;
+    public static double HUE_OFFSET = 100;
+    public static double SATURATION_OFFSET = 0.5;
+    public static double VALUE_OFFSET = 0.001;
+    public static float SENSOR_GAIN = 2;
 }
