@@ -73,7 +73,7 @@ public class ShooterConstants {
      * x = Distance (from Limelight)
      * Formula: y = 842.9828x + 2790.7711
      */
-    public static double RPM_N0 = 2690.7711;
+    public static double RPM_N0 = 2640.7711;
     public static double RPM_N1 = 842.9828;
     public static double ANGLE_KP = 0.75;
     public static double ANGLE_KI = 0.01;
