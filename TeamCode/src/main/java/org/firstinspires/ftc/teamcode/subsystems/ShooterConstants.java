@@ -39,7 +39,7 @@ public class ShooterConstants {
     /** The target velocity in RPM for short shots. */
     public static double TARGET_VELOCITY_SHORT = 3800;
     /** The target velocity in RPM for long shots. */
-    public static double TARGET_VELOCITY_LONG = 6000;
+    public static double TARGET_VELOCITY_LONG = 5400;
     /** The acceptable error margin for the shooter's target velocity in RPM. */
     public static double VELOCITY_TOLERANCE = 50;
 
@@ -73,7 +73,7 @@ public class ShooterConstants {
      * x = Distance (from Limelight)
      * Formula: y = 842.9828x + 2790.7711
      */
-    public static double RPM_N0 = 2790.7711;
+    public static double RPM_N0 = 2690.7711;
     public static double RPM_N1 = 842.9828;
     public static double ANGLE_KP = 0.75;
     public static double ANGLE_KI = 0.01;
