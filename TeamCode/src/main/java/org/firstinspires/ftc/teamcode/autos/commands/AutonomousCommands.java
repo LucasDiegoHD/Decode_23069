@@ -63,28 +63,27 @@ public class AutonomousCommands extends SequentialCommandGroup {
                 new SpinShooterCommand(shooter, SpinShooterCommand.Action.LONG_SHOOT),
                 new GoToPoseCommand(drivetrain, poses.get(PosesNames.GoToShoot1.ordinal())),
                 new AlignAndAdjustAutoCommand(drivetrain, vision, shooter),
-                new ShootCommand(shooter, intake, indexer, 3),
+                new ShootCommand(shooter, intake, indexer, 3).withTimeout(5000),
                 new SpinShooterCommand(shooter, SpinShooterCommand.Action.LONG_SHOOT),
                 new GoToPoseCommand(drivetrain, poses.get(PosesNames.GoToLine1.ordinal())),
                 new InstantCommand(intake::run),
                 new GoToPoseCommand(drivetrain, poses.get(PosesNames.CatchLine1.ordinal())).withTimeout(2000),
-                new GoToPoseCommand(drivetrain, poses.get(PosesNames.GoToShoot2.ordinal())),
+                new GoToPoseCommand(drivetrain, poses.get(PosesNames.GoToShoot1.ordinal())),
                 new InstantCommand(intake::stop),
                 new WaitCommand(500),
                 new AlignAndAdjustAutoCommand(drivetrain, vision, shooter),
-                new ShootCommand(shooter, intake, indexer, 3),
+                new ShootCommand(shooter, intake, indexer, 3).withTimeout(5000),
                 new SpinShooterCommand(shooter, SpinShooterCommand.Action.LONG_SHOOT),
+                new InstantCommand(intake::run),
                 new GoToPoseCommand(drivetrain, poses.get(PosesNames.GoToLine2.ordinal())).withTimeout(2000),
                 new WaitCommand(500),
-                new InstantCommand(intake::run),
                 new GoToPoseCommand(drivetrain, poses.get(PosesNames.CatchLine2.ordinal())).withTimeout(2000),
                 new GoToPoseCommand(drivetrain, poses.get(PosesNames.GoToShoot1.ordinal())),
                 new InstantCommand(intake::stop),
                 new AlignAndAdjustAutoCommand(drivetrain, vision, shooter),
                 new ShootCommand(shooter, intake, indexer, 3).withTimeout(5000),
                 new SpinShooterCommand(shooter, SpinShooterCommand.Action.STOP),
-                new LeaveCommand(drivetrain, poses.get(PosesNames.EndPose.ordinal()))
-
+                new GoToPoseCommand(drivetrain, poses.get(PosesNames.EndPose.ordinal()))
         );
         addRequirements(drivetrain, shooter, intake);
     }

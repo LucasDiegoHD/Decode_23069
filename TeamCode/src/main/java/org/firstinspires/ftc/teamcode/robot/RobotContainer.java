@@ -74,8 +74,8 @@ public class RobotContainer {
                 targetx = 144;
                 targety = 144;
             } else {
-                targetx = 144;
-                targety = 0;
+                targetx = 0;
+                targety = 144;
             }
 
             new GamepadButton(driver, GamepadKeys.Button.X)
