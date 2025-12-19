@@ -18,7 +18,7 @@ public class ShooterConstants {
     public static double kD = 0.0;
 
 
-    public static double kF = 0.0001;
+    public static double kF = 0.001;
 
 
     /** The hardware map name for the right shooter motor. */
@@ -28,7 +28,8 @@ public class ShooterConstants {
     /** The hardware map name for the trigger motor. */
     public static String TRIGGER_MOTOR_NAME = "triggerMotor";
     /** The hardware map name for the hood servo. */
-    public static String HOOD_SERVO_NAME = "Hood_Servo";
+    public static String HOOD_SERVO_LEFT_NAME = "Hood_ServoL";
+    public static String HOOD_SERVO_RIGHT_NAME = "Hood_ServoR";
 
     /**
      * The number of encoder ticks per revolution for the shooter motors.
@@ -39,16 +40,16 @@ public class ShooterConstants {
     /** The target velocity in RPM for short shots. */
     public static double TARGET_VELOCITY_SHORT = 3800;
     /** The target velocity in RPM for long shots. */
-    public static double TARGET_VELOCITY_LONG = 5400;
+    public static double TARGET_VELOCITY_LONG = 4600;
     /** The acceptable error margin for the shooter's target velocity in RPM. */
-    public static double VELOCITY_TOLERANCE = 10;
+    public static double VELOCITY_TOLERANCE = 5;
 
     /** The minimum position of the hood servo. */
-    public static double MINIMUM_HOOD = 0.25;
+    public static double MINIMUM_HOOD = 0.0;
     /** The maximum position of the hood servo. */
     public static double MAXIMUM_HOOD = 0.9;
     /** The amount to increment or decrement the hood position. */
-    public static double HOOD_INCREMENT = 0.02;
+    public static double HOOD_INCREMENT = 0.05;
 
     // --- TIMINGS ---
     public static double INTAKE_TIME_TO_SHOOT = 350;

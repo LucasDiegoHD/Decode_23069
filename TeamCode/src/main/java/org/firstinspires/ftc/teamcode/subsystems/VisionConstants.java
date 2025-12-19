@@ -24,7 +24,7 @@ public class VisionConstants {
     public static double TURN_KF = 0.1;
 
 
-    public static double LONGEST_HOOD = 0.7;
+    public static double LONGEST_HOOD = 0.22;
     public static double LONGEST_RPM = 4500;
     public static double LONGEST_DISTANCE = 2.2;
     // ---- Tempo ----

@@ -62,8 +62,8 @@ public class TeleOpDriveCommand extends CommandBase {
         }
         // Apply power to the drivetrain
         drivetrain.getFollower().setTeleOpDrive(
-                xField, // Forward/backward power
-                -yField, // Strafe power
+                -yField, // Forward/backward power
+                -xField, // Strafe power
                 -driverGamepad.getRightX(), // Turn power
                 true // Specify that the control is field-centric
         );

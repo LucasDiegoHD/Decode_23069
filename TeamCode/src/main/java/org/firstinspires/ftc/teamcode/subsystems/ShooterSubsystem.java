@@ -21,7 +21,8 @@ public class ShooterSubsystem extends SubsystemBase {
     private final DcMotorEx lShooterMotor;
     private final VoltageSensor voltageSensor;
     private final TelemetryManager telemetry;
-    private final Servo hoodServo;
+    private final Servo hoodServoLeft;
+    private final Servo hoodServoRight;
 
     private final PIDFController controller;
 
@@ -44,7 +45,8 @@ public class ShooterSubsystem extends SubsystemBase {
         rShooterMotor = hardwareMap.get(DcMotorEx.class, ShooterConstants.RSHOOTER_MOTOR_NAME);
         lShooterMotor = hardwareMap.get(DcMotorEx.class, ShooterConstants.LSHOOTER_MOTOR_NAME);
         voltageSensor = hardwareMap.voltageSensor.iterator().next();
-        hoodServo = hardwareMap.get(Servo.class, ShooterConstants.HOOD_SERVO_NAME);
+        hoodServoLeft = hardwareMap.get(Servo.class, ShooterConstants.HOOD_SERVO_LEFT_NAME);
+        hoodServoRight = hardwareMap.get(Servo.class, ShooterConstants.HOOD_SERVO_RIGHT_NAME);
 
         controller = new PIDFController(
                 ShooterConstants.kP,
@@ -60,10 +62,12 @@ public class ShooterSubsystem extends SubsystemBase {
         rShooterMotor.setMode(DcMotorEx.RunMode.RUN_WITHOUT_ENCODER);
         lShooterMotor.setMode(DcMotorEx.RunMode.RUN_WITHOUT_ENCODER);
 
+        hoodServoRight.setDirection(Servo.Direction.REVERSE);
         rShooterMotor.setDirection(DcMotorSimple.Direction.REVERSE);
 
         // Initialize hood to default position
-        hoodServo.setPosition(hoodPosition);
+        hoodServoLeft.setPosition(hoodPosition);
+        hoodServoRight.setPosition(hoodPosition);
     }
 
     /**
@@ -94,7 +98,9 @@ public class ShooterSubsystem extends SubsystemBase {
      */
     public void increaseHood() {
         hoodPosition = Math.min(ShooterConstants.MAXIMUM_HOOD, hoodPosition + HOOD_INCREMENT);
-        hoodServo.setPosition(hoodPosition);
+        hoodServoLeft.setPosition(hoodPosition);
+        hoodServoRight.setPosition(hoodPosition);
+
     }
 
     /**
@@ -102,12 +108,15 @@ public class ShooterSubsystem extends SubsystemBase {
      */
     public void decreaseHood() {
         hoodPosition = Math.max(ShooterConstants.MINIMUM_HOOD, hoodPosition - HOOD_INCREMENT);
-        hoodServo.setPosition(hoodPosition);
+        hoodServoLeft.setPosition(hoodPosition);
+        hoodServoRight.setPosition(hoodPosition);
+
     }
 
     public void setHoodPosition(double position) {
         hoodPosition = Math.max(ShooterConstants.MINIMUM_HOOD, Math.min(ShooterConstants.MAXIMUM_HOOD, position));
-        hoodServo.setPosition(hoodPosition);
+        hoodServoLeft.setPosition(hoodPosition);
+        hoodServoRight.setPosition(hoodPosition);
     }
 
     public double getTargetRPM() {
