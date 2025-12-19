@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode.robot;
 
+import static org.firstinspires.ftc.teamcode.utils.DataStorage.alliance;
+
 import com.arcrobotics.ftclib.command.Command;
 import com.arcrobotics.ftclib.command.InstantCommand;
 import com.arcrobotics.ftclib.command.button.GamepadButton;
@@ -60,6 +62,7 @@ public class RobotContainer {
         indexer = new IndexerSubsystem(hardwareMap, telemetry);
 
 
+
         if (driver != null) {
             drivetrain.getFollower().setPose(DataStorage.actualPose);
             drivetrain.setDefaultCommand(new TeleOpDriveCommand(drivetrain, driver));
@@ -100,7 +103,10 @@ public class RobotContainer {
 
             new GamepadButton(driver, GamepadKeys.Button.B)
                     .whileHeld(new GoToPose(drivetrain,ShootPose));
-            new GamepadButton(driver, GamepadKeys.Button.START).whenActive(new UpdatePoseLimelightCommand(drivetrain, vision, vision.getRobotPose().get()));
+
+            Pose endPose = (alliance == AllianceEnum.Red)? RedRearPoses.getPose(PosesNames.EndPose) : BlueRearPoses.getPose(PosesNames.EndPose);
+            new GamepadButton(driver, GamepadKeys.Button.START)
+                    .whenActive(new UpdatePoseLimelightCommand(drivetrain, vision, endPose));
 
         }
 
@@ -156,9 +162,10 @@ public class RobotContainer {
         new GamepadButton(operator, GamepadKeys.Button.DPAD_RIGHT)
                 .whenPressed(new InstantCommand(shooter::increaseHood, shooter));
 
+        Pose endPose = (alliance == AllianceEnum.Red)? RedRearPoses.getPose(PosesNames.EndPose) : BlueRearPoses.getPose(PosesNames.EndPose);
         // Continuous shooting
         new GamepadButton(operator, GamepadKeys.Button.RIGHT_BUMPER)
-                .whileHeld(new AutoShootCommand(drivetrain, vision, shooter, intake, indexer));
+                .whileHeld(new AutoShootCommand(drivetrain, vision, shooter, intake, indexer, endPose));
         // Stop shooter
         new GamepadButton(operator, GamepadKeys.Button.LEFT_BUMPER)
                 .whenPressed(new InstantCommand(shooter::stop, shooter));

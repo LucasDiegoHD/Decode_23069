@@ -82,7 +82,6 @@ public class AutonomousCommands extends SequentialCommandGroup {
                 new InstantCommand(intake::stop),
                 new AlignAndAdjustAutoCommand(drivetrain, vision, shooter),
                 new ShootCommand(shooter, intake, indexer, 3).withTimeout(5000),
-                new SpinShooterCommand(shooter, SpinShooterCommand.Action.STOP),
                 new GoToPoseCommand(drivetrain, poses.get(PosesNames.EndPose.ordinal()))
         );
         addRequirements(drivetrain, shooter, intake);

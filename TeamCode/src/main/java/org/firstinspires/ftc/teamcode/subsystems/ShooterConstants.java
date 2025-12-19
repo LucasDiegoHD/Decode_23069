@@ -18,7 +18,7 @@ public class ShooterConstants {
     public static double kD = 0.0;
 
 
-    public static double kF = 0.001;
+    public static double kF = 0.05;
 
 
     /** The hardware map name for the right shooter motor. */
@@ -40,9 +40,9 @@ public class ShooterConstants {
     /** The target velocity in RPM for short shots. */
     public static double TARGET_VELOCITY_SHORT = 3800;
     /** The target velocity in RPM for long shots. */
-    public static double TARGET_VELOCITY_LONG = 4600;
+    public static double TARGET_VELOCITY_LONG = 3800;
     /** The acceptable error margin for the shooter's target velocity in RPM. */
-    public static double VELOCITY_TOLERANCE = 5;
+    public static double VELOCITY_TOLERANCE = 15;
 
     /** The minimum position of the hood servo. */
     public static double MINIMUM_HOOD = 0.0;
