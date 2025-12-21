@@ -8,8 +8,9 @@ public enum PosesNames {
     GoToShoot2,
     GoToLine2,
     CatchLine2,
-
     EndPose,
+    GoToLine3,
+    CatchLine3,
 
 
 }

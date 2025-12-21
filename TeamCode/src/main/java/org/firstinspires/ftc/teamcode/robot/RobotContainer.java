@@ -67,6 +67,8 @@ public class RobotContainer {
             drivetrain.getFollower().setPose(DataStorage.actualPose);
             drivetrain.setDefaultCommand(new TeleOpDriveCommand(drivetrain, driver));
 
+            Pose endPose = (alliance == AllianceEnum.Red)? RedRearPoses.getPose(PosesNames.EndPose) : BlueRearPoses.getPose(PosesNames.EndPose);
+
             // Driver controller bindings
             new GamepadButton(driver, GamepadKeys.Button.Y)
                     .whileHeld(new AlignToAprilTagCommand(drivetrain, vision, telemetry, operator));
@@ -104,8 +106,7 @@ public class RobotContainer {
             new GamepadButton(driver, GamepadKeys.Button.B)
                     .whileHeld(new GoToPose(drivetrain,ShootPose));
 
-            Pose endPose = (alliance == AllianceEnum.Red)? RedRearPoses.getPose(PosesNames.EndPose) : BlueRearPoses.getPose(PosesNames.EndPose);
-            new GamepadButton(driver, GamepadKeys.Button.START)
+            new GamepadButton(driver, GamepadKeys.Button.BACK)
                     .whenActive(new UpdatePoseLimelightCommand(drivetrain, vision, endPose));
 
         }

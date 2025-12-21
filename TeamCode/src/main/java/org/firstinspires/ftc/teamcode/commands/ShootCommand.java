@@ -42,6 +42,7 @@ public class ShootCommand extends CommandBase {
     private final TelemetryManager telemetryM;
     private final IndexerSubsystem indexer;
     private final boolean lastSensor = false;
+
     /**
      * Constructs a new ShootCommand.
      * @param shooter The ShooterSubsystem to use.
@@ -84,43 +85,52 @@ public class ShootCommand extends CommandBase {
 
         switch (state) {
             case Conveyor:
+                // MELHORIA: Detecta a peça na "câmara" via sensor de saída para reduzir latência de busca
                 if (indexer.getExitSensor() || timer.milliseconds() > ShooterConstants.TRIGGER_TIMER_TO_SHOOT) {
 
+                    // Se o subsistema estiver pronto (Bang-Bang estabilizado), atira sem passar por Acceleration
                     if (shooter.getShooterAtTarget()) {
                         state = SHOOT_STATES.Shooting;
                         intake.runTrigger();
                         timer.reset();
                     } else {
+                        // Caso contrário, prepara para acelerar mantendo a peça pronta no gatilho
                         state = SHOOT_STATES.Acceleration;
-                        intake.stop();
+                        intake.stopTrigger();
                     }
                 }
                 break;
 
             case Acceleration:
+                // MELHORIA: Disparo instantâneo no microssegundo em que o RPM entra na janela estável
                 if (shooter.getShooterAtTarget()) {
                     state = SHOOT_STATES.Shooting;
                     intake.runTrigger();
 
-                    intake.run();
+                    intake.run(); // Mantém pressão constante para a próxima peça já vir vindo
 
                     timer.reset();
                 }
                 break;
 
             case Shooting:
-                if (!indexer.getExitSensor() || timer.milliseconds()>ShooterConstants.TRIGGER_TIMER_TRIGGERING) {
+                // MELHORIA COMPETITIVA: Usa o sensor de saída como gatilho de interrupção (Borda de Descida).
+                // Se o sensor ficar falso, a peça saiu fisicamente. Voltamos ao ciclo instantaneamente.
+                boolean pieceHasLeft =!indexer.getExitSensor();
+
+                if (pieceHasLeft || timer.milliseconds() > ShooterConstants.TRIGGER_TIMER_TRIGGERING) {
                     state = SHOOT_STATES.Conveyor;
                     intake.run();
-                    intake.stopTrigger();
                     timer.reset();
                     if (shooterCounter > 0) {
                         shooterCounter--;
                     }
                 }
-
+                break;
         }
 
+        telemetryM.addData("Shoot State", state);
+        telemetryM.addData("RPM Ready", shooter.getShooterAtTarget());
     }
 
     /**
@@ -129,7 +139,7 @@ public class ShootCommand extends CommandBase {
      */
     @Override
     public boolean isFinished() {
-        return shooterCounter == 0;
+        return shooterCounter <= 0;
     }
 
     /**
@@ -141,6 +151,5 @@ public class ShootCommand extends CommandBase {
         intake.stopTrigger();
         intake.stop();
         telemetryM.addData("Shoot State", "Finish");
-
     }
 }

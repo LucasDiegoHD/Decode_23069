@@ -22,6 +22,9 @@ public class BlueRearPoses {
 
             new Pose(38, 34, Math.toRadians(90)),
 
+            new Pose(52.134, 58.169, Math.toRadians(0)),
+            new Pose(11.776, 57.669, Math.toRadians(0)),
+
     };
 
     public static Pose getPose(PosesNames name) {

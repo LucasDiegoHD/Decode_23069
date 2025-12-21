@@ -25,11 +25,11 @@ public class VisionConstants {
 
 
     public static double LONGEST_HOOD = 0.52;
-    public static double LONGEST_RPM = 3800;
+    public static double LONGEST_RPM = 3700;
     public static double LONGEST_DISTANCE = 2.2;
     // ---- Tempo ----
     // distância máxima em METROS
-    public static double MAX_DELTA_METERS = 1.0; // default = 1m
+    public static double MAX_DELTA_METERS = 2.0; // default = 1m
 
     // Pesos para fusão
     public static double ODOMETRY_WEIGHT = 0.8;

@@ -16,6 +16,7 @@ public class ShooterSubsystem extends SubsystemBase {
         Formula for calculating RPM by distance:
         RPM = 520.71 * distance + 3815.97
      */
+
     private final DcMotorEx rShooterMotor;
     private final DcMotorEx lShooterMotor;
     private final VoltageSensor voltageSensor;
@@ -49,7 +50,6 @@ public class ShooterSubsystem extends SubsystemBase {
         hoodServoLeft = hardwareMap.get(Servo.class, ShooterConstants.HOOD_SERVO_LEFT_NAME);
         hoodServoRight = hardwareMap.get(Servo.class, ShooterConstants.HOOD_SERVO_RIGHT_NAME);
 
-        // No controle com Feedforward manual, zeramos o kF do controlador interno.
         controller = new PIDFController(
                 ShooterConstants.kP,
                 ShooterConstants.kI,
@@ -135,7 +135,7 @@ public class ShooterSubsystem extends SubsystemBase {
         double power = 0;
 
         if (targetRPM > 0) {
-            if (smoothedRPM < targetRPM * 0.92) {
+            if (smoothedRPM < targetRPM * 0.96) {
                 power = 1.0;
             } else {
                 // FEEDFORWARD CASEIRO
