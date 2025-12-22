@@ -11,6 +11,6 @@ public enum PosesNames {
     EndPose,
     GoToLine3,
     CatchLine3,
-
+    GatePose,
 
 }

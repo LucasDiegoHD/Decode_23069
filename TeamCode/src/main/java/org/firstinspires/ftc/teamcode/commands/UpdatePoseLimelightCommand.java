@@ -10,8 +10,8 @@ import org.firstinspires.ftc.teamcode.subsystems.VisionSubsystem;
 import java.util.Optional;
 
 /**
- * Comando para atualizar a pose do robô utilizando a Limelight.
- * Implementa uma medida de proteção: caso a visão falhe, assume uma pose de fallback.
+ * Competitive Pose Update Command.
+ * Features: Snap-on-start, Tag-loss protection, and MegaTag 1 stability.
  */
 public class UpdatePoseLimelightCommand extends CommandBase {
 
@@ -19,11 +19,8 @@ public class UpdatePoseLimelightCommand extends CommandBase {
     private final VisionSubsystem vision;
     private final Pose fallbackPose;
 
-    /**
-     * @param drivetrain O subsistema de tração que contém o Follower do Pedro Pathing.
-     * @param vision O subsistema de visão Limelight.
-     * @param fallbackPose A pose (ex: endPose) que o robô deve assumir se a Limelight não vir nada.
-     */
+    private static boolean hasInitialized = false;
+
     public UpdatePoseLimelightCommand(DrivetrainSubsystem drivetrain, VisionSubsystem vision, Pose fallbackPose) {
         this.drivetrain = drivetrain;
         this.vision = vision;
@@ -33,64 +30,68 @@ public class UpdatePoseLimelightCommand extends CommandBase {
 
     @Override
     public void initialize() {
-        Log.d("UpdatePose", "Iniciando atualização de pose via Limelight...");
+        Optional<Pose> poseOptional = vision.getRobotPose();
 
-        // Pega a pose atual estimada pela odometria (Pinpoint/Deadwheels)
-        Pose currentPose = drivetrain.getFollower().getPose();
-
-        // Tenta obter a pose global da Limelight usando o heading atual para o MegaTag2
-        Optional<Pose> poseOptional = vision.getRobotPose(currentPose.getHeading());
-
-        // PROTEÇÃO: Se a pose for null (Optional vazio), o robô assume a fallbackPose
         if (poseOptional.isEmpty()) {
-            drivetrain.getFollower().setPose(fallbackPose);
-            Log.w("UpdatePose", "Limelight não detectou tags. Pose resetada para o fallback (endpose).");
+            if (!hasInitialized) {
+                // If we never synced, move to fallback so Field-Oriented isn't (0,0)
+                drivetrain.getFollower().setPose(fallbackPose);
+                Log.w("Vision", "No tag & not initialized. Using fallback.");
+            } else {
+                // If we were already synced, just trust odometry (do nothing)
+                Log.d("Vision", "Tag lost. Maintaining odometry tracking.");
+            }
             return;
         }
 
         Pose llPose = poseOptional.get();
+        Pose currentPose = drivetrain.getFollower().getPose();
 
-        // FILTRO DE SANIDADE: Calcula a distância entre a odometria e a visão
-        double distInches = Math.hypot(llPose.getX() - currentPose.getX(), llPose.getY() - currentPose.getY());
-        double maxDeltaInches = VisionConstants.MAX_DELTA_METERS * VisionConstants.METERS_TO_INCHES;
-
-        // Se a Limelight indicar um salto impossível (ex: reflexo), também usamos o fallback
-        if (distInches > maxDeltaInches) {
-            drivetrain.getFollower().setPose(fallbackPose);
-            Log.d("UpdatePose", "LL detectada, mas rejeitada por salto excessivo (" + distInches + " in). Usando fallback.");
+        if (!hasInitialized) {
+            drivetrain.getFollower().setPose(llPose);
+            hasInitialized = true;
+            Log.d("Vision", "Initial Snap Successful: " + llPose);
             return;
         }
 
-        // FUSÃO DE DADOS: Combina a odometria com a visão usando os pesos das constantes
+        double distInches = Math.hypot(llPose.getX() - currentPose.getX(), llPose.getY() - currentPose.getY());
+        double maxDeltaInches = VisionConstants.MAX_DELTA_METERS * VisionConstants.METERS_TO_INCHES;
+
+        if (distInches > maxDeltaInches) {
+            // If the jump is too big, it's likely a reflection. We DON'T reset hasInitialized.
+            // We just ignore this frame to prevent the robot from "glitching".
+            Log.w("Vision", "Large jump rejected: " + distInches + " inches.");
+            return;
+        }
+
         Pose fusedPose = getFusedPose(currentPose, llPose);
         drivetrain.getFollower().setPose(fusedPose);
-
-        Log.d("UpdatePose", "Pose atualizada com sucesso! LL=" + llPose + " | Fused=" + fusedPose);
     }
 
-    /**
-     * Realiza a fusão ponderada entre a pose da odometria e a pose da Limelight.
-     */
     @NonNull
     private Pose getFusedPose(Pose currentPose, Pose llPose) {
         double wOdo = VisionConstants.ODOMETRY_WEIGHT;
         double wLL = VisionConstants.LIMELIGHT_WEIGHT;
         double sum = wOdo + wLL;
-
         if (sum == 0) return currentPose;
 
         wOdo /= sum;
         wLL /= sum;
 
-        // Funde as coordenadas X e Y, mantendo o heading da odometria (geralmente mais estável em tempo real)
-        double fusedX = currentPose.getX() * wOdo + llPose.getX() * wLL;
-        double fusedY = currentPose.getY() * wOdo + llPose.getY() * wLL;
-
-        return new Pose(fusedX, fusedY, currentPose.getHeading());
+        return new Pose(
+                currentPose.getX() * wOdo + llPose.getX() * wLL,
+                currentPose.getY() * wOdo + llPose.getY() * wLL,
+                currentPose.getHeading() // Keep odometry heading
+        );
     }
 
     @Override
     public boolean isFinished() {
-        return true; // Comando instantâneo
+        return true;
+    }
+
+    // Helper to reset status if needed (e.g. at start of OpMode)
+    public static void resetLocalizationStatus() {
+        hasInitialized = false;
     }
 }

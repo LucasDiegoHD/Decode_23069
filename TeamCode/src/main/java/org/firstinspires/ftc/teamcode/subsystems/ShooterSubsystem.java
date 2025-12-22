@@ -30,7 +30,7 @@ public class ShooterSubsystem extends SubsystemBase {
     private double hoodPosition = 0.5;
     private double smoothedRPM = 0.0;
     private final double ALPHA = 0.15; // Coeficiente do filtro (0.1 suave - 0.3 reativo)
-    private static final double MAX_RPM_AT_12V = 5000;
+    private static final double MAX_RPM_AT_12V = 5250;
 
     // Local constant for hood increment
     private static final double HOOD_INCREMENT = 0.02;
@@ -135,7 +135,7 @@ public class ShooterSubsystem extends SubsystemBase {
         double power = 0;
 
         if (targetRPM > 0) {
-            if (smoothedRPM < targetRPM * 0.96) {
+            if (smoothedRPM < targetRPM * 0.98) {
                 power = 1.0;
             } else {
                 // FEEDFORWARD CASEIRO
