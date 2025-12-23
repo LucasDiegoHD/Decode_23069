@@ -1,56 +1,67 @@
 package org.firstinspires.ftc.teamcode.autos.commands;
 
 import com.arcrobotics.ftclib.command.CommandBase;
-import com.pedropathing.geometry.BezierLine;
 import com.pedropathing.geometry.Pose;
+import com.pedropathing.geometry.BezierLine;
+import com.pedropathing.paths.PathBuilder;
 import com.pedropathing.paths.PathChain;
+import com.pedropathing.paths.PathConstraints;
 import org.firstinspires.ftc.teamcode.subsystems.DrivetrainSubsystem;
 
-/**
- * A command to move the robot to a specified target Pose using a simple Bezier curve.
- */
+import java.util.HashMap;
+import java.util.Map;
+
 public class GoToPoseCommand extends CommandBase {
     private final DrivetrainSubsystem drivetrain;
     private final Pose targetPose;
+    private double cruiseSpeed = 1.0;
+    private PathConstraints constraints;
+    private final Map<Double, Runnable> callbacks = new HashMap<>();
 
-    /**
-     * Creates a new GoToPoseCommand.
-     *
-     * @param drivetrain The DrivetrainSubsystem to use for movement.
-     * @param targetPose The target Pose to move the robot to.
-     */
     public GoToPoseCommand(DrivetrainSubsystem drivetrain, Pose targetPose) {
         this.drivetrain = drivetrain;
         this.targetPose = targetPose;
         addRequirements(drivetrain);
     }
 
-    /**
-     * Called when the command is initially scheduled. It creates a path from the robot's current
-     * pose to the target pose and starts following it.
-     */
+    public GoToPoseCommand(DrivetrainSubsystem drivetrain, Pose targetPose, double speed, PathConstraints constraints) {
+        this.drivetrain = drivetrain;
+        this.targetPose = targetPose;
+        this.cruiseSpeed = speed;
+        this.constraints = constraints;
+        addRequirements(drivetrain);
+    }
+
+    public GoToPoseCommand addCallback(double t, Runnable action) {
+        callbacks.put(t, action);
+        return this;
+    }
+
     @Override
     public void initialize() {
         Pose startPose = drivetrain.getFollower().getPose();
 
-        // Create a simple path (a Bezier line) from the current pose to the target.
-        PathChain pathToTarget = drivetrain.getFollower().pathBuilder()
-                .addPath(new BezierLine(startPose, targetPose))
-                .setLinearHeadingInterpolation(startPose.getHeading(), targetPose.getHeading())
-                .build();
+        drivetrain.getFollower().setMaxPower(cruiseSpeed);
 
-        // Command the drivetrain to follow the generated path.
-        drivetrain.getFollower().followPath(pathToTarget);
+        PathBuilder builder = drivetrain.getFollower().pathBuilder()
+                .addPath(new BezierLine(startPose, targetPose))
+                .setLinearHeadingInterpolation(startPose.getHeading(), targetPose.getHeading());
+
+        if (constraints != null) {
+            builder.setTValueConstraint(constraints.getTValueConstraint());
+            builder.setTimeoutConstraint(constraints.getTimeoutConstraint());
+        }
+
+        for (Map.Entry<Double, Runnable> entry : callbacks.entrySet()) {
+            builder.addParametricCallback(entry.getKey(), entry.getValue());
+        }
+
+        PathChain path = builder.build();
+        drivetrain.getFollower().followPath(path);
     }
 
-    /**
-     * Returns true when the command should end.
-     *
-     * @return True when the robot is no longer busy following the path.
-     */
     @Override
     public boolean isFinished() {
-
         return !drivetrain.getFollower().isBusy();
     }
 }

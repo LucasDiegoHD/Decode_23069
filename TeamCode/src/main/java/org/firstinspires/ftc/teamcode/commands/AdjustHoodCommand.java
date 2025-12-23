@@ -39,8 +39,13 @@ public class AdjustHoodCommand extends CommandBase {
                 + ShooterConstants.HOOD_N2 * Math.pow(distance, 2) + ShooterConstants.HOOD_N3 * Math.pow(distance, 3);
         if (distance > VisionConstants.LONGEST_DISTANCE || distance == 0) {
             hood = VisionConstants.LONGEST_HOOD;
-
         }
+
+        // Define "Long Shot" as more than 65% of the Longest Distance
+        // Or you can use a fixed value like: distance > 1.5
+        boolean longShotMode = distance > (VisionConstants.LONGEST_DISTANCE * 0.65);
+        shooter.setLongShotMode(longShotMode);
+
         shooter.setHoodPosition(hood);
     }
 

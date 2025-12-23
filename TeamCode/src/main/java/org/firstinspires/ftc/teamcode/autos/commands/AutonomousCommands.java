@@ -77,7 +77,7 @@ public class AutonomousCommands extends SequentialCommandGroup {
                 new GoToPoseCommand(drivetrain, poses.get(PosesNames.GoToLine3.ordinal())).withTimeout(2000),
                 new GoToPoseCommand(drivetrain, poses.get(PosesNames.CatchLine3.ordinal())).withTimeout(2000),
                 new InstantCommand(intake::stop),
-                new GoToPoseCommand(drivetrain, poses.get(PosesNames.GatePose.ordinal())).withTimeout(2000),
+                new GoToPoseCommand(drivetrain, poses.get(PosesNames.GatePose.ordinal())).withTimeout(800),
                 new GoToPoseCommand(drivetrain, poses.get(PosesNames.GoToShoot1.ordinal())),
                 new InstantCommand(intake::stop),
                 new AlignAndAdjustAutoCommand(drivetrain, vision, shooter),
@@ -92,7 +92,7 @@ public class AutonomousCommands extends SequentialCommandGroup {
                 new InstantCommand(intake::run),
                 new GoToPoseCommand(drivetrain, poses.get(PosesNames.CatchLine2.ordinal())).withTimeout(2000),
                 new GoToPoseCommand(drivetrain, poses.get(PosesNames.GoToShoot1.ordinal())),
-                new ShootCommand(shooter, intake, indexer, 1).withTimeout(2000),
+                new ShootCommand(shooter, intake, indexer, 1).withTimeout(1500),
                 new GoToPoseCommand(drivetrain, poses.get(PosesNames.EndPose.ordinal()))
         );
         addRequirements(drivetrain, shooter, intake);

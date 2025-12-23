@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode.subsystems;
 
 import com.arcrobotics.ftclib.command.SubsystemBase;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 
@@ -20,10 +21,11 @@ public class IntakeSubsystem extends SubsystemBase {
      * @param hardwareMap The hardware map to retrieve hardware devices from.
      */
     public IntakeSubsystem(HardwareMap hardwareMap) {
-        intakeMotor = hardwareMap.get(DcMotor.class, "intakeMotor"); // Use o nome da sua configuração
+        intakeMotor = hardwareMap.get(DcMotor.class, "intakeMotor");
         triggerMotor = hardwareMap.get(DcMotor.class, "triggerMotor");
         intakeMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         triggerMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        triggerMotor.setDirection(DcMotorSimple.Direction.REVERSE);
     }
 
     /**
