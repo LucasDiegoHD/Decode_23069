@@ -60,9 +60,6 @@ public class IndexerSubsystem extends SubsystemBase {
         telemetry.addData("Saturation", hsvValues[1]);
         telemetry.addData("Value", hsvValues[2]);
         telemetry.addData("Sensor", getExitSensor());
-
-
-
     }
 
 
