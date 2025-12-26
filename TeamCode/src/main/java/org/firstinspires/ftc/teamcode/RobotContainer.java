@@ -70,10 +70,13 @@ public class RobotContainer {
         // Alliance Initialization
         this.alliance = alliance;
 
-        endPose = (alliance == AllianceEnum.Red)?
-                BlueRearPoses.getPose(PosesNames.EndPose) : RedRearPoses.getPose(PosesNames.EndPose);
         innitialPose = (alliance == AllianceEnum.Red)?
                 RedRearPoses.getPose(PosesNames.EndPose) : BlueRearPoses.getPose(PosesNames.EndPose);
+        //TODO: Lucas, vê se esse initial pose deveria
+        // ser com esse ".getPose(PosesNames.EndPose)" porque me parece estranho um "end" no "innitial"
+
+        endPose = (alliance == AllianceEnum.Red)?
+                BlueRearPoses.getPose(PosesNames.EndPose) : RedRearPoses.getPose(PosesNames.EndPose);
         shootPose = (alliance == AllianceEnum.Red)?
                 RedRearPoses.getPose(PosesNames.GoToShoot1) : BlueRearPoses.getPose(PosesNames.GoToShoot1);
 
@@ -116,7 +119,7 @@ public class RobotContainer {
             drivetrain.getFollower().setPose(DataStorage.actualPose);
         } else {
             Pose startPose = (alliance == AllianceEnum.Red)?
-                    RedRearPoses.getPose(PosesNames.StartPose) : BlueRearPoses.getPose(PosesNames.StartPose);
+                    RedRearPoses.getPose(PosesNames.EndPose) : BlueRearPoses.getPose(PosesNames.EndPose);
             drivetrain.getFollower().setPose(startPose);
         }
 
@@ -142,9 +145,6 @@ public class RobotContainer {
     }
 
     private void configureTeleOpBindingsOperator() {
-        Pose endPose = (alliance == AllianceEnum.Red)?
-                BlueRearPoses.getPose(PosesNames.EndPose) : RedRearPoses.getPose(PosesNames.EndPose);
-
         new GamepadButton(operator, GamepadKeys.Button.RIGHT_BUMPER)
                 .whileHeld(new AutoShootCommand(drivetrain, vision, shooter, intake, indexer, endPose));
 
