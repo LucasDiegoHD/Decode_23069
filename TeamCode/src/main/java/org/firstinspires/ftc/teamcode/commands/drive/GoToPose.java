@@ -1,5 +1,5 @@
 // Ficheiro: commands/drivetrain/GoToPose.java
-package org.firstinspires.ftc.teamcode.commands;
+package org.firstinspires.ftc.teamcode.commands.drive;
 
 import com.arcrobotics.ftclib.command.CommandBase;
 import com.pedropathing.geometry.BezierLine;

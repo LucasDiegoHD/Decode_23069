@@ -1,6 +1,7 @@
 package org.firstinspires.ftc.teamcode.subsystems;
 
 import com.arcrobotics.ftclib.command.SubsystemBase;
+import com.bylazar.telemetry.PanelsTelemetry;
 import com.bylazar.telemetry.TelemetryManager;
 import com.pedropathing.ftc.FTCCoordinates;
 import com.pedropathing.geometry.PedroCoordinates;
@@ -23,7 +24,7 @@ public class VisionSubsystem extends SubsystemBase {
 
     private final Limelight3A limelight;
     private LLResult latestResult;
-    private final TelemetryManager telemetry;
+    private final TelemetryManager telemetry = PanelsTelemetry.INSTANCE.getTelemetry();
 
     private static final double INCHES_IN_METER = 39.3701;
 
@@ -31,10 +32,8 @@ public class VisionSubsystem extends SubsystemBase {
      * Constructs a new VisionSubsystem.
      *
      * @param hardwareMap The hardware map to retrieve hardware devices from.
-     * @param telemetry   The telemetry manager for logging.
      */
-    public VisionSubsystem(HardwareMap hardwareMap, TelemetryManager telemetry) {
-        this.telemetry = telemetry;
+    public VisionSubsystem(HardwareMap hardwareMap) {
         limelight = hardwareMap.get(Limelight3A.class, "limelight");
         limelight.start();
         limelight.pipelineSwitch(0);

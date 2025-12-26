@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode.commands;
 import com.arcrobotics.ftclib.command.CommandBase;
 import com.arcrobotics.ftclib.controller.PIDFController;
 import com.arcrobotics.ftclib.gamepad.GamepadEx;
+import com.bylazar.telemetry.PanelsTelemetry;
 import com.bylazar.telemetry.TelemetryManager;
 import com.pedropathing.follower.Follower;
 import org.firstinspires.ftc.teamcode.subsystems.DrivetrainSubsystem;
@@ -21,17 +22,16 @@ public class AlignToAprilTagCommand extends CommandBase {
 
     private final Follower follower;
     private final VisionSubsystem vision;
-    private final TelemetryManager telemetry;
+    private final TelemetryManager telemetry = PanelsTelemetry.INSTANCE.getTelemetry();
     private final PIDFController turnController;
     private int IsAprilTagNotSeemCounter = 0;
     private static final int ApriltagNotSeemMaximumCounter = 20;
     private final GamepadEx operator;
     boolean hasVibrated = false;
 
-    public AlignToAprilTagCommand(DrivetrainSubsystem drivetrain, VisionSubsystem vision, TelemetryManager telemetry, GamepadEx operator) {
+    public AlignToAprilTagCommand(DrivetrainSubsystem drivetrain, VisionSubsystem vision, GamepadEx operator) {
         this.follower = drivetrain.getFollower();
         this.vision = vision;
-        this.telemetry = telemetry;
         this.operator = operator;
         this.turnController = new PIDFController(VisionConstants.TURN_KP, VisionConstants.TURN_KI, VisionConstants.TURN_KD, VisionConstants.TURN_KF);
         addRequirements(drivetrain);

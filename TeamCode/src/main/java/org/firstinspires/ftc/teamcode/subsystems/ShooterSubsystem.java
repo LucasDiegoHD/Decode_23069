@@ -4,6 +4,7 @@ import static org.firstinspires.ftc.teamcode.subsystems.ShooterConstants.HOOD_IN
 
 import com.arcrobotics.ftclib.command.SubsystemBase;
 import com.arcrobotics.ftclib.controller.PIDFController;
+import com.bylazar.telemetry.PanelsTelemetry;
 import com.bylazar.telemetry.TelemetryManager;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
@@ -15,7 +16,7 @@ public class ShooterSubsystem extends SubsystemBase {
 
     private final DcMotorEx rShooterMotor, lShooterMotor;
     private final VoltageSensor voltageSensor;
-    private final TelemetryManager telemetry;
+    private final TelemetryManager telemetry = PanelsTelemetry.INSTANCE.getTelemetry();
     private final Servo hoodServoLeft, hoodServoRight;
     private final PIDFController controller;
 
@@ -29,8 +30,7 @@ public class ShooterSubsystem extends SubsystemBase {
     // Feature toggle
     private boolean isLongShotMode = false;
 
-    public ShooterSubsystem(HardwareMap hardwareMap, TelemetryManager telemetry) {
-        this.telemetry = telemetry;
+    public ShooterSubsystem(HardwareMap hardwareMap) {
         rShooterMotor = hardwareMap.get(DcMotorEx.class, ShooterConstants.RSHOOTER_MOTOR_NAME);
         lShooterMotor = hardwareMap.get(DcMotorEx.class, ShooterConstants.LSHOOTER_MOTOR_NAME);
         voltageSensor = hardwareMap.voltageSensor.iterator().next();

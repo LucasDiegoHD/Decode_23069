@@ -12,8 +12,6 @@ public class Autos extends SelectableOpMode {
         super("Selecione um auto", l -> {
             l.add("Azul Triangulo Pequeno", AutoBlueRear::new);
             l.add("Vermelho Triangulo Pequeno", AutoRedRear::new);
-
-
         });
     }
 

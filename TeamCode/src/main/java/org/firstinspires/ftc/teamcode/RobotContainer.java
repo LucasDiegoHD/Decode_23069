@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.robot;
+package org.firstinspires.ftc.teamcode;
 
 import com.arcrobotics.ftclib.command.Command;
 import com.arcrobotics.ftclib.command.CommandScheduler;
@@ -16,11 +16,15 @@ import com.bylazar.telemetry.TelemetryManager;
 import com.pedropathing.geometry.Pose;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
+import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.teamcode.autos.commands.AutonomousCommands;
 import org.firstinspires.ftc.teamcode.autos.paths.BlueRearPoses;
 import org.firstinspires.ftc.teamcode.autos.paths.PosesNames;
 import org.firstinspires.ftc.teamcode.autos.paths.RedRearPoses;
 import org.firstinspires.ftc.teamcode.commands.*;
+import org.firstinspires.ftc.teamcode.commands.drive.GoToPose;
+import org.firstinspires.ftc.teamcode.commands.drive.TeleOpDriveCommand;
+import org.firstinspires.ftc.teamcode.commands.drive.TeleOpDriveCommandZoneRepulsion;
 import org.firstinspires.ftc.teamcode.subsystems.*;
 import org.firstinspires.ftc.teamcode.utils.AllianceEnum;
 import org.firstinspires.ftc.teamcode.utils.DataStorage;
@@ -38,82 +42,106 @@ public class RobotContainer {
     private final VisionSubsystem vision;
     private final IndexerSubsystem indexer;
 
+    private final GamepadEx driver;
+    private final GamepadEx operator;
 
-    public RobotContainer(HardwareMap hardwareMap, TelemetryManager telemetry, GamepadEx driver, GamepadEx operator, AllianceEnum alliance) {
+    private final AllianceEnum alliance;
+
+    private final Pose innitialPose;
+    private final Pose endPose;
+    private final Pose shootPose;
+
+    private final Command driveCommand;
+    private final Command driveCommandZoneRepulsion;
+
+    public RobotContainer(HardwareMap hardwareMap, GamepadEx driver, GamepadEx operator, AllianceEnum alliance) {
+
         // Subsystem Initialization
-        drivetrain = new DrivetrainSubsystem(hardwareMap, telemetry);
+        drivetrain = new DrivetrainSubsystem(hardwareMap);
         intake = new IntakeSubsystem(hardwareMap);
-        shooter = new ShooterSubsystem(hardwareMap, telemetry);
-        vision = new VisionSubsystem(hardwareMap, telemetry);
-        indexer = new IndexerSubsystem(hardwareMap, telemetry);
+        shooter = new ShooterSubsystem(hardwareMap);
+        vision = new VisionSubsystem(hardwareMap);
+        indexer = new IndexerSubsystem(hardwareMap);
 
+        // Controller Initialization
+        this.driver = driver;
+        this.operator = operator;
+
+        // Alliance Initialization
+        this.alliance = alliance;
+
+        endPose = (alliance == AllianceEnum.Red)?
+                BlueRearPoses.getPose(PosesNames.EndPose) : RedRearPoses.getPose(PosesNames.EndPose);
+        innitialPose = (alliance == AllianceEnum.Red)?
+                RedRearPoses.getPose(PosesNames.EndPose) : BlueRearPoses.getPose(PosesNames.EndPose);
+        shootPose = (alliance == AllianceEnum.Red)?
+                RedRearPoses.getPose(PosesNames.GoToShoot1) : BlueRearPoses.getPose(PosesNames.GoToShoot1);
+
+        // Normal DriveCommand Initialization
+        driveCommand = new TeleOpDriveCommand(drivetrain, driver);
+
+        // Repulsion DriveCommand Initialization
         Polygon2d triangleBig = new Polygon2d(new Translation2d(72, 72), new Translation2d(144, 144), new Translation2d(0, 144));
-
-        Command driveCommandZoneRepulsion = new TeleOpDriveCommandZoneRepulsion(
+        driveCommandZoneRepulsion = new TeleOpDriveCommandZoneRepulsion(
                 drivetrain,
                 driver,
                 triangleBig,
                 1.0
         );
 
+        Command periodicUpdateLoop = new RepeatCommand(
+                new SequentialCommandGroup(
+                        new WaitCommand(500),
+                        new ConditionalCommand(
+                                new InstantCommand(),
+                                new UpdatePoseLimelightCommand(drivetrain, vision, innitialPose),
+                                this::isRobotShooting
+                        )
+                )
+        );
+
+        CommandScheduler.getInstance().schedule(periodicUpdateLoop);
+
         if (driver!= null) {
-            if (DataStorage.actualPose!= null) {
-                drivetrain.getFollower().setPose(DataStorage.actualPose);
-            } else {
-                Pose startPose = (alliance == AllianceEnum.Red)?
-                        RedRearPoses.getPose(PosesNames.StartPose) : BlueRearPoses.getPose(PosesNames.StartPose);
-                drivetrain.getFollower().setPose(startPose);
-            }
-
-            drivetrain.setDefaultCommand(new TeleOpDriveCommand(drivetrain, driver));
-
-            Pose endPose = (alliance == AllianceEnum.Red)?
-                    BlueRearPoses.getPose(PosesNames.EndPose) : RedRearPoses.getPose(PosesNames.EndPose);
-            Pose innitialPose = (alliance == AllianceEnum.Red)?
-                    RedRearPoses.getPose(PosesNames.EndPose) : BlueRearPoses.getPose(PosesNames.EndPose);
-            Pose shootPose = (alliance == AllianceEnum.Red)?
-                    RedRearPoses.getPose(PosesNames.GoToShoot1) : BlueRearPoses.getPose(PosesNames.GoToShoot1);
-
-
-
-            Command periodicUpdateLoop = new RepeatCommand(
-                    new SequentialCommandGroup(
-                            new WaitCommand(500),
-                            new ConditionalCommand(
-                                    new InstantCommand(),
-                                    new UpdatePoseLimelightCommand(drivetrain, vision, innitialPose),
-                                    () -> isRobotShooting()
-                            )
-                    )
-            );
-
-            CommandScheduler.getInstance().schedule(periodicUpdateLoop);
-
-            new GamepadButton(driver, GamepadKeys.Button.Y)
-                    .whileHeld(new AlignToAprilTagCommand(drivetrain, vision, telemetry, operator));
-
-            new GamepadButton(driver, GamepadKeys.Button.BACK)
-                    .whenPressed(new UpdatePoseLimelightCommand(drivetrain, vision, innitialPose));
-
-            new GamepadButton(driver, GamepadKeys.Button.A)
-                    .whileHeld(new GoToPose(drivetrain, endPose));
-
-            new GamepadButton(driver, GamepadKeys.Button.B)
-                    .whileHeld(new GoToPose(drivetrain, shootPose));
-
-            double targetx = (alliance == AllianceEnum.Red)? 144 : 0;
-            double targety = 144;
-
-            new GamepadButton(driver, GamepadKeys.Button.X)
-                    .whileHeld(new AimByPoseCommand(drivetrain, targetx, targety, telemetry));
+            configureTeleOpBindingsDriver();
         }
 
         if (operator!= null) {
-            configureTeleOpBindings(operator, alliance);
+            configureTeleOpBindingsOperator();
         }
     }
 
-    private void configureTeleOpBindings(GamepadEx operator, AllianceEnum alliance) {
+    private void configureTeleOpBindingsDriver() {
+        if (DataStorage.actualPose != null) {
+            drivetrain.getFollower().setPose(DataStorage.actualPose);
+        } else {
+            Pose startPose = (alliance == AllianceEnum.Red)?
+                    RedRearPoses.getPose(PosesNames.StartPose) : BlueRearPoses.getPose(PosesNames.StartPose);
+            drivetrain.getFollower().setPose(startPose);
+        }
+
+        drivetrain.setDefaultCommand(driveCommand);
+
+        new GamepadButton(driver, GamepadKeys.Button.Y)
+                .whileHeld(new AlignToAprilTagCommand(drivetrain, vision, operator));
+
+        new GamepadButton(driver, GamepadKeys.Button.BACK)
+                .whenPressed(new UpdatePoseLimelightCommand(drivetrain, vision, innitialPose));
+
+        new GamepadButton(driver, GamepadKeys.Button.A)
+                .whileHeld(new GoToPose(drivetrain, endPose));
+
+        new GamepadButton(driver, GamepadKeys.Button.B)
+                .whileHeld(new GoToPose(drivetrain, shootPose));
+
+        double targetx = (alliance == AllianceEnum.Red)? 144 : 0;
+        double targety = 144;
+
+        new GamepadButton(driver, GamepadKeys.Button.X)
+                .whileHeld(new AimByPoseCommand(drivetrain, targetx, targety));
+    }
+
+    private void configureTeleOpBindingsOperator() {
         Pose endPose = (alliance == AllianceEnum.Red)?
                 BlueRearPoses.getPose(PosesNames.EndPose) : RedRearPoses.getPose(PosesNames.EndPose);
 
@@ -146,7 +174,7 @@ public class RobotContainer {
                 .whenPressed(new SpinShooterCommand(shooter, SpinShooterCommand.Action.LONG_SHOOT));
     }
 
-    public void updateRobotPose(AllianceEnum alliance, Pose robotPose) {
+    public void updateRobotPose(Pose robotPose) {
         double yaw = robotPose.getHeading();
         robotPose = vision.getRobotPose(yaw).orElse(robotPose);
         drivetrain.getFollower().setPose(robotPose);

@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode.subsystems;
 import android.graphics.Color;
 
 import com.arcrobotics.ftclib.command.SubsystemBase;
+import com.bylazar.telemetry.PanelsTelemetry;
 import com.bylazar.telemetry.TelemetryManager;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.NormalizedColorSensor;
@@ -19,7 +20,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 //@AutoLog
 public class IndexerSubsystem extends SubsystemBase {
 
-    private final TelemetryManager telemetry;
+    private final TelemetryManager telemetry = PanelsTelemetry.INSTANCE.getTelemetry();
     private final NormalizedColorSensor sensorColor;
     private int pieceCount = 0;
 
@@ -30,10 +31,8 @@ public class IndexerSubsystem extends SubsystemBase {
      * Constructs a new IndexerSubsystem.
      *
      * @param hardwareMap The hardware map to retrieve hardware devices from.
-     * @param telemetry   The telemetry manager for logging.
      */
-    public IndexerSubsystem(HardwareMap hardwareMap, TelemetryManager telemetry) {
-        this.telemetry = telemetry;
+    public IndexerSubsystem(HardwareMap hardwareMap) {
 
         // get a reference to the color sensor.
         sensorColor = hardwareMap.get(NormalizedColorSensor.class, IndexerConstants.EXIT_SENSOR_NAME);

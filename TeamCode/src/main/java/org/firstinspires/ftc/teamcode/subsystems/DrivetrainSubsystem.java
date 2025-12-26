@@ -5,6 +5,7 @@ import com.arcrobotics.ftclib.geometry.Translation2d;
 import com.bylazar.field.FieldManager;
 import com.bylazar.field.PanelsField;
 import com.bylazar.field.Style;
+import com.bylazar.telemetry.PanelsTelemetry;
 import com.bylazar.telemetry.TelemetryManager;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.Pose;
@@ -26,17 +27,15 @@ import org.firstinspires.ftc.teamcode.utils.Polygon2d;
 //@AutoLog
 public class DrivetrainSubsystem extends SubsystemBase {
     private final Follower follower;
-    private final TelemetryManager telemetry;
+    private final TelemetryManager telemetry = PanelsTelemetry.INSTANCE.getTelemetry();
 
     /**
      * Constructs a new DrivetrainSubsystem.
      *
      * @param hardwareMap The hardware map to retrieve hardware devices from.
-     * @param telemetry   The telemetry manager for logging.
      */
-    public DrivetrainSubsystem(HardwareMap hardwareMap, TelemetryManager telemetry) {
+    public DrivetrainSubsystem(HardwareMap hardwareMap) {
         follower = Constants.createFollower(hardwareMap);
-        this.telemetry = telemetry;
         Drawing.init();
         Drawing.drawRobot(follower.getPose());
         Drawing.sendPacket();

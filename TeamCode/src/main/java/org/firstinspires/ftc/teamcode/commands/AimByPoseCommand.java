@@ -4,6 +4,7 @@ import android.util.Log;
 
 import com.arcrobotics.ftclib.command.CommandBase;
 import com.arcrobotics.ftclib.controller.PIDFController;
+import com.bylazar.telemetry.PanelsTelemetry;
 import com.bylazar.telemetry.TelemetryManager;
 import com.pedropathing.control.PIDFCoefficients;
 import com.pedropathing.follower.Follower;
@@ -20,17 +21,16 @@ public class AimByPoseCommand extends CommandBase {
     private final PIDFController turnController;
 
 
-    private final TelemetryManager telemetry;
+    private final TelemetryManager telemetry = PanelsTelemetry.INSTANCE.getTelemetry();
 
     private final double targetX;
     private final double targetY;
 
-    public AimByPoseCommand(DrivetrainSubsystem drivetrain, double targetX, double targetY, TelemetryManager telemetry) {
+    public AimByPoseCommand(DrivetrainSubsystem drivetrain, double targetX, double targetY) {
 
         this.follower = drivetrain.getFollower();
         this.targetX = targetX;
         this.targetY = targetY;
-        this.telemetry = telemetry;
         turnController = new PIDFController(ShooterConstants.ANGLE_KP,
                 ShooterConstants.ANGLE_KI,
                 ShooterConstants.ANGLE_KD,
