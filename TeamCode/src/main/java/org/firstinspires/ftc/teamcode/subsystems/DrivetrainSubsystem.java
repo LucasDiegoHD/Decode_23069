@@ -1,6 +1,7 @@
 package org.firstinspires.ftc.teamcode.subsystems;
 
 import com.arcrobotics.ftclib.command.SubsystemBase;
+import com.arcrobotics.ftclib.geometry.Translation2d;
 import com.bylazar.field.FieldManager;
 import com.bylazar.field.PanelsField;
 import com.bylazar.field.Style;
@@ -15,6 +16,7 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 import org.firstinspires.ftc.teamcode.utils.DataStorage;
+import org.firstinspires.ftc.teamcode.utils.Polygon2d;
 
 
 /**
@@ -63,6 +65,12 @@ public class DrivetrainSubsystem extends SubsystemBase {
         Drawing.sendPacket();
         Drawing.drawDebug(follower);
         DataStorage.actualPose = follower.getPose();
+
+        Polygon2d triangleBig = new Polygon2d(new Translation2d(72, 72), new Translation2d(144, 144), new Translation2d(0, 144));
+        Polygon2d triangleSmall = new Polygon2d(new Translation2d(72, 30), new Translation2d(44, 0), new Translation2d(100, 0));
+
+        telemetry.addData("Inside big triangle", triangleBig.containsPoint(new Translation2d(follower.getPose().getX(), follower.getPose().getY())));
+        telemetry.addData("Inside Small triangle", triangleSmall.containsPoint(new Translation2d(follower.getPose().getX(), follower.getPose().getY())));
 
     }
 }

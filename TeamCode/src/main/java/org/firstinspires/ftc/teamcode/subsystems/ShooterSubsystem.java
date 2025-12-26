@@ -122,6 +122,7 @@ public class ShooterSubsystem extends SubsystemBase {
 
         telemetry.addData("Shooter RPM", getCurrentRPM());
         telemetry.addData("Shooter smoothedRPM", smoothedRPM);
+        telemetry.addData("Shooter TargetRPM", targetRPM);
         telemetry.addData("Shooter RPM Error", rpmError);
         telemetry.addData("Shooter Hood Position", hoodPosition);
     }

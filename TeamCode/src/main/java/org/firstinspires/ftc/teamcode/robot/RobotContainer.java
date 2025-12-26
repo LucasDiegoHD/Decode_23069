@@ -10,6 +10,7 @@ import com.arcrobotics.ftclib.command.WaitCommand;
 import com.arcrobotics.ftclib.command.button.GamepadButton;
 import com.arcrobotics.ftclib.gamepad.GamepadEx;
 import com.arcrobotics.ftclib.gamepad.GamepadKeys;
+import com.arcrobotics.ftclib.geometry.Translation2d;
 import com.bylazar.telemetry.PanelsTelemetry;
 import com.bylazar.telemetry.TelemetryManager;
 import com.pedropathing.geometry.Pose;
@@ -23,6 +24,7 @@ import org.firstinspires.ftc.teamcode.commands.*;
 import org.firstinspires.ftc.teamcode.subsystems.*;
 import org.firstinspires.ftc.teamcode.utils.AllianceEnum;
 import org.firstinspires.ftc.teamcode.utils.DataStorage;
+import org.firstinspires.ftc.teamcode.utils.Polygon2d;
 
 /**
  * Main container for robot organization.
@@ -44,6 +46,15 @@ public class RobotContainer {
         shooter = new ShooterSubsystem(hardwareMap, telemetry);
         vision = new VisionSubsystem(hardwareMap, telemetry);
         indexer = new IndexerSubsystem(hardwareMap, telemetry);
+
+        Polygon2d triangleBig = new Polygon2d(new Translation2d(72, 72), new Translation2d(144, 144), new Translation2d(0, 144));
+
+        Command driveCommandZoneRepulsion = new TeleOpDriveCommandZoneRepulsion(
+                drivetrain,
+                driver,
+                triangleBig,
+                1.0
+        );
 
         if (driver!= null) {
             if (DataStorage.actualPose!= null) {
@@ -67,7 +78,7 @@ public class RobotContainer {
 
             Command periodicUpdateLoop = new RepeatCommand(
                     new SequentialCommandGroup(
-                            new WaitCommand(2000),
+                            new WaitCommand(500),
                             new ConditionalCommand(
                                     new InstantCommand(),
                                     new UpdatePoseLimelightCommand(drivetrain, vision, innitialPose),

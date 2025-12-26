@@ -9,7 +9,7 @@ import com.pedropathing.paths.PathConstraints;
 
 public class MovementConstants {
 
-    public static PathConstraints FAST_CONSTRAINTS = new PathConstraints(1.0, 4.0);
+    public static PathConstraints FAST_CONSTRAINTS = new PathConstraints(0.8, 4.0);
     public static PathConstraints MEDIUM_CONSTRAINTS = new PathConstraints(0.7, 3.0);
     public static PathConstraints PRECISION_CONSTRAINTS = new PathConstraints(0.4, 2.0);
     public static PathConstraints PICKUP_CONSTRAINTS = new PathConstraints(0.5, 2.5);

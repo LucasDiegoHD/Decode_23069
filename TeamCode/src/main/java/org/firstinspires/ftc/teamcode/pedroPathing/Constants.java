@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.pedroPathing;
+    package org.firstinspires.ftc.teamcode.pedroPathing;
 
 import com.bylazar.configurables.annotations.Configurable;
 import com.pedropathing.control.FilteredPIDFCoefficients;
@@ -34,7 +34,7 @@ public class Constants {
             .useSecondaryDrivePIDF(false)
             .centripetalScaling(0.0005)
             .translationalPIDFCoefficients(
-                    new PIDFCoefficients(0.06, 0.0, 0.005, 0.015)
+                    new PIDFCoefficients(0.03, 0.0, 0.01, 0.02)
             )
             .secondaryTranslationalPIDFCoefficients(
                     new PIDFCoefficients(0.3, 0.0, 0.01, 0.015)

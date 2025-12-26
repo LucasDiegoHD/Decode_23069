@@ -5,6 +5,7 @@ import androidx.annotation.NonNull;
 import com.arcrobotics.ftclib.command.InstantCommand;
 import com.arcrobotics.ftclib.command.SequentialCommandGroup;
 import com.arcrobotics.ftclib.command.WaitCommand;
+import com.bylazar.telemetry.TelemetryManager;
 import com.pedropathing.geometry.Pose;
 import org.firstinspires.ftc.teamcode.autos.paths.PosesNames;
 import org.firstinspires.ftc.teamcode.commands.ShootCommand;
@@ -55,13 +56,13 @@ public class AutonomousCommands extends SequentialCommandGroup {
      * @param poses      A list of {@link Pose} objects defining the robot's path and key locations.
      *                   The order and meaning of these poses are defined by the {@link PosesNames} enum.
      */
-    public AutonomousCommands(@NonNull DrivetrainSubsystem drivetrain, ShooterSubsystem shooter, IntakeSubsystem intake, IndexerSubsystem indexer, VisionSubsystem vision, List<Pose> poses) {
+    public AutonomousCommands(@NonNull DrivetrainSubsystem drivetrain, ShooterSubsystem shooter, IntakeSubsystem intake, IndexerSubsystem indexer, VisionSubsystem vision, List<Pose> poses ) {
 
         addCommands(
 
                 new UpdatePoseLimelightCommand(drivetrain, vision, poses.get(PosesNames.StartPose.ordinal())),
                 new SpinShooterCommand(shooter, SpinShooterCommand.Action.LONG_SHOOT),
-                new GoToPoseCommand(drivetrain, poses.get(PosesNames.GoToShoot1.ordinal())),
+                new GoToPoseCommand(drivetrain, poses.get(PosesNames.GoToShoot1.ordinal()) ),
                 new AlignAndAdjustAutoCommand(drivetrain, vision, shooter),
                 new ShootCommand(shooter, intake, indexer, 1).withTimeout(5000),
                 new SpinShooterCommand(shooter, SpinShooterCommand.Action.LONG_SHOOT),
@@ -92,6 +93,7 @@ public class AutonomousCommands extends SequentialCommandGroup {
                 new InstantCommand(intake::run),
                 new GoToPoseCommand(drivetrain, poses.get(PosesNames.CatchLine2.ordinal())).withTimeout(2000),
                 new GoToPoseCommand(drivetrain, poses.get(PosesNames.GoToShoot1.ordinal())),
+                new AlignAndAdjustAutoCommand(drivetrain, vision, shooter),
                 new ShootCommand(shooter, intake, indexer, 1).withTimeout(1500),
                 new GoToPoseCommand(drivetrain, poses.get(PosesNames.EndPose.ordinal()))
         );
