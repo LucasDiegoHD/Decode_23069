@@ -3,11 +3,11 @@ package org.firstinspires.ftc.teamcode.commands;
 import com.arcrobotics.ftclib.command.SequentialCommandGroup;
 import com.pedropathing.geometry.Pose;
 
-import org.firstinspires.ftc.teamcode.subsystems.DrivetrainSubsystem;
-import org.firstinspires.ftc.teamcode.subsystems.IndexerSubsystem;
-import org.firstinspires.ftc.teamcode.subsystems.IntakeSubsystem;
-import org.firstinspires.ftc.teamcode.subsystems.ShooterSubsystem;
-import org.firstinspires.ftc.teamcode.subsystems.VisionSubsystem;
+import org.firstinspires.ftc.teamcode.subsystems.drivetrain.DrivetrainSubsystem;
+import org.firstinspires.ftc.teamcode.subsystems.indexer.IndexerSubsystem;
+import org.firstinspires.ftc.teamcode.subsystems.intake.IntakeSubsystem;
+import org.firstinspires.ftc.teamcode.subsystems.shooter.ShooterSubsystem;
+import org.firstinspires.ftc.teamcode.subsystems.vision.VisionSubsystem;
 
 /**
  * This command automates the entire shooting sequence with a single button press.

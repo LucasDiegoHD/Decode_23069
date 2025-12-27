@@ -2,21 +2,15 @@ package org.firstinspires.ftc.teamcode.autos.commands;
 
 import androidx.annotation.NonNull;
 
-import com.arcrobotics.ftclib.command.InstantCommand;
 import com.arcrobotics.ftclib.command.SequentialCommandGroup;
-import com.arcrobotics.ftclib.command.WaitCommand;
 import com.pedropathing.geometry.Pose;
-import com.pedropathing.paths.PathChain;
 
 import org.firstinspires.ftc.teamcode.autos.paths.PosesNames;
-import org.firstinspires.ftc.teamcode.commands.ShootCommand;
-import org.firstinspires.ftc.teamcode.commands.SpinShooterCommand;
-import org.firstinspires.ftc.teamcode.commands.UpdatePoseLimelightCommand;
-import org.firstinspires.ftc.teamcode.subsystems.DrivetrainSubsystem;
-import org.firstinspires.ftc.teamcode.subsystems.IndexerSubsystem;
-import org.firstinspires.ftc.teamcode.subsystems.IntakeSubsystem;
-import org.firstinspires.ftc.teamcode.subsystems.ShooterSubsystem;
-import org.firstinspires.ftc.teamcode.subsystems.VisionSubsystem;
+import org.firstinspires.ftc.teamcode.subsystems.drivetrain.DrivetrainSubsystem;
+import org.firstinspires.ftc.teamcode.subsystems.indexer.IndexerSubsystem;
+import org.firstinspires.ftc.teamcode.subsystems.intake.IntakeSubsystem;
+import org.firstinspires.ftc.teamcode.subsystems.shooter.ShooterSubsystem;
+import org.firstinspires.ftc.teamcode.subsystems.vision.VisionSubsystem;
 
 import java.util.List;
 

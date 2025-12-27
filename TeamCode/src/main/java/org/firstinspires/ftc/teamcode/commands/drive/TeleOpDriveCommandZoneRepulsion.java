@@ -6,7 +6,7 @@ import com.arcrobotics.ftclib.geometry.Translation2d;
 import com.bylazar.telemetry.PanelsTelemetry;
 import com.pedropathing.geometry.Pose;
 
-import org.firstinspires.ftc.teamcode.subsystems.DrivetrainSubsystem;
+import org.firstinspires.ftc.teamcode.subsystems.drivetrain.DrivetrainSubsystem;
 import org.firstinspires.ftc.teamcode.utils.AllianceEnum;
 import org.firstinspires.ftc.teamcode.utils.DataStorage;
 import org.firstinspires.ftc.teamcode.utils.Polygon2d;

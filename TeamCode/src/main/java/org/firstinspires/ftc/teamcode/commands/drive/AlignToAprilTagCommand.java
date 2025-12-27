@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.commands;
+package org.firstinspires.ftc.teamcode.commands.drive;
 
 import com.arcrobotics.ftclib.command.CommandBase;
 import com.arcrobotics.ftclib.controller.PIDFController;
@@ -6,9 +6,9 @@ import com.arcrobotics.ftclib.gamepad.GamepadEx;
 import com.bylazar.telemetry.PanelsTelemetry;
 import com.bylazar.telemetry.TelemetryManager;
 import com.pedropathing.follower.Follower;
-import org.firstinspires.ftc.teamcode.subsystems.DrivetrainSubsystem;
-import org.firstinspires.ftc.teamcode.subsystems.VisionConstants;
-import org.firstinspires.ftc.teamcode.subsystems.VisionSubsystem;
+import org.firstinspires.ftc.teamcode.subsystems.drivetrain.DrivetrainSubsystem;
+import org.firstinspires.ftc.teamcode.subsystems.vision.VisionConstants;
+import org.firstinspires.ftc.teamcode.subsystems.vision.VisionSubsystem;
 
 /**
  * A command to automatically align the robot to an AprilTag target.

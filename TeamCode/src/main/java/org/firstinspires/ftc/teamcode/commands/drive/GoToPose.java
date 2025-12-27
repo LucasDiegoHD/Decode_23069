@@ -5,7 +5,7 @@ import com.arcrobotics.ftclib.command.CommandBase;
 import com.pedropathing.geometry.BezierLine;
 import com.pedropathing.geometry.Pose;
 import com.pedropathing.paths.PathChain;
-import org.firstinspires.ftc.teamcode.subsystems.DrivetrainSubsystem;
+import org.firstinspires.ftc.teamcode.subsystems.drivetrain.DrivetrainSubsystem;
 
 /**
  * A command to move the robot to a specified target Pose using a simple Bezier curve.

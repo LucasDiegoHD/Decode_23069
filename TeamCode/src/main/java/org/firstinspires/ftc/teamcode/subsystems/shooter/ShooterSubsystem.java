@@ -1,6 +1,6 @@
-package org.firstinspires.ftc.teamcode.subsystems;
+package org.firstinspires.ftc.teamcode.subsystems.shooter;
 
-import static org.firstinspires.ftc.teamcode.subsystems.ShooterConstants.HOOD_INCREMENT;
+import static org.firstinspires.ftc.teamcode.subsystems.shooter.ShooterConstants.HOOD_INCREMENT;
 
 import com.arcrobotics.ftclib.command.SubsystemBase;
 import com.arcrobotics.ftclib.controller.PIDFController;

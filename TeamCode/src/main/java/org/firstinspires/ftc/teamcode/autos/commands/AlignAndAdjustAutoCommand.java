@@ -1,14 +1,12 @@
 package org.firstinspires.ftc.teamcode.autos.commands;
 
 import com.arcrobotics.ftclib.command.SequentialCommandGroup;
-import com.bylazar.telemetry.PanelsTelemetry;
 
 import org.firstinspires.ftc.teamcode.commands.AdjustHoodCommand;
 import org.firstinspires.ftc.teamcode.commands.AdjustShooterCommand;
-import org.firstinspires.ftc.teamcode.commands.AlignToAprilTagCommand;
-import org.firstinspires.ftc.teamcode.subsystems.DrivetrainSubsystem;
-import org.firstinspires.ftc.teamcode.subsystems.ShooterSubsystem;
-import org.firstinspires.ftc.teamcode.subsystems.VisionSubsystem;
+import org.firstinspires.ftc.teamcode.subsystems.drivetrain.DrivetrainSubsystem;
+import org.firstinspires.ftc.teamcode.subsystems.shooter.ShooterSubsystem;
+import org.firstinspires.ftc.teamcode.subsystems.vision.VisionSubsystem;
 
 public class AlignAndAdjustAutoCommand extends SequentialCommandGroup {
     public AlignAndAdjustAutoCommand(DrivetrainSubsystem drivetrain, VisionSubsystem vision, ShooterSubsystem shooter) {

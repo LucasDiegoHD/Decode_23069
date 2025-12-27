@@ -4,9 +4,9 @@ import android.util.Log;
 import androidx.annotation.NonNull;
 import com.arcrobotics.ftclib.command.CommandBase;
 import com.pedropathing.geometry.Pose;
-import org.firstinspires.ftc.teamcode.subsystems.DrivetrainSubsystem;
-import org.firstinspires.ftc.teamcode.subsystems.VisionConstants;
-import org.firstinspires.ftc.teamcode.subsystems.VisionSubsystem;
+import org.firstinspires.ftc.teamcode.subsystems.drivetrain.DrivetrainSubsystem;
+import org.firstinspires.ftc.teamcode.subsystems.vision.VisionConstants;
+import org.firstinspires.ftc.teamcode.subsystems.vision.VisionSubsystem;
 import java.util.Optional;
 
 /**

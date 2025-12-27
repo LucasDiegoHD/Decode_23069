@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.subsystems;
+package org.firstinspires.ftc.teamcode.subsystems.vision;
 
 import com.bylazar.configurables.annotations.Configurable;
 
