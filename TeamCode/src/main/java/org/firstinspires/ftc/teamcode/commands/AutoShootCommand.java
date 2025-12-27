@@ -26,7 +26,7 @@ public class AutoShootCommand extends SequentialCommandGroup {
     public AutoShootCommand(DrivetrainSubsystem drivetrain, VisionSubsystem vision, ShooterSubsystem shooter, IntakeSubsystem intake, IndexerSubsystem indexer, Pose fallbackPose) {
         addCommands(
 
-                new UpdatePoseLimelightCommand(drivetrain, vision, fallbackPose),
+                new UpdatePoseLimelightCommand(drivetrain, vision, fallbackPose, ()-> true),
                 new AdjustHoodCommand(shooter, vision),
                 new AdjustShooterCommand(shooter, vision),
 

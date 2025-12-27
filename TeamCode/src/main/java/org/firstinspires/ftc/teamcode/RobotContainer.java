@@ -61,7 +61,7 @@ public class RobotContainer {
     public RobotContainer(HardwareMap hardwareMap, GamepadEx driver, GamepadEx operator, AllianceEnum alliance) {
 
         // Subsystem Initialization
-        drivetrain = new DrivetrainSubsystem(hardwareMap);
+        drivetrain = DrivetrainSubsystem.getInstance(hardwareMap);
         intake = new IntakeSubsystem(hardwareMap);
         shooter = new ShooterSubsystem(hardwareMap);
         vision = new VisionSubsystem(hardwareMap);
@@ -96,16 +96,7 @@ public class RobotContainer {
                 1.0
         );
 
-        Command periodicUpdateLoop = new RepeatCommand(
-                new SequentialCommandGroup(
-                        new WaitCommand(500),
-                        new ConditionalCommand(
-                                new InstantCommand(),
-                                new UpdatePoseLimelightCommand(drivetrain, vision, innitialPose),
-                                this::isRobotShooting
-                        )
-                )
-        );
+        Command periodicUpdateLoop = new UpdatePoseLimelightCommand(drivetrain, vision, () -> !isRobotShooting());
 
         CommandScheduler.getInstance().schedule(periodicUpdateLoop);
 
@@ -133,7 +124,7 @@ public class RobotContainer {
                 .whileHeld(new AlignToAprilTagCommand(drivetrain, vision, operator));
 
         new GamepadButton(driver, GamepadKeys.Button.BACK)
-                .whenPressed(new UpdatePoseLimelightCommand(drivetrain, vision, innitialPose));
+                .whenPressed(new UpdatePoseLimelightCommand(drivetrain, vision, () -> true));
 
         new GamepadButton(driver, GamepadKeys.Button.A)
                 .whileHeld(new GoToPose(drivetrain, endPose));
@@ -179,8 +170,7 @@ public class RobotContainer {
     }
 
     public void updateRobotPose(Pose robotPose) {
-        double yaw = robotPose.getHeading();
-        robotPose = vision.getRobotPose(yaw).orElse(robotPose);
+        robotPose = vision.getRobotPose().orElse(robotPose);
         drivetrain.getFollower().setPose(robotPose);
         drivetrain.periodic();
         PanelsTelemetry.INSTANCE.getTelemetry().update();

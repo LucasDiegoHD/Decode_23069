@@ -29,12 +29,14 @@ public class DrivetrainSubsystem extends SubsystemBase {
     private final Follower follower;
     private final TelemetryManager telemetry = PanelsTelemetry.INSTANCE.getTelemetry();
 
+    private static DrivetrainSubsystem instance;
+
     /**
      * Constructs a new DrivetrainSubsystem.
      *
      * @param hardwareMap The hardware map to retrieve hardware devices from.
      */
-    public DrivetrainSubsystem(HardwareMap hardwareMap) {
+    private DrivetrainSubsystem(HardwareMap hardwareMap) {
         follower = Constants.createFollower(hardwareMap);
         Drawing.init();
         Drawing.drawRobot(follower.getPose());
@@ -42,6 +44,22 @@ public class DrivetrainSubsystem extends SubsystemBase {
 
     }
 
+    public static DrivetrainSubsystem getInstance(HardwareMap hardwareMap) {
+        if (instance == null) {
+            instance = new DrivetrainSubsystem(hardwareMap);
+        }
+        return instance;
+    }
+
+    public static DrivetrainSubsystem getInstance() {
+        if (instance == null) {
+            throw new IllegalStateException(
+                    "DrivetrainSubsystem não inicializado. " +
+                            "Chame init(hardwareMap) antes."
+            );
+        }
+        return instance;
+    }
 
     /**
      * Gets the Follower instance used for path following.
