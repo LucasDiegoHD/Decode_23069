@@ -15,6 +15,7 @@ import org.firstinspires.ftc.teamcode.commands.UpdatePoseLimelightCommand;
 import org.firstinspires.ftc.teamcode.subsystems.DrivetrainSubsystem;
 import org.firstinspires.ftc.teamcode.subsystems.IndexerSubsystem;
 import org.firstinspires.ftc.teamcode.subsystems.IntakeSubsystem;
+import org.firstinspires.ftc.teamcode.subsystems.LEDSubsystem;
 import org.firstinspires.ftc.teamcode.subsystems.ShooterSubsystem;
 import org.firstinspires.ftc.teamcode.subsystems.VisionSubsystem;
 
@@ -23,10 +24,10 @@ import java.util.List;
 public class AutonomousLeave extends SequentialCommandGroup {
 
 
-    public AutonomousLeave(@NonNull DrivetrainSubsystem drivetrain, ShooterSubsystem shooter, IntakeSubsystem intake, IndexerSubsystem indexer, VisionSubsystem vision, List<Pose> poses) {
+    public AutonomousLeave(@NonNull DrivetrainSubsystem drivetrain, ShooterSubsystem shooter, IntakeSubsystem intake, IndexerSubsystem indexer, VisionSubsystem vision, List<Pose> poses, LEDSubsystem ledSubsystem) {
 
         addCommands(
-                new AutonomousCommands(drivetrain, shooter, intake, indexer, vision, poses).withTimeout(28000),
+                new AutonomousCommands(drivetrain, shooter, intake, indexer, vision, poses, ledSubsystem).withTimeout(28000),
                 new LeaveCommand(drivetrain, poses.get(PosesNames.GoToLine1.ordinal()))
 
         );

@@ -5,6 +5,7 @@ import com.arcrobotics.ftclib.command.CommandScheduler;
 import com.arcrobotics.ftclib.command.ConditionalCommand;
 import com.arcrobotics.ftclib.command.InstantCommand;
 import com.arcrobotics.ftclib.command.RepeatCommand;
+import com.arcrobotics.ftclib.command.RunCommand;
 import com.arcrobotics.ftclib.command.SequentialCommandGroup;
 import com.arcrobotics.ftclib.command.WaitCommand;
 import com.arcrobotics.ftclib.command.button.GamepadButton;
@@ -14,6 +15,7 @@ import com.arcrobotics.ftclib.geometry.Translation2d;
 import com.bylazar.telemetry.PanelsTelemetry;
 import com.bylazar.telemetry.TelemetryManager;
 import com.pedropathing.geometry.Pose;
+import com.qualcomm.hardware.rev.RevBlinkinLedDriver;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import org.firstinspires.ftc.teamcode.autos.commands.AutonomousCommands;
@@ -37,7 +39,7 @@ public class RobotContainer {
     private final ShooterSubsystem shooter;
     private final VisionSubsystem vision;
     private final IndexerSubsystem indexer;
-
+    private final LEDSubsystem led;
 
     public RobotContainer(HardwareMap hardwareMap, TelemetryManager telemetry, GamepadEx driver, GamepadEx operator, AllianceEnum alliance) {
         // Subsystem Initialization
@@ -46,6 +48,15 @@ public class RobotContainer {
         shooter = new ShooterSubsystem(hardwareMap, telemetry);
         vision = new VisionSubsystem(hardwareMap, telemetry);
         indexer = new IndexerSubsystem(hardwareMap, telemetry);
+        led = new LEDSubsystem(hardwareMap);
+
+        led.setDefaultCommand(new RunCommand(() -> {
+            if (alliance == AllianceEnum.Red) {
+                led.setPattern(RevBlinkinLedDriver.BlinkinPattern.RED);
+            } else {
+                led.setPattern(RevBlinkinLedDriver.BlinkinPattern.BLUE);
+            }
+        }, led));
 
         Polygon2d triangleBig = new Polygon2d(new Translation2d(72, 72), new Translation2d(144, 144), new Translation2d(0, 144));
 
@@ -118,7 +129,7 @@ public class RobotContainer {
                 BlueRearPoses.getPose(PosesNames.EndPose) : RedRearPoses.getPose(PosesNames.EndPose);
 
         new GamepadButton(operator, GamepadKeys.Button.RIGHT_BUMPER)
-                .whileHeld(new AutoShootCommand(drivetrain, vision, shooter, intake, indexer, endPose));
+                .whileHeld(new AutoShootCommand(drivetrain, vision, shooter, intake, indexer, endPose, led));
 
         new GamepadButton(operator, GamepadKeys.Button.DPAD_LEFT)
                 .whenPressed(new InstantCommand(shooter::decreaseHood, shooter));
@@ -155,11 +166,11 @@ public class RobotContainer {
     }
 
     public Command getAutonomousBlueRearCommand() {
-        return new AutonomousCommands(drivetrain, shooter, intake, indexer, vision, BlueRearPoses.asList());
+        return new AutonomousCommands(drivetrain, shooter, intake, indexer, vision, BlueRearPoses.asList(), led);
     }
 
     public Command getAutonomousRedRearCommand() {
-        return new AutonomousCommands(drivetrain, shooter, intake, indexer, vision, RedRearPoses.asList());
+        return new AutonomousCommands(drivetrain, shooter, intake, indexer, vision, RedRearPoses.asList(), led);
     }
     private boolean isRobotShooting() {
         Command current = drivetrain.getCurrentCommand();

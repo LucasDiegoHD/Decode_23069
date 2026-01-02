@@ -34,10 +34,10 @@ public class Constants {
             .useSecondaryDrivePIDF(false)
             .centripetalScaling(0.0005)
             .translationalPIDFCoefficients(
-                    new PIDFCoefficients(0.03, 0.0, 0.01, 0.02)
+                    new PIDFCoefficients(5, 0.01, 0.65, 0.3)
             )
             .secondaryTranslationalPIDFCoefficients(
-                    new PIDFCoefficients(0.3, 0.0, 0.01, 0.015)
+                    new PIDFCoefficients(0.2, 0.0, 0.01, 0.01)
             )
 
             .headingPIDFCoefficients(
@@ -45,7 +45,7 @@ public class Constants {
             )
 
             .drivePIDFCoefficients(
-                    new FilteredPIDFCoefficients(0.006, 0.001, 0.001, 0.6, 0.003)
+                    new FilteredPIDFCoefficients(0.008, 0.0008, 0.004, 0.5, 0.24)
             );
 
     public static MecanumConstants driveConstants = new MecanumConstants()
@@ -58,10 +58,10 @@ public class Constants {
             .leftRearMotorDirection(DcMotorSimple.Direction.FORWARD)
             .rightFrontMotorDirection(DcMotorSimple.Direction.REVERSE)
             .rightRearMotorDirection(DcMotorSimple.Direction.FORWARD)
-            //.xVelocity(77.11611423342248)
-            //.yVelocity(59.88718660609929)
-            .xVelocity(25)
-            .yVelocity(25)
+            .xVelocity(77.11611423342248)
+            .yVelocity(59.88718660609929)
+            //.xVelocity(25)
+            //.yVelocity(25)
 
             .useBrakeModeInTeleOp(true);
 
@@ -69,6 +69,7 @@ public class Constants {
             .forwardPodY(5.5)
             .strafePodX(0)
             .distanceUnit(DistanceUnit.INCH)
+
             .hardwareMapName(Drivetrain.PINPOINT_LOCALIZER)
             .yawScalar(1.0)
             .encoderResolution(
@@ -78,8 +79,8 @@ public class Constants {
             .strafeEncoderDirection(GoBildaPinpointDriver.EncoderDirection.FORWARD);
 
     public static PathConstraints pathConstraints = new PathConstraints(
-            0.995,  // tValueConstraint (ok)
-            0.02,   // velocityConstraint (ANTES: 0.05) -> bem mais lento
+            0.90,  // tValueConstraint (ok)
+            0.08,   // velocityConstraint (ANTES: 0.05) -> bem mais lento
             0.02,   // translationalConstraint (ANTES: 0.05)
             0.5,    // headingConstraint (ANTES: 2.0) -> gira bem mais devagar
             500,    // timeoutConstraint

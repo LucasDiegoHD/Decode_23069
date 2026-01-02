@@ -35,7 +35,6 @@ import java.util.List;
  * @author Baron Henderson - 20077 The Indubitables
  * @version 1.0, 6/26/2025
  */
-@Disabled
 @Configurable
 @TeleOp(name = "Tuning", group = "Pedro Pathing")
 public class Tuning extends SelectableOpMode {
@@ -866,7 +865,7 @@ class HeadingTuner extends OpMode {
  * @version 1.0, 3/12/2024
  */
 class DriveTuner extends OpMode {
-    public static double DISTANCE = 40;
+    public static double DISTANCE = 48;
     private boolean forward = true;
 
     private PathChain forwards;
@@ -892,6 +891,7 @@ class DriveTuner extends OpMode {
     @Override
     public void start() {
         follower.deactivateAllPIDFs();
+        follower.activateHeading();
         follower.activateDrive();
         
         forwards = follower.pathBuilder()

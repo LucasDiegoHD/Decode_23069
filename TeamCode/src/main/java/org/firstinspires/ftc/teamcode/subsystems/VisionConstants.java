@@ -15,17 +15,17 @@ public class VisionConstants {
     /**
      * The proportional gain for the turn controller.
      */
-    public static double TURN_KP = 0.012;
+    public static double TURN_KP = 0.013;
     /** The integral gain for the turn controller. */
-    public static double TURN_KI = 0.15;
+    public static double TURN_KI = 0.06;
     /** The derivative gain for the turn controller. */
     public static double TURN_KD = 0.0035;
     /** The feedforward gain for the turn controller. */
-    public static double TURN_KF = 0.1;
+    public static double TURN_KF = 0.15;
 
 
-    public static double LONGEST_HOOD = 0.58;
-    public static double LONGEST_RPM = 3700;
+    public static double LONGEST_HOOD = 0.50;
+    public static double LONGEST_RPM = 4100;
     public static double LONGEST_DISTANCE = 2.2;
     // ---- Tempo ----
     // distância máxima em METROS

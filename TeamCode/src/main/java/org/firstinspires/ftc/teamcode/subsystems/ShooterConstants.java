@@ -9,16 +9,19 @@ import com.bylazar.configurables.annotations.Configurable;
 public class ShooterConstants {
 
 
-    public static double kP = 10;
+    public static double kP = 15;
 
 
     public static double kI = 0.0;
 
 
-    public static double kD = 0.0;
+    public static double kD = 0.00001;
 
 
     public static double kF = 0.05;
+
+    public static double kS = 0.035 ;
+    public static double kV = 0.00017;
 
 
     /** The hardware map name for the right shooter motor. */
@@ -40,7 +43,7 @@ public class ShooterConstants {
     /** The target velocity in RPM for short shots. */
     public static double TARGET_VELOCITY_SHORT = 3800;
     /** The target velocity in RPM for long shots. */
-    public static double TARGET_VELOCITY_LONG = 3700;
+    public static double TARGET_VELOCITY_LONG = 3750;
     /** The acceptable error margin for the shooter's target velocity in RPM. */
     public static double VELOCITY_TOLERANCE = 30;
 
@@ -52,9 +55,11 @@ public class ShooterConstants {
     public static double HOOD_INCREMENT = 0.05;
 
     /** Ganho de compensação: quanto o hood sobe por cada 1 RPM de erro. */
-    public static double K_HOOD_COMPENSATION = 0.00045;
+    public static double K_HOOD_COMPENSATION = 0.0006;
     /** Tolerância de cadência agressiva (85%) para tiros longos. */
     public static double CADENCE_TOLERANCE_PERCENT = 0.85;
+    public static double STABILITY_WINDOW_PERCENT = 0.96; // Janela Laser
+    public static double PREDICTIVE_TRIGGER_PERCENT = 0.91; // Janela Preditiva
 
     // --- TIMINGS ---
     public static double INTAKE_TIME_TO_SHOOT = 350;

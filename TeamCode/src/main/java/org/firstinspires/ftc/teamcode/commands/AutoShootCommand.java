@@ -6,6 +6,7 @@ import com.pedropathing.geometry.Pose;
 import org.firstinspires.ftc.teamcode.subsystems.DrivetrainSubsystem;
 import org.firstinspires.ftc.teamcode.subsystems.IndexerSubsystem;
 import org.firstinspires.ftc.teamcode.subsystems.IntakeSubsystem;
+import org.firstinspires.ftc.teamcode.subsystems.LEDSubsystem;
 import org.firstinspires.ftc.teamcode.subsystems.ShooterSubsystem;
 import org.firstinspires.ftc.teamcode.subsystems.VisionSubsystem;
 
@@ -23,14 +24,14 @@ public class AutoShootCommand extends SequentialCommandGroup {
      * @param shooter    The shooter subsystem for launching the note.
      * @param intake     The intake subsystem for feeding the note.
      */
-    public AutoShootCommand(DrivetrainSubsystem drivetrain, VisionSubsystem vision, ShooterSubsystem shooter, IntakeSubsystem intake, IndexerSubsystem indexer, Pose fallbackPose) {
+    public AutoShootCommand(DrivetrainSubsystem drivetrain, VisionSubsystem vision, ShooterSubsystem shooter, IntakeSubsystem intake, IndexerSubsystem indexer, Pose fallbackPose, LEDSubsystem ledSubsystem) {
         addCommands(
 
                 new UpdatePoseLimelightCommand(drivetrain, vision, fallbackPose),
                 new AdjustHoodCommand(shooter, vision),
                 new AdjustShooterCommand(shooter, vision),
 
-                new ShootCommand(shooter, intake, indexer)
+                new ShootCommand(shooter, intake, indexer, ledSubsystem)
         );
     }
 }

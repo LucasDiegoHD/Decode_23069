@@ -4,10 +4,13 @@ import com.arcrobotics.ftclib.command.CommandBase;
 import com.bylazar.telemetry.PanelsTelemetry;
 import com.bylazar.telemetry.TelemetryManager;
 import com.pedropathing.util.Timer;
+import com.qualcomm.hardware.rev.RevBlinkinLedDriver;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
+import org.firstinspires.ftc.ftccommon.internal.manualcontrol.commands.LedCommands;
 import org.firstinspires.ftc.teamcode.subsystems.IndexerSubsystem;
 import org.firstinspires.ftc.teamcode.subsystems.IntakeSubsystem;
+import org.firstinspires.ftc.teamcode.subsystems.LEDSubsystem;
 import org.firstinspires.ftc.teamcode.subsystems.ShooterConstants;
 import org.firstinspires.ftc.teamcode.subsystems.ShooterSubsystem;
 
@@ -41,6 +44,7 @@ public class ShootCommand extends CommandBase {
     private int shooterCounter;
     private final TelemetryManager telemetryM;
     private final IndexerSubsystem indexer;
+    private final LEDSubsystem ledSubsystem;
     private final boolean lastSensor = false;
 
     /**
@@ -49,13 +53,14 @@ public class ShootCommand extends CommandBase {
      * @param intake The IntakeSubsystem to use.
      * @param shoots The number of pieces to shoot. Use a high number for continuous shooting.
      */
-    public ShootCommand(ShooterSubsystem shooter, IntakeSubsystem intake, IndexerSubsystem indexer, int shoots) {
+    public ShootCommand(ShooterSubsystem shooter, IntakeSubsystem intake, IndexerSubsystem indexer, int shoots, LEDSubsystem led) {
         telemetryM = PanelsTelemetry.INSTANCE.getTelemetry();
         this.indexer = indexer;
         this.shooterCounter = shoots;
         this.shooter = shooter;
         this.intake = intake;
-        addRequirements(shooter, indexer);
+        this.ledSubsystem = led;
+        addRequirements(shooter, indexer, led);
     }
 
     /**
@@ -63,8 +68,8 @@ public class ShootCommand extends CommandBase {
      * @param shooter The ShooterSubsystem to use.
      * @param intake The IntakeSubsystem to use.
      */
-    public ShootCommand(ShooterSubsystem shooter, IntakeSubsystem intake, IndexerSubsystem indexer) {
-        this(shooter, intake, indexer, 99); // A large number for effectively infinite shooting
+    public ShootCommand(ShooterSubsystem shooter, IntakeSubsystem intake, IndexerSubsystem indexer, LEDSubsystem led) {
+        this(shooter, intake, indexer, 99, led); // A large number for effectively infinite shooting
     }
 
     /**
@@ -87,7 +92,7 @@ public class ShootCommand extends CommandBase {
             case Conveyor:
                 // MELHORIA: Detecta a peça na "câmara" via sensor de saída para reduzir latência de busca
                 if (indexer.getExitSensor() || timer.milliseconds() > ShooterConstants.TRIGGER_TIMER_TO_SHOOT) {
-
+                    ledSubsystem.setPattern(RevBlinkinLedDriver.BlinkinPattern.GREEN);
                     // Se o subsistema estiver pronto (Bang-Bang estabilizado), atira sem passar por Acceleration
                     if (shooter.getShooterAtTarget()) {
                         state = SHOOT_STATES.Shooting;
