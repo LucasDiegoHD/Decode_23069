@@ -71,7 +71,7 @@ public class AimByPoseCommand extends CommandBase {
             turnPower = 0;
         }
         // Limita rotação igual ao AlignToAprilTag
-        turnPower = Math.max(-0.4, Math.min(0.4, turnPower));
+        turnPower = Math.max(-0.5, Math.min(0.5, turnPower));
 
         Log.d("AIMBYPOSE - Desired", String.valueOf(Math.toDegrees(desired)));
         Log.d("AIMBYPOSE - Turn Power", String.valueOf(turnPower));

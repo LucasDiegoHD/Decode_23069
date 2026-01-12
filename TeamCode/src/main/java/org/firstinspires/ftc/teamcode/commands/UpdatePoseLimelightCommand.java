@@ -10,8 +10,8 @@ import org.firstinspires.ftc.teamcode.subsystems.VisionSubsystem;
 import java.util.Optional;
 
 /**
- * Competitive Pose Update Command.
- * Features: Snap-on-start, Tag-loss protection, and MegaTag 1 stability.
+ * Competitive Pose Update Command - DECODE Edition.
+ * Lógica: Reseeding via MT1 em cada re-aquisição de tag e tracking via MT2.
  */
 public class UpdatePoseLimelightCommand extends CommandBase {
 
@@ -20,6 +20,7 @@ public class UpdatePoseLimelightCommand extends CommandBase {
     private final Pose fallbackPose;
 
     private static boolean hasInitialized = false;
+    private static boolean tagFoundLastCycle = false; // Memória de estado para forçar MT1
 
     public UpdatePoseLimelightCommand(DrivetrainSubsystem drivetrain, VisionSubsystem vision, Pose fallbackPose) {
         this.drivetrain = drivetrain;
@@ -30,44 +31,60 @@ public class UpdatePoseLimelightCommand extends CommandBase {
 
     @Override
     public void initialize() {
-        Optional<Pose> poseOptional = vision.getRobotPose();
+        Optional<Pose> mt1Pose = vision.getRobotPoseMT1();
 
-        if (poseOptional.isEmpty()) {
+        // 1. TRATAMENTO DE POSE VAZIA (SEGURANÇA SOLICITADA)
+        if (mt1Pose.isEmpty()) {
             if (!hasInitialized) {
-                // If we never synced, move to fallback so Field-Oriented isn't (0,0)
+                // Nunca sincronizou e não vê tag: Usa fallback, mas mantêm false
                 drivetrain.getFollower().setPose(fallbackPose);
-                Log.w("Vision", "No tag & not initialized. Using fallback.");
+                Log.w("Vision", "Pose vazia e não inicializado. Fallback aplicado.");
             } else {
-                // If we were already synced, just trust odometry (do nothing)
-                Log.d("Vision", "Tag lost. Maintaining odometry tracking.");
+                // Já sincronizou mas perdeu a tag: Confia na odometria (fused)
+                Log.d("Vision", "Pose vazia. Mantendo odometria pura.");
             }
+            tagFoundLastCycle = false; // Marcamos que perdemos a tag para forçar MT1 na volta
             return;
         }
 
-        Pose llPose = poseOptional.get();
+        // 2. TRATAMENTO DE TAG VISÍVEL
+        Pose llPoseMT1 = mt1Pose.get();
         Pose currentPose = drivetrain.getFollower().getPose();
 
-        if (!hasInitialized) {
-            drivetrain.getFollower().setPose(llPose);
+        // FASE 1: SEEDING / RE-SYNC (MegaTag 1)
+        // Se nunca iniciou OU se acabamos de reencontrar a tag após perdê-la
+        if (!hasInitialized ||!tagFoundLastCycle) {
+            drivetrain.getFollower().setPose(llPoseMT1);
             hasInitialized = true;
-            Log.d("Vision", "Initial Snap Successful: " + llPose);
+            tagFoundLastCycle = true;
+            Log.d("Vision", "MT1 Seed/Re-Sync Sucesso (Ângulo Corrigido): " + llPoseMT1);
             return;
         }
 
-        double distInches = Math.hypot(llPose.getX() - currentPose.getX(), llPose.getY() - currentPose.getY());
-        double maxDeltaInches = VisionConstants.MAX_DELTA_METERS * VisionConstants.METERS_TO_INCHES;
+        // FASE 2: TRACKING (MegaTag 2)
+        // Agora que o ângulo está garantido pelo MT1 anterior, usamos MT2 para estabilidade
+        double currentYaw = currentPose.getHeading();
+        vision.getRobotPoseMT2(currentYaw).ifPresent(llPoseMT2 -> {
 
-        if (distInches > maxDeltaInches) {
-            // If the jump is too big, it's likely a reflection. We DON'T reset hasInitialized.
-            // We just ignore this frame to prevent the robot from "glitching".
-            Log.w("Vision", "Large jump rejected: " + distInches + " inches.");
-            return;
-        }
+            double distInches = Math.hypot(llPoseMT2.getX() - currentPose.getX(), llPoseMT2.getY() - currentPose.getY());
+            double maxDeltaInches = VisionConstants.MAX_DELTA_METERS * VisionConstants.METERS_TO_INCHES;
 
-        Pose fusedPose = getFusedPose(currentPose, llPose);
-        drivetrain.getFollower().setPose(fusedPose);
+            // Filtro de Rejeição Industrial contra reflexos e saltos [2]
+            if (distInches < maxDeltaInches) {
+                Pose fusedPose = getFusedPose(currentPose, llPoseMT2);
+                drivetrain.getFollower().setPose(fusedPose);
+                tagFoundLastCycle = true;
+            } else {
+                Log.w("Vision", "MT2 rejeitado: Salto de " + distInches + " in (Reflexo provável).");
+                // Não alteramos tagFoundLastCycle para tentar novamente no próximo loop
+            }
+        });
     }
 
+    /**
+     * Fusão ponderada conforme padrão de elite.
+     * Mantém o heading da odometria no tracking para evitar glitches de 360/0. [8, 2]
+     */
     @NonNull
     private Pose getFusedPose(Pose currentPose, Pose llPose) {
         double wOdo = VisionConstants.ODOMETRY_WEIGHT;
@@ -81,7 +98,7 @@ public class UpdatePoseLimelightCommand extends CommandBase {
         return new Pose(
                 currentPose.getX() * wOdo + llPose.getX() * wLL,
                 currentPose.getY() * wOdo + llPose.getY() * wLL,
-                currentPose.getHeading() // Keep odometry heading
+                currentPose.getHeading()
         );
     }
 
@@ -90,8 +107,8 @@ public class UpdatePoseLimelightCommand extends CommandBase {
         return true;
     }
 
-    // Helper to reset status if needed (e.g. at start of OpMode)
     public static void resetLocalizationStatus() {
         hasInitialized = false;
+        tagFoundLastCycle = false;
     }
 }

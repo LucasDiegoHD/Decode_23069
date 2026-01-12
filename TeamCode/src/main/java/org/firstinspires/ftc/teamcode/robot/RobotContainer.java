@@ -19,8 +19,11 @@ import com.qualcomm.hardware.rev.RevBlinkinLedDriver;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import org.firstinspires.ftc.teamcode.autos.commands.AutonomousCommands;
+import org.firstinspires.ftc.teamcode.autos.commands.AutonomousFrontCommands;
+import org.firstinspires.ftc.teamcode.autos.paths.BlueFrontPoses;
 import org.firstinspires.ftc.teamcode.autos.paths.BlueRearPoses;
 import org.firstinspires.ftc.teamcode.autos.paths.PosesNames;
+import org.firstinspires.ftc.teamcode.autos.paths.RedFrontPoses;
 import org.firstinspires.ftc.teamcode.autos.paths.RedRearPoses;
 import org.firstinspires.ftc.teamcode.commands.*;
 import org.firstinspires.ftc.teamcode.subsystems.*;
@@ -50,13 +53,8 @@ public class RobotContainer {
         indexer = new IndexerSubsystem(hardwareMap, telemetry);
         led = new LEDSubsystem(hardwareMap);
 
-        led.setDefaultCommand(new RunCommand(() -> {
-            if (alliance == AllianceEnum.Red) {
-                led.setPattern(RevBlinkinLedDriver.BlinkinPattern.RED);
-            } else {
-                led.setPattern(RevBlinkinLedDriver.BlinkinPattern.BLUE);
-            }
-        }, led));
+        //led.setDefaultCommand(new LedCommand(led, alliance));
+
 
         Polygon2d triangleBig = new Polygon2d(new Translation2d(72, 72), new Translation2d(144, 144), new Translation2d(0, 144));
 
@@ -86,7 +84,6 @@ public class RobotContainer {
                     RedRearPoses.getPose(PosesNames.GoToShoot1) : BlueRearPoses.getPose(PosesNames.GoToShoot1);
 
 
-
             Command periodicUpdateLoop = new RepeatCommand(
                     new SequentialCommandGroup(
                             new WaitCommand(500),
@@ -112,11 +109,18 @@ public class RobotContainer {
             new GamepadButton(driver, GamepadKeys.Button.B)
                     .whileHeld(new GoToPose(drivetrain, shootPose));
 
-            double targetx = (alliance == AllianceEnum.Red)? 144 : 0;
+            double targetx = (alliance == AllianceEnum.Red)? 142 : 0;
             double targety = 144;
 
             new GamepadButton(driver, GamepadKeys.Button.X)
                     .whileHeld(new AimByPoseCommand(drivetrain, targetx, targety, telemetry));
+
+            new GamepadButton(driver, GamepadKeys.Button.RIGHT_BUMPER)
+                    .whileHeld(new AutoShootCommand(drivetrain, vision, shooter, intake, indexer, endPose, led));
+
+            new GamepadButton(driver, GamepadKeys.Button. LEFT_BUMPER)
+                    .whenPressed(new InstantCommand(intake::run, intake))
+                    .whenReleased(new InstantCommand(intake::stop, intake));
         }
 
         if (operator!= null) {
@@ -171,6 +175,16 @@ public class RobotContainer {
 
     public Command getAutonomousRedRearCommand() {
         return new AutonomousCommands(drivetrain, shooter, intake, indexer, vision, RedRearPoses.asList(), led);
+    }
+
+    public Command getAutonomousBlueFrontCommand() {
+        // Reutiliza o AutonomousCommands, mas passa a lista do FrontPoses
+        return new AutonomousFrontCommands(drivetrain, shooter, intake, indexer, vision, BlueFrontPoses.asList(), led);
+    }
+
+    // Método para o Triângulo Grande VERMELHO
+    public Command getAutonomousRedFrontCommand() {
+        return new AutonomousFrontCommands(drivetrain, shooter, intake, indexer, vision, RedFrontPoses.asList(), led);
     }
     private boolean isRobotShooting() {
         Command current = drivetrain.getCurrentCommand();

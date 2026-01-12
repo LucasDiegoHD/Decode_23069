@@ -63,7 +63,7 @@ public class AutonomousCommands extends SequentialCommandGroup {
 
                 new UpdatePoseLimelightCommand(drivetrain, vision, poses.get(PosesNames.StartPose.ordinal())),
                 new SpinShooterCommand(shooter, SpinShooterCommand.Action.LONG_SHOOT),
-                new GoToPoseCommand(drivetrain, poses.get(PosesNames.GoToShoot1.ordinal()) ),
+                new GoToPoseCommand(drivetrain, poses.get(PosesNames.GoToShoot1.ordinal())),
                 new AlignAndAdjustAutoCommand(drivetrain, vision, shooter),
                 new ShootCommand(shooter, intake, indexer,3, ledSubsystem ).withTimeout(5000),
                 new SpinShooterCommand(shooter, SpinShooterCommand.Action.LONG_SHOOT),

@@ -54,7 +54,7 @@ public class ShooterSubsystem extends SubsystemBase {
 
     public void stop() {
         targetRPM = 0;
-        controller.reset(); // LIMPA O ERRO ACUMULADO (Evita o giro fantasma)
+        controller.reset();
         rShooterMotor.setPower(0);
         lShooterMotor.setPower(0);
         lastPower = 0;
@@ -73,10 +73,6 @@ public class ShooterSubsystem extends SubsystemBase {
     }
 
     public void setLongShotMode(boolean active) { this.isLongShotMode = active; }
-
-    public boolean isPredictiveReady() {
-        return targetRPM > 50 && getCurrentRPM() > (targetRPM * ShooterConstants.CADENCE_TOLERANCE_PERCENT);
-    }
 
     /** Retorna true se estiver na janela final de disparo */
     public boolean getShooterAtTarget() {
@@ -99,18 +95,18 @@ public class ShooterSubsystem extends SubsystemBase {
         double currentRPM = getCurrentRPM();
         double rpmError = targetRPM - currentRPM;
 
-        // --- TRAVA DE SEGURANÇA ELITE ---
-        // Só aplica potência se o alvo for significativo (> 50 RPM)
         if (targetRPM > 50) {
             double v = voltageSensor.getVoltage();
 
-            // Feedforward: kS (vencer inércia) + kV (velocidade)
-            // O kS aqui é multiplicado pelo sinal do target, garantindo 0 quando parado.
             double feedforward = (ShooterConstants.kS * Math.signum(targetRPM) + ShooterConstants.kV * targetRPM) * (12.0 / v);
 
             double feedback = controller.calculate(currentRPM, targetRPM);
 
             double power = Math.max(0, Math.min(1.0, feedforward + feedback));
+
+            if (rpmError > (targetRPM * (1 - ShooterConstants.STABILITY_WINDOW_PERCENT))) {
+                power = 1.0;
+            }
 
             if (Math.abs(power - lastPower) > 0.0005) {
                 rShooterMotor.setPower(power);

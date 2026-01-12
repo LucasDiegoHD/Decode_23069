@@ -9,7 +9,7 @@ import com.bylazar.configurables.annotations.Configurable;
 public class ShooterConstants {
 
 
-    public static double kP = 15;
+    public static double kP = 20;
 
 
     public static double kI = 0.0;
@@ -56,10 +56,10 @@ public class ShooterConstants {
 
     /** Ganho de compensação: quanto o hood sobe por cada 1 RPM de erro. */
     public static double K_HOOD_COMPENSATION = 0.0006;
-    /** Tolerância de cadência agressiva (85%) para tiros longos. */
-    public static double CADENCE_TOLERANCE_PERCENT = 0.85;
-    public static double STABILITY_WINDOW_PERCENT = 0.96; // Janela Laser
-    public static double PREDICTIVE_TRIGGER_PERCENT = 0.91; // Janela Preditiva
+    /** Tolerância de cadência para tiros longos. */
+    public static double CADENCE_TOLERANCE_PERCENT = 0.95;
+    public static double STABILITY_WINDOW_PERCENT = 0.93;
+    public static double PREDICTIVE_TRIGGER_PERCENT = 0.91;
 
     // --- TIMINGS ---
     public static double INTAKE_TIME_TO_SHOOT = 350;
@@ -70,25 +70,37 @@ public class ShooterConstants {
     /**
      * Equations for hood
      * y = Hood Angle
-     * x = Distance (from Limelight)
-     * Formula: y = 0.2799x^3 - 1.7289x^2 + 3.7225x - 2.1911
+     * x = Distance (from Vision/Limelight in Meters)
+     * * Points used:
+     * 0.75m -> 0.75
+     * 1.00m -> 0.70
+     * 1.50m -> 0.55
+     * 2.00m -> 0.50
+     * * Fit: Quadratic (Grau 2) - Muito preciso para esses pontos.
+     * Formula: y = 0.12x^2 - 0.53x + 1.08
      */
-    public static double HOOD_N0 = -2.1211;
-    public static double HOOD_N1 = 3.7225;
-    public static double HOOD_N2 = -1.7289;
-    public static double HOOD_N3 = 0.2799;
+    public static double HOOD_N0 = 1.08;
+    public static double HOOD_N1 = -0.53;
+    public static double HOOD_N2 = 0.12;
+    public static double HOOD_N3 = 0.0;
 
     /**
      * Equations for RPM
      * y = RPM
-     * x = Distance (from Limelight)
-     * Formula: y = 842.9828x + 2790.7711
+     * x = Distance (from Vision/Limelight in Meters)
+     * * Points used:
+     * 0.75m -> 3000
+     * 1.00m -> 3000
+     * 1.50m -> 3300
+     * 2.00m -> 3500
+     * * Fit: Linear Approx
+     * Formula: y = 434x + 2480
      */
-    public static double RPM_N0 = 2640.7711;
-    public static double RPM_N1 = 842.9828;
-    public static double ANGLE_KP = 0.75;
+    public static double RPM_N0 = 2480.0;
+    public static double RPM_N1 = 434.0;
+    public static double ANGLE_KP = 0.6;
     public static double ANGLE_KI = 0.01;
-    public static double ANGLE_KD = 0.075;
+    public static double ANGLE_KD = 0.05;
     public static double ANGLE_KF = 0.1;
-    public static double ANGLE_TOLERANCE = 0.25;
+    public static double ANGLE_TOLERANCE = 0.1;
 }

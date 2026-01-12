@@ -3,36 +3,26 @@ package org.firstinspires.ftc.teamcode.subsystems;
 import com.arcrobotics.ftclib.command.SubsystemBase;
 import com.bylazar.telemetry.TelemetryManager;
 import com.pedropathing.ftc.FTCCoordinates;
-import com.pedropathing.geometry.PedroCoordinates;
 import com.pedropathing.geometry.Pose;
 import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.robotcore.hardware.HardwareMap;
-
 import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
-
 import java.util.Optional;
 
-
 /**
- * The VisionSubsystem is responsible for handling all vision-related tasks,
- * including target detection and pose estimation using a Limelight camera.
+ * VisionSubsystem de Alta Performance.
+ * Implementa Seeding (MegaTag1) e Tracking Estabilizado (MegaTag2). [1]
  */
-//@AutoLog
 public class VisionSubsystem extends SubsystemBase {
 
     private final Limelight3A limelight;
     private LLResult latestResult;
     private final TelemetryManager telemetry;
 
+    // Constante de conversão industrial precisa [3]
     private static final double INCHES_IN_METER = 39.3701;
 
-    /**
-     * Constructs a new VisionSubsystem.
-     *
-     * @param hardwareMap The hardware map to retrieve hardware devices from.
-     * @param telemetry   The telemetry manager for logging.
-     */
     public VisionSubsystem(HardwareMap hardwareMap, TelemetryManager telemetry) {
         this.telemetry = telemetry;
         limelight = hardwareMap.get(Limelight3A.class, "limelight");
@@ -41,100 +31,86 @@ public class VisionSubsystem extends SubsystemBase {
     }
 
     /**
-     * Gets the horizontal offset from the crosshair to the target.
-     * @return An Optional containing the 'tx' value if a target is present.
+     * MegaTag1: Ideal para o 'Snap' inicial (Seeding).
+     * Resolve posição e ângulo absoluto sem depender da IMU.
      */
+    public Optional<Pose> getRobotPoseMT1() {
+        latestResult = limelight.getLatestResult();
+        if (!hasTarget()) return Optional.empty();
+
+        Pose3D botPose = latestResult.getBotpose(); // MT1
+        if (botPose == null) return Optional.empty();
+
+        return Optional.of(convertToPedro(botPose));
+    }
+
+    /**
+     * MegaTag2: Estabilidade extrema para correções em movimento (Tracking).
+     * Requer o Yaw da IMU para restringir o algoritmo PnP e evitar ambiguidades.
+     */
+    public Optional<Pose> getRobotPoseMT2(double yawRadians) {
+        // Offset de +90 para alinhar o sistema da Limelight com o campo FTC
+        limelight.updateRobotOrientation(Math.toDegrees(yawRadians) + 90);
+        latestResult = limelight.getLatestResult();
+
+        if (!hasTarget()) return Optional.empty();
+
+        Pose3D botPose = latestResult.getBotpose_MT2();
+        if (botPose == null) return Optional.empty();
+
+        return Optional.of(convertToPedro(botPose));
+    }
+
+    /** Helper para conversão de sistema de coordenadas  */
+    private Pose convertToPedro(Pose3D pose3d) {
+        Pose rawPose = new Pose(
+                pose3d.getPosition().x * INCHES_IN_METER,
+                pose3d.getPosition().y * INCHES_IN_METER,
+                Math.toRadians(pose3d.getOrientation().getYaw())
+        );
+        return FTCCoordinates.INSTANCE.convertToPedro(rawPose);
+    }
+
     public Optional<Double> getTargetTx() {
-        if (hasTarget()) {
-            return Optional.of(latestResult.getTx());
-        }
+        if (hasTarget()) return Optional.of(latestResult.getTx());
         return Optional.empty();
     }
 
-    /**
-     * Checks if the Limelight has a valid target.
-     * @return True if a valid target is detected, false otherwise.
-     */
     public boolean hasTarget() {
-        return latestResult != null && latestResult.isValid();
+        return latestResult!= null && latestResult.isValid();
     }
 
-
-    /**
-     * Calculates the direct distance (hypotenuse) from the camera to the target.
-     * @return An {@code Optional<Double>} containing the distance in meters.
-     */
     public Optional<Double> getDirectDistanceToTarget() {
-        if (!hasTarget()) {
-            return Optional.empty();
-        }
-
-        if(latestResult.getFiducialResults().get(0) != null) {
-            // The z-position in camera space is the direct distance to the target
+        if (!hasTarget()) return Optional.empty();
+        if(!latestResult.getFiducialResults().isEmpty()) {
             return Optional.of(Math.abs(latestResult.getFiducialResults().get(0).getTargetPoseCameraSpace().getPosition().z));
         }
-
         return Optional.empty();
-
     }
 
-    /**
-     * Updates the robot's orientation (yaw) in the Limelight.
-     * This helps with more accurate pose estimation.
-     * @param yaw The robot's current yaw in radians.
-     */
     public void updateLimelightYaw(double yaw){
         limelight.updateRobotOrientation(Math.toDegrees(yaw));
     }
 
-    /**
-     * Gets the robot's pose as estimated by the Limelight using AprilTags.
-     * @param yaw The robot's current yaw in radians, used to improve the estimate.
-     * @return An Optional containing the robot's Pose if a target is visible.
-     */
     public Optional<Pose> getRobotPose(double yaw) {
-        limelight.updateRobotOrientation(Math.toDegrees(yaw) + 90);
-        latestResult = limelight.getLatestResult();
-
-        if(!hasTarget()){
-            return Optional.empty();
-        }
-        Pose3D robotPose = latestResult.getBotpose_MT2(); // Using MegaTag2 for potentially better accuracy
-        if(robotPose == null){
-            return Optional.empty();
-        }
-        // Convert from meters (Limelight standard) to inches (PedroPathing standard)
-        return Optional.of(FTCCoordinates.INSTANCE.convertToPedro(new Pose(robotPose.getPosition().x * INCHES_IN_METER, robotPose.getPosition().y * INCHES_IN_METER, Math.toRadians(robotPose.getOrientation().getYaw()))));
+        return getRobotPoseMT2(yaw);
     }
 
     public Optional<Pose> getRobotPose() {
         latestResult = limelight.getLatestResult();
-
-        if (!hasTarget()) {
-            return Optional.empty();
-        }
-        Pose3D robotPose = latestResult.getBotpose(); // Using MegaTag2 for potentially better accuracy
-        if (robotPose == null) {
-            return Optional.empty();
-        }
-        // Convert from meters (Limelight standard) to inches (PedroPathing standard)
-        return Optional.of(FTCCoordinates.INSTANCE.convertToPedro(new Pose(robotPose.getPosition().x * INCHES_IN_METER, robotPose.getPosition().y * INCHES_IN_METER, Math.toRadians(robotPose.getOrientation().getYaw()))));
+        if (!hasTarget()) return Optional.empty();
+        Pose3D robotPose = latestResult.getBotpose();
+        if (robotPose == null) return Optional.empty();
+        return Optional.of(convertToPedro(robotPose));
     }
 
-
-    /**
-     * This method is called periodically to update the subsystem's state and telemetry.
-     */
     @Override
     public void periodic() {
         latestResult = limelight.getLatestResult();
-
-        if (latestResult != null) {
-
-            getDirectDistanceToTarget().ifPresent(distance -> telemetry.addData("Distância Direta (M)", distance));
-
+        if (latestResult!= null) {
+            getDirectDistanceToTarget().ifPresent(distance -> telemetry.addData("Visão - Distância (M)", distance));
         } else {
-            telemetry.addLine("LL sem resultado");
+            telemetry.addLine("Limelight: Sem sinal");
         }
     }
 }

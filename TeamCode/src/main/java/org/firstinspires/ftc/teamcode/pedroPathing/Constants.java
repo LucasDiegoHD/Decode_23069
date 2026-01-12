@@ -67,11 +67,11 @@ public class Constants {
 
     public static PinpointConstants localizerConstants = new PinpointConstants()
             .forwardPodY(5.5)
-            .strafePodX(0)
+            .strafePodX(1.5)
             .distanceUnit(DistanceUnit.INCH)
 
             .hardwareMapName(Drivetrain.PINPOINT_LOCALIZER)
-            .yawScalar(1.0)
+            .yawScalar(1.00474)
             .encoderResolution(
                     GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_4_BAR_POD
             )
@@ -80,7 +80,7 @@ public class Constants {
 
     public static PathConstraints pathConstraints = new PathConstraints(
             0.90,  // tValueConstraint (ok)
-            0.08,   // velocityConstraint (ANTES: 0.05) -> bem mais lento
+            0.1,   // velocityConstraint (ANTES: 0.05) -> bem mais lento
             0.02,   // translationalConstraint (ANTES: 0.05)
             0.5,    // headingConstraint (ANTES: 2.0) -> gira bem mais devagar
             500,    // timeoutConstraint

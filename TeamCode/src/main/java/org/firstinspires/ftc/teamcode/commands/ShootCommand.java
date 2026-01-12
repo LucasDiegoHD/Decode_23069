@@ -90,42 +90,40 @@ public class ShootCommand extends CommandBase {
 
         switch (state) {
             case Conveyor:
-                // MELHORIA: Detecta a peça na "câmara" via sensor de saída para reduzir latência de busca
                 if (indexer.getExitSensor() || timer.milliseconds() > ShooterConstants.TRIGGER_TIMER_TO_SHOOT) {
-                    ledSubsystem.setPattern(RevBlinkinLedDriver.BlinkinPattern.GREEN);
-                    // Se o subsistema estiver pronto (Bang-Bang estabilizado), atira sem passar por Acceleration
+
                     if (shooter.getShooterAtTarget()) {
                         state = SHOOT_STATES.Shooting;
                         intake.runTrigger();
+                        ledSubsystem.setPattern(LEDSubsystem.GREEN);
                         timer.reset();
                     } else {
-                        // Caso contrário, prepara para acelerar mantendo a peça pronta no gatilho
                         state = SHOOT_STATES.Acceleration;
+                        ledSubsystem.setPattern(LEDSubsystem.OFF);
                         intake.stopTrigger();
                     }
                 }
                 break;
 
             case Acceleration:
-                // MELHORIA: Disparo instantâneo no microssegundo em que o RPM entra na janela estável
                 if (shooter.getShooterAtTarget()) {
                     state = SHOOT_STATES.Shooting;
                     intake.runTrigger();
-
-                    intake.run(); // Mantém pressão constante para a próxima peça já vir vindo
+                    ledSubsystem.setPattern(LEDSubsystem.GREEN);
+                    intake.run();
 
                     timer.reset();
                 }
                 break;
 
             case Shooting:
-                // MELHORIA COMPETITIVA: Usa o sensor de saída como gatilho de interrupção (Borda de Descida).
-                // Se o sensor ficar falso, a peça saiu fisicamente. Voltamos ao ciclo instantaneamente.
+
                 boolean pieceHasLeft =!indexer.getExitSensor();
 
                 if (pieceHasLeft || timer.milliseconds() > ShooterConstants.TRIGGER_TIMER_TRIGGERING) {
                     state = SHOOT_STATES.Conveyor;
                     intake.run();
+                    ledSubsystem.setPattern(LEDSubsystem.OFF);
                     timer.reset();
                     if (shooterCounter > 0) {
                         shooterCounter--;
