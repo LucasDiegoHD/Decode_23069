@@ -22,17 +22,17 @@ public class RedFrontPoses {
             new Pose(114, 12, Math.toRadians(68)),
 
             // GoToLine2
-            new Pose(99, 57, Math.toRadians(180)),
+            new Pose(94.134, 58.169, Math.toRadians(180)),
             // CatchLine2
-            new Pose(118, 57, Math.toRadians(180)),
+            new Pose(132.776, 58.169, Math.toRadians(180)),
 
             // EndPose
             new Pose(84, 60, Math.toRadians(90)),
 
             // GoToLine3
-            new Pose(94.134, 58.169, Math.toRadians(180)),
+            new Pose(94.134, 34.169, Math.toRadians(180)),
             // CatchLine3
-            new Pose(132.776, 58.169, Math.toRadians(180)),
+            new Pose(132.776, 34.169, Math.toRadians(180)),
 
             // GatePose
             new Pose(130.776, 64.169, Math.toRadians(90)),

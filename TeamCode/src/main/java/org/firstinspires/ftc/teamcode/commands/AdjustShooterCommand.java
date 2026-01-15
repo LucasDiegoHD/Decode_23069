@@ -26,7 +26,7 @@ public class AdjustShooterCommand extends CommandBase {
         this.shooter = shooter;
         this.vision = vision;
 
-        addRequirements(shooter, vision);
+        addRequirements(shooter);
     }
 
     /**
@@ -35,7 +35,7 @@ public class AdjustShooterCommand extends CommandBase {
     @Override
     public void initialize() {
         double distance = vision.getDirectDistanceToTarget().orElse((double) 0);
-        double rpm = ShooterConstants.RPM_N0 + ShooterConstants.RPM_N1 * distance;
+        double rpm = ShooterConstants.RPM_N0 + ShooterConstants.RPM_N1 * distance + ShooterConstants.RPM_N2 * Math.pow(distance, 2);
         if ((distance > VisionConstants.LONGEST_DISTANCE || distance == 0)) {
             rpm = VisionConstants.LONGEST_RPM;
 

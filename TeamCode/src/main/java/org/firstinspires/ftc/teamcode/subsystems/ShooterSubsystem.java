@@ -36,11 +36,9 @@ public class ShooterSubsystem extends SubsystemBase {
         rShooterMotor.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
         lShooterMotor.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
 
-        // Elite: Usamos RUN_WITHOUT_ENCODER para controle manual de alta frequência
         rShooterMotor.setMode(DcMotorEx.RunMode.RUN_WITHOUT_ENCODER);
         lShooterMotor.setMode(DcMotorEx.RunMode.RUN_WITHOUT_ENCODER);
 
-        // Elite: Flywheels devem rodar livre (FLOAT) ao parar para não forçar as engrenagens
         rShooterMotor.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.FLOAT);
         lShooterMotor.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.FLOAT);
 
@@ -72,9 +70,8 @@ public class ShooterSubsystem extends SubsystemBase {
         hoodPosition = Math.max(ShooterConstants.MINIMUM_HOOD, Math.min(ShooterConstants.MAXIMUM_HOOD, position));
     }
 
-    public void setLongShotMode(boolean active) { this.isLongShotMode = active; }
+    //public void setLongShotMode(boolean active) { this.isLongShotMode = active; }
 
-    /** Retorna true se estiver na janela final de disparo */
     public boolean getShooterAtTarget() {
         if (targetRPM <= 50) return false;
         return getCurrentRPM() > (targetRPM * ShooterConstants.CADENCE_TOLERANCE_PERCENT);
@@ -117,12 +114,12 @@ public class ShooterSubsystem extends SubsystemBase {
             stop();
         }
 
-        if (isLongShotMode && targetRPM > 100 && rpmError > 0) {
+        /*if (isLongShotMode && targetRPM > 100 && rpmError > 0) {
             double offset = rpmError * ShooterConstants.K_HOOD_COMPENSATION;
             currentDynamicHoodPos = hoodPosition + offset;
-        } else {
+        } else {*/
             currentDynamicHoodPos = hoodPosition;
-        }
+        //}
 
         currentDynamicHoodPos = Math.max(ShooterConstants.MINIMUM_HOOD,
                 Math.min(ShooterConstants.MAXIMUM_HOOD, currentDynamicHoodPos));

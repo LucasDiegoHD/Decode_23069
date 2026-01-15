@@ -20,7 +20,7 @@ public class ShooterConstants {
 
     public static double kF = 0.05;
 
-    public static double kS = 0.035 ;
+    public static double kS = 0.085 ;
     public static double kV = 0.00017;
 
 
@@ -57,10 +57,8 @@ public class ShooterConstants {
     /** Ganho de compensação: quanto o hood sobe por cada 1 RPM de erro. */
     public static double K_HOOD_COMPENSATION = 0.0006;
     /** Tolerância de cadência para tiros longos. */
-    public static double CADENCE_TOLERANCE_PERCENT = 0.95;
-    public static double STABILITY_WINDOW_PERCENT = 0.93;
-    public static double PREDICTIVE_TRIGGER_PERCENT = 0.91;
-
+    public static double CADENCE_TOLERANCE_PERCENT = 0.99;
+    public static double STABILITY_WINDOW_PERCENT = 0.98;
     // --- TIMINGS ---
     public static double INTAKE_TIME_TO_SHOOT = 350;
     /** The time in milliseconds to wait after triggering before shooting. */
@@ -79,10 +77,10 @@ public class ShooterConstants {
      * * Fit: Quadratic (Grau 2) - Muito preciso para esses pontos.
      * Formula: y = 0.12x^2 - 0.53x + 1.08
      */
-    public static double HOOD_N0 = 1.08;
-    public static double HOOD_N1 = -0.53;
-    public static double HOOD_N2 = 0.12;
-    public static double HOOD_N3 = 0.0;
+    public static double HOOD_N0 = 0.800;
+    public static double HOOD_N1 = -0.368;
+    public static double HOOD_N2 = 0.352;
+    public static double HOOD_N3 = -0.089;
 
     /**
      * Equations for RPM
@@ -96,8 +94,9 @@ public class ShooterConstants {
      * * Fit: Linear Approx
      * Formula: y = 434x + 2480
      */
-    public static double RPM_N0 = 2480.0;
-    public static double RPM_N1 = 434.0;
+    public static double RPM_N0 = 3042.9;
+    public static double RPM_N1 = -485.7;
+    public static double RPM_N2 = 228.6;
     public static double ANGLE_KP = 0.6;
     public static double ANGLE_KI = 0.01;
     public static double ANGLE_KD = 0.05;

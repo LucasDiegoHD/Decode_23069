@@ -20,7 +20,6 @@ public class UpdatePoseLimelightCommand extends CommandBase {
     private final Pose fallbackPose;
 
     private static boolean hasInitialized = false;
-    private static boolean tagFoundLastCycle = false; // Memória de estado para forçar MT1
 
     public UpdatePoseLimelightCommand(DrivetrainSubsystem drivetrain, VisionSubsystem vision, Pose fallbackPose) {
         this.drivetrain = drivetrain;
@@ -33,50 +32,38 @@ public class UpdatePoseLimelightCommand extends CommandBase {
     public void initialize() {
         Optional<Pose> mt1Pose = vision.getRobotPoseMT1();
 
-        // 1. TRATAMENTO DE POSE VAZIA (SEGURANÇA SOLICITADA)
+        // 1. TRATAMENTO DE POSE VAZIA
         if (mt1Pose.isEmpty()) {
             if (!hasInitialized) {
-                // Nunca sincronizou e não vê tag: Usa fallback, mas mantêm false
                 drivetrain.getFollower().setPose(fallbackPose);
                 Log.w("Vision", "Pose vazia e não inicializado. Fallback aplicado.");
             } else {
-                // Já sincronizou mas perdeu a tag: Confia na odometria (fused)
                 Log.d("Vision", "Pose vazia. Mantendo odometria pura.");
             }
-            tagFoundLastCycle = false; // Marcamos que perdemos a tag para forçar MT1 na volta
             return;
         }
 
-        // 2. TRATAMENTO DE TAG VISÍVEL
         Pose llPoseMT1 = mt1Pose.get();
         Pose currentPose = drivetrain.getFollower().getPose();
 
-        // FASE 1: SEEDING / RE-SYNC (MegaTag 1)
-        // Se nunca iniciou OU se acabamos de reencontrar a tag após perdê-la
-        if (!hasInitialized ||!tagFoundLastCycle) {
+        if (!hasInitialized) {
             drivetrain.getFollower().setPose(llPoseMT1);
             hasInitialized = true;
-            tagFoundLastCycle = true;
             Log.d("Vision", "MT1 Seed/Re-Sync Sucesso (Ângulo Corrigido): " + llPoseMT1);
             return;
         }
 
-        // FASE 2: TRACKING (MegaTag 2)
-        // Agora que o ângulo está garantido pelo MT1 anterior, usamos MT2 para estabilidade
         double currentYaw = currentPose.getHeading();
         vision.getRobotPoseMT2(currentYaw).ifPresent(llPoseMT2 -> {
 
             double distInches = Math.hypot(llPoseMT2.getX() - currentPose.getX(), llPoseMT2.getY() - currentPose.getY());
             double maxDeltaInches = VisionConstants.MAX_DELTA_METERS * VisionConstants.METERS_TO_INCHES;
 
-            // Filtro de Rejeição Industrial contra reflexos e saltos [2]
             if (distInches < maxDeltaInches) {
                 Pose fusedPose = getFusedPose(currentPose, llPoseMT2);
                 drivetrain.getFollower().setPose(fusedPose);
-                tagFoundLastCycle = true;
             } else {
                 Log.w("Vision", "MT2 rejeitado: Salto de " + distInches + " in (Reflexo provável).");
-                // Não alteramos tagFoundLastCycle para tentar novamente no próximo loop
             }
         });
     }
@@ -109,6 +96,5 @@ public class UpdatePoseLimelightCommand extends CommandBase {
 
     public static void resetLocalizationStatus() {
         hasInitialized = false;
-        tagFoundLastCycle = false;
     }
 }

@@ -25,8 +25,6 @@ public class AdjustHoodCommand extends CommandBase {
     public AdjustHoodCommand(ShooterSubsystem shooter, VisionSubsystem vision) {
         this.shooter = shooter;
         this.vision = vision;
-
-        addRequirements(shooter, vision);
     }
 
     /**
@@ -43,8 +41,8 @@ public class AdjustHoodCommand extends CommandBase {
 
         // Define "Long Shot" as more than 65% of the Longest Distance
         // Or you can use a fixed value like: distance > 1.5
-        boolean longShotMode = distance > (VisionConstants.LONGEST_DISTANCE * 0.65);
-        shooter.setLongShotMode(longShotMode);
+        //boolean longShotMode = distance > (VisionConstants.LONGEST_DISTANCE * 0.65);
+        //shooter.setLongShotMode(longShotMode);
 
         shooter.setHoodPosition(hood);
     }

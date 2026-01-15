@@ -20,7 +20,6 @@ public class LedCommand extends CommandBase {
     }
 
     public void initialize() {
-        ledSubsystem.setPattern(LEDSubsystem.WHITE);
     }
     @Override
     public void execute() {

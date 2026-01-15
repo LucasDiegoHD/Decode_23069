@@ -60,7 +60,7 @@ public class ShootCommand extends CommandBase {
         this.shooter = shooter;
         this.intake = intake;
         this.ledSubsystem = led;
-        addRequirements(shooter, indexer, led);
+        addRequirements(shooter, indexer);
     }
 
     /**

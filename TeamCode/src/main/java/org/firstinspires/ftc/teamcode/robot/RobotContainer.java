@@ -5,7 +5,6 @@ import com.arcrobotics.ftclib.command.CommandScheduler;
 import com.arcrobotics.ftclib.command.ConditionalCommand;
 import com.arcrobotics.ftclib.command.InstantCommand;
 import com.arcrobotics.ftclib.command.RepeatCommand;
-import com.arcrobotics.ftclib.command.RunCommand;
 import com.arcrobotics.ftclib.command.SequentialCommandGroup;
 import com.arcrobotics.ftclib.command.WaitCommand;
 import com.arcrobotics.ftclib.command.button.GamepadButton;
@@ -15,7 +14,6 @@ import com.arcrobotics.ftclib.geometry.Translation2d;
 import com.bylazar.telemetry.PanelsTelemetry;
 import com.bylazar.telemetry.TelemetryManager;
 import com.pedropathing.geometry.Pose;
-import com.qualcomm.hardware.rev.RevBlinkinLedDriver;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import org.firstinspires.ftc.teamcode.autos.commands.AutonomousCommands;
@@ -74,6 +72,11 @@ public class RobotContainer {
                 drivetrain.getFollower().setPose(startPose);
             }
 
+            led.setDefaultCommand(
+                    new LedCommand(led, alliance)
+            );
+
+
             drivetrain.setDefaultCommand(new TeleOpDriveCommand(drivetrain, driver));
 
             Pose endPose = (alliance == AllianceEnum.Red)?
@@ -97,11 +100,17 @@ public class RobotContainer {
 
             CommandScheduler.getInstance().schedule(periodicUpdateLoop);
 
+                Command AdjustHood = new RepeatCommand(
+                        new SequentialCommandGroup(
+                        new WaitCommand(100),
+                        new AdjustHoodCommand(shooter, vision)
+                        )
+                );
+
+                CommandScheduler.getInstance().schedule(AdjustHood);
+
             new GamepadButton(driver, GamepadKeys.Button.Y)
                     .whileHeld(new AlignToAprilTagCommand(drivetrain, vision, telemetry, operator));
-
-            new GamepadButton(driver, GamepadKeys.Button.BACK)
-                    .whenPressed(new UpdatePoseLimelightCommand(drivetrain, vision, innitialPose));
 
             new GamepadButton(driver, GamepadKeys.Button.A)
                     .whileHeld(new GoToPose(drivetrain, endPose));
@@ -109,7 +118,7 @@ public class RobotContainer {
             new GamepadButton(driver, GamepadKeys.Button.B)
                     .whileHeld(new GoToPose(drivetrain, shootPose));
 
-            double targetx = (alliance == AllianceEnum.Red)? 142 : 0;
+            double targetx = (alliance == AllianceEnum.Red)? 135.5 : 0;
             double targety = 144;
 
             new GamepadButton(driver, GamepadKeys.Button.X)
@@ -121,6 +130,9 @@ public class RobotContainer {
             new GamepadButton(driver, GamepadKeys.Button. LEFT_BUMPER)
                     .whenPressed(new InstantCommand(intake::run, intake))
                     .whenReleased(new InstantCommand(intake::stop, intake));
+
+            new GamepadButton(driver, GamepadKeys.Button.DPAD_DOWN)
+                    .whenPressed(new SpinShooterCommand(shooter, SpinShooterCommand.Action.STOP));
         }
 
         if (operator!= null) {
@@ -188,8 +200,6 @@ public class RobotContainer {
     }
     private boolean isRobotShooting() {
         Command current = drivetrain.getCurrentCommand();
-        return current instanceof AutoShootCommand ||
-                current instanceof AimByPoseCommand ||
-                current instanceof AlignToAprilTagCommand;
+            return current instanceof AlignToAprilTagCommand;
     }
 }
