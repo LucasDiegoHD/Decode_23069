@@ -118,7 +118,7 @@ public class RobotContainer {
             new GamepadButton(driver, GamepadKeys.Button.B)
                     .whileHeld(new GoToPose(drivetrain, shootPose));
 
-            double targetx = (alliance == AllianceEnum.Red)? 135.5 : 0;
+            double targetx = (alliance == AllianceEnum.Red)? 137 : 0;
             double targety = 144;
 
             new GamepadButton(driver, GamepadKeys.Button.X)
@@ -171,6 +171,7 @@ public class RobotContainer {
                 .whenPressed(new SpinShooterCommand(shooter, SpinShooterCommand.Action.SHORT_SHOOT));
         new GamepadButton(operator, GamepadKeys.Button.X)
                 .whenPressed(new SpinShooterCommand(shooter, SpinShooterCommand.Action.LONG_SHOOT));
+
     }
 
     public void updateRobotPose(AllianceEnum alliance, Pose robotPose) {

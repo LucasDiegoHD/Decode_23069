@@ -41,9 +41,9 @@ public class ShooterConstants {
     public static final double TICKS_PER_REV = 28.0;
 
     /** The target velocity in RPM for short shots. */
-    public static double TARGET_VELOCITY_SHORT = 3800;
+    public static double TARGET_VELOCITY_SHORT = 3000;
     /** The target velocity in RPM for long shots. */
-    public static double TARGET_VELOCITY_LONG = 3750;
+    public static double TARGET_VELOCITY_LONG = 3650;
     /** The acceptable error margin for the shooter's target velocity in RPM. */
     public static double VELOCITY_TOLERANCE = 30;
 
@@ -57,7 +57,7 @@ public class ShooterConstants {
     /** Ganho de compensação: quanto o hood sobe por cada 1 RPM de erro. */
     public static double K_HOOD_COMPENSATION = 0.0006;
     /** Tolerância de cadência para tiros longos. */
-    public static double CADENCE_TOLERANCE_PERCENT = 0.99;
+    public static double CADENCE_TOLERANCE_PERCENT = 0.85;
     public static double STABILITY_WINDOW_PERCENT = 0.98;
     // --- TIMINGS ---
     public static double INTAKE_TIME_TO_SHOOT = 350;
@@ -77,10 +77,10 @@ public class ShooterConstants {
      * * Fit: Quadratic (Grau 2) - Muito preciso para esses pontos.
      * Formula: y = 0.12x^2 - 0.53x + 1.08
      */
-    public static double HOOD_N0 = 0.800;
-    public static double HOOD_N1 = -0.368;
-    public static double HOOD_N2 = 0.352;
-    public static double HOOD_N3 = -0.089;
+    public static double HOOD_N0 = 0.90;
+    public static double HOOD_N1 = 0.0;
+    public static double HOOD_N2 = 0.0;
+    public static double HOOD_N3 = 0.0;
 
     /**
      * Equations for RPM
@@ -94,9 +94,9 @@ public class ShooterConstants {
      * * Fit: Linear Approx
      * Formula: y = 434x + 2480
      */
-    public static double RPM_N0 = 3042.9;
-    public static double RPM_N1 = -485.7;
-    public static double RPM_N2 = 228.6;
+    public static double RPM_N0 = 2948.8;
+    public static double RPM_N1 = -528.7;
+    public static double RPM_N2 = 267.9;
     public static double ANGLE_KP = 0.6;
     public static double ANGLE_KI = 0.01;
     public static double ANGLE_KD = 0.05;

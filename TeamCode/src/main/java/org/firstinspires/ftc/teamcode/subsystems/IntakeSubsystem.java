@@ -53,7 +53,9 @@ public class IntakeSubsystem extends SubsystemBase {
     /**
      * Runs the trigger motor.
      */
-    public void runTrigger() { triggerMotor.setPower(-1.0);
+    public void runTrigger() {
+        triggerMotor.setPower(-1.0);
+        intakeMotor.setPower(1.0);
     }
 
     /**
