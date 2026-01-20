@@ -30,7 +30,7 @@ public class AutoShootCommand extends SequentialCommandGroup {
                 //new UpdatePoseLimelightCommand(drivetrain, vision, fallbackPose),
                 //new AdjustHoodCommand(shooter, vision),
 
-                new AdjustShooterCommand(shooter, vision),
+                //new AdjustShooterCommand(shooter, vision),
 
                 new ShootCommand(shooter, intake, indexer, ledSubsystem)
         );

@@ -102,12 +102,22 @@ public class RobotContainer {
 
                 Command AdjustHood = new RepeatCommand(
                         new SequentialCommandGroup(
-                        new WaitCommand(100),
+                        new WaitCommand(300),
                         new AdjustHoodCommand(shooter, vision)
                         )
                 );
 
                 CommandScheduler.getInstance().schedule(AdjustHood);
+
+            Command AdjustShooter = new RepeatCommand(
+                    new SequentialCommandGroup(
+                            new WaitCommand(200),
+                            new AdjustShooterCommand(shooter, vision)
+                    )
+            );
+
+            CommandScheduler.getInstance().schedule(AdjustShooter);
+
 
             new GamepadButton(driver, GamepadKeys.Button.Y)
                     .whileHeld(new AlignToAprilTagCommand(drivetrain, vision, telemetry, operator));
@@ -118,8 +128,8 @@ public class RobotContainer {
             new GamepadButton(driver, GamepadKeys.Button.B)
                     .whileHeld(new GoToPose(drivetrain, shootPose));
 
-            double targetx = (alliance == AllianceEnum.Red)? 137 : 0;
-            double targety = 144;
+            double targetx = (alliance == AllianceEnum.Red)? 144 : 0;
+            double targety = 140;
 
             new GamepadButton(driver, GamepadKeys.Button.X)
                     .whileHeld(new AimByPoseCommand(drivetrain, targetx, targety, telemetry));
