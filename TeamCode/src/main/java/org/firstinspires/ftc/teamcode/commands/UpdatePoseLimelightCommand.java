@@ -28,6 +28,24 @@ public class UpdatePoseLimelightCommand extends CommandBase {
         addRequirements(vision);
     }
 
+    public static void forceHardReset(DrivetrainSubsystem drive, VisionSubsystem vis, double targetHeadingDegrees) {
+        double targetHeadingRad = Math.toRadians(targetHeadingDegrees);
+        Pose currentPose = drive.getFollower().getPose();
+
+        drive.getFollower().setPose(new Pose(currentPose.getX(), currentPose.getY(), targetHeadingRad));
+
+
+        vis.getRobotPoseMT2(targetHeadingRad).ifPresent(mt2Pose -> {
+
+            drive.getFollower().setPose(new Pose(
+                    mt2Pose.getX(),
+                    mt2Pose.getY(),
+                    targetHeadingRad
+            ));
+            Log.i("Vision", "HARD RESET: Posição atualizada 100% via Limelight");
+        });
+    }
+
     @Override
     public void initialize() {
         Optional<Pose> mt1Pose = vision.getRobotPoseMT1();

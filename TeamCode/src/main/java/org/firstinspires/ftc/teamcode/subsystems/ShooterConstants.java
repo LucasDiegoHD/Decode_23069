@@ -9,7 +9,7 @@ import com.bylazar.configurables.annotations.Configurable;
 public class ShooterConstants {
 
 
-    public static double kP = 20;
+    public static double kP = 25;
 
 
     public static double kI = 0.0;
@@ -21,7 +21,11 @@ public class ShooterConstants {
     public static double kF = 0.05;
 
     public static double kS = 0.085 ;
+
     public static double kV = 0.00017;
+
+    public static double kF_SHOT_BOOST = 0.2;
+    public static double SHOT_BOOST_DURATION = 250;
 
 
     /** The hardware map name for the right shooter motor. */
@@ -58,11 +62,11 @@ public class ShooterConstants {
     public static double K_HOOD_COMPENSATION = 0.0006;
     /** Tolerância de cadência para tiros longos. */
     public static double CADENCE_TOLERANCE_PERCENT = 0.995;
-    public static double STABILITY_WINDOW_PERCENT = 0.98;
+    public static double STABILITY_WINDOW_PERCENT = 0.99;
     // --- TIMINGS ---
 
     /** The time in milliseconds to wait after triggering before shooting. */
-    public static double TRIGGER_TIMER_TO_SHOOT = 500;
+    public static double TRIGGER_TIMER_TO_SHOOT = 400;
     public static double TRIGGER_TIMER_TRIGGERING = 1300;
 
     /**
@@ -98,8 +102,8 @@ public class ShooterConstants {
     public static double RPM_N1 = -528.7;
     public static double RPM_N2 = 267.9;
     public static double ANGLE_KP = 0.6;
-    public static double ANGLE_KI = 0.01;
+    public static double ANGLE_KI = 0.015;
     public static double ANGLE_KD = 0.05;
-    public static double ANGLE_KF = 0.1;
+    public static double ANGLE_KF = 0.125;
     public static double ANGLE_TOLERANCE = 0.1;
 }

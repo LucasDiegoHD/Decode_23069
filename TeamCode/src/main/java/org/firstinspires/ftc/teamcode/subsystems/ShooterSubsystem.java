@@ -8,6 +8,7 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.VoltageSensor;
+import com.qualcomm.robotcore.util.ElapsedTime;
 
 public class ShooterSubsystem extends SubsystemBase {
 
@@ -22,6 +23,9 @@ public class ShooterSubsystem extends SubsystemBase {
     private double currentDynamicHoodPos = 0.50;
     private double lastPower = 0;
     private boolean isLongShotMode = false;
+
+    private final ElapsedTime shotBoostTimer = new ElapsedTime();
+    private boolean isBoostActive = false;
 
     public ShooterSubsystem(HardwareMap hardwareMap, TelemetryManager telemetry) {
         this.telemetry = telemetry;
@@ -56,6 +60,7 @@ public class ShooterSubsystem extends SubsystemBase {
         rShooterMotor.setPower(0);
         lShooterMotor.setPower(0);
         lastPower = 0;
+        isBoostActive = false;
     }
 
     public void increaseHood() {
@@ -87,6 +92,11 @@ public class ShooterSubsystem extends SubsystemBase {
         hoodServoRight.setPosition(currentDynamicHoodPos);
     }
 
+    public void anticipateShot() {
+        shotBoostTimer.reset();
+        isBoostActive = true;
+    }
+
     @Override
     public void periodic() {
         double currentRPM = getCurrentRPM();
@@ -95,11 +105,22 @@ public class ShooterSubsystem extends SubsystemBase {
         if (targetRPM > 50) {
             double v = voltageSensor.getVoltage();
 
+            double voltageComp = 12.0 / v;
+
             double feedforward = (ShooterConstants.kS * Math.signum(targetRPM) + ShooterConstants.kV * targetRPM) * (12.0 / v);
+            double shotBoost = 0.0;
+            if (isBoostActive) {
+                if (shotBoostTimer.milliseconds() < ShooterConstants.SHOT_BOOST_DURATION) {
+
+                    shotBoost = ShooterConstants.kF_SHOT_BOOST * voltageComp;
+                } else {
+                    isBoostActive = false;
+                }
+            }
 
             double feedback = controller.calculate(currentRPM, targetRPM);
 
-            double power = Math.max(0, Math.min(1.0, feedforward + feedback));
+            double power = Math.max(0, Math.min(1.0, feedforward + feedback + shotBoost));
 
             if (rpmError > (targetRPM * (1 - ShooterConstants.STABILITY_WINDOW_PERCENT))) {
                 power = 1.0;

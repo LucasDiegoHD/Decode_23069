@@ -98,8 +98,10 @@ public class VisionSubsystem extends SubsystemBase {
 
     public Optional<Pose> getRobotPose() {
         latestResult = limelight.getLatestResult();
+
         if (!hasTarget()) return Optional.empty();
         Pose3D robotPose = latestResult.getBotpose();
+
         if (robotPose == null) return Optional.empty();
         return Optional.of(convertToPedro(robotPose));
     }

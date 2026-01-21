@@ -89,7 +89,7 @@ public class RobotContainer {
 
             Command periodicUpdateLoop = new RepeatCommand(
                     new SequentialCommandGroup(
-                            new WaitCommand(500),
+                            new WaitCommand(1000),
                             new ConditionalCommand(
                                     new InstantCommand(),
                                     new UpdatePoseLimelightCommand(drivetrain, vision, innitialPose),
@@ -128,8 +128,8 @@ public class RobotContainer {
             new GamepadButton(driver, GamepadKeys.Button.B)
                     .whileHeld(new GoToPose(drivetrain, shootPose));
 
-            double targetx = (alliance == AllianceEnum.Red)? 144 : 0;
-            double targety = 140;
+            double targetx = (alliance == AllianceEnum.Red)? 138 : 0;
+            double targety = 138;
 
             new GamepadButton(driver, GamepadKeys.Button.X)
                     .whileHeld(new AimByPoseCommand(drivetrain, targetx, targety, telemetry));
@@ -143,6 +143,13 @@ public class RobotContainer {
 
             new GamepadButton(driver, GamepadKeys.Button.DPAD_DOWN)
                     .whenPressed(new SpinShooterCommand(shooter, SpinShooterCommand.Action.STOP));
+
+            new GamepadButton(driver, GamepadKeys.Button.START)
+                    .whenPressed(new InstantCommand(() -> {
+                        double targetAngle = 90.0;
+
+                        UpdatePoseLimelightCommand.forceHardReset(drivetrain, vision, targetAngle);
+                    }));
         }
 
         if (operator!= null) {

@@ -94,6 +94,7 @@ public class ShootCommand extends CommandBase {
 
                     if (shooter.getShooterAtTarget()) {
                         state = SHOOT_STATES.Shooting;
+                        shooter.anticipateShot();
                         intake.runTrigger();
                         ledSubsystem.setPattern(LEDSubsystem.GREEN);
                         timer.reset();
@@ -108,6 +109,7 @@ public class ShootCommand extends CommandBase {
             case Acceleration:
                 if (shooter.getShooterAtTarget()) {
                     state = SHOOT_STATES.Shooting;
+                    shooter.anticipateShot();
                     intake.runTrigger();
                     ledSubsystem.setPattern(LEDSubsystem.GREEN);
                     intake.run();
