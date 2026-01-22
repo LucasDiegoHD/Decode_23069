@@ -72,10 +72,6 @@ public class RobotContainer {
                 drivetrain.getFollower().setPose(startPose);
             }
 
-            led.setDefaultCommand(
-                    new LedCommand(led, alliance)
-            );
-
 
             drivetrain.setDefaultCommand(new TeleOpDriveCommand(drivetrain, driver));
 
@@ -128,8 +124,8 @@ public class RobotContainer {
             new GamepadButton(driver, GamepadKeys.Button.B)
                     .whileHeld(new GoToPose(drivetrain, shootPose));
 
-            double targetx = (alliance == AllianceEnum.Red)? 138 : 0;
-            double targety = 138;
+            double targetx = (alliance == AllianceEnum.Red)? 140 : 0;
+            double targety = 144;
 
             new GamepadButton(driver, GamepadKeys.Button.X)
                     .whileHeld(new AimByPoseCommand(drivetrain, targetx, targety, telemetry));

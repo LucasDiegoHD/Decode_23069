@@ -24,16 +24,16 @@ public class VisionConstants {
     public static double TURN_KF = 0.2;
 
 
-    public static double LONGEST_HOOD = 0.70;
-    public static double LONGEST_RPM = 3575;
+    public static double LONGEST_HOOD = 0.3;
+    public static double LONGEST_RPM = 3525;
     public static double LONGEST_DISTANCE = 2.55;
-    // ---- Tempo ----
+
     // distância máxima em METROS
     public static double MAX_DELTA_METERS = 1.0; // default = 1m
 
     // Pesos para fusão
-    public static double ODOMETRY_WEIGHT = 0.8;
-    public static double LIMELIGHT_WEIGHT = 0.2;
+    public static double ODOMETRY_WEIGHT = 0.9;
+    public static double LIMELIGHT_WEIGHT = 0.1;
 
     // conversão
     public static final double METERS_TO_INCHES = 39.3700787;

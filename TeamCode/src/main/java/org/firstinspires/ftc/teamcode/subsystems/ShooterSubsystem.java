@@ -17,7 +17,6 @@ public class ShooterSubsystem extends SubsystemBase {
     private final TelemetryManager telemetry;
     private final Servo hoodServoLeft, hoodServoRight;
     private final PIDFController controller;
-
     private double targetRPM = 0.0;
     private double hoodPosition = 0.50;
     private double currentDynamicHoodPos = 0.50;
@@ -75,7 +74,7 @@ public class ShooterSubsystem extends SubsystemBase {
         hoodPosition = Math.max(ShooterConstants.MINIMUM_HOOD, Math.min(ShooterConstants.MAXIMUM_HOOD, position));
     }
 
-    //public void setLongShotMode(boolean active) { this.isLongShotMode = active; }
+    public void setLongShotMode(boolean active) { this.isLongShotMode = active; }
 
     public boolean getShooterAtTarget() {
         if (targetRPM <= 50) return false;
@@ -135,12 +134,12 @@ public class ShooterSubsystem extends SubsystemBase {
             stop();
         }
 
-        /*if (isLongShotMode && targetRPM > 100 && rpmError > 0) {
+        if (isLongShotMode && targetRPM > 2000 && rpmError > 0) {
             double offset = rpmError * ShooterConstants.K_HOOD_COMPENSATION;
             currentDynamicHoodPos = hoodPosition + offset;
-        } else {*/
+        } else {
             currentDynamicHoodPos = hoodPosition;
-        //}
+        }
 
         currentDynamicHoodPos = Math.max(ShooterConstants.MINIMUM_HOOD,
                 Math.min(ShooterConstants.MAXIMUM_HOOD, currentDynamicHoodPos));

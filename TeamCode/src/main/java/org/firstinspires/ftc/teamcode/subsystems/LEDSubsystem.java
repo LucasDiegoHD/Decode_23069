@@ -19,7 +19,7 @@ public class LEDSubsystem extends SubsystemBase {
 
         led.setPwmRange(new PwmControl.PwmRange(500, 2500));
 
-        this.targetPosition = OFF;
+        this.targetPosition = RED;
     }
 
     public void setPattern(double position) {

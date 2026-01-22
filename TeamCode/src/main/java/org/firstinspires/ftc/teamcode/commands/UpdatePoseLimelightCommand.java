@@ -10,15 +10,15 @@ import org.firstinspires.ftc.teamcode.subsystems.VisionSubsystem;
 import java.util.Optional;
 
 /**
- * Competitive Pose Update Command - DECODE Edition.
- * Lógica: Reseeding via MT1 em cada re-aquisição de tag e tracking via MT2.
+ * Competitive Pose Update - MT2 ONLY Edition.
+ * Corrige apenas X e Y, confiando cegamente no ângulo da Odometria/IMU.
+ * Isso impede que erros de ângulo da câmera estraguem a navegação "overtime".
  */
 public class UpdatePoseLimelightCommand extends CommandBase {
 
     private final DrivetrainSubsystem drivetrain;
     private final VisionSubsystem vision;
     private final Pose fallbackPose;
-
     private static boolean hasInitialized = false;
 
     public UpdatePoseLimelightCommand(DrivetrainSubsystem drivetrain, VisionSubsystem vision, Pose fallbackPose) {
@@ -28,19 +28,23 @@ public class UpdatePoseLimelightCommand extends CommandBase {
         addRequirements(vision);
     }
 
+    /**
+     * Hard Reset: Usa força bruta para setar ângulo e posição (se disponível).
+     * Usado pelo botão de reset do piloto.
+     */
     public static void forceHardReset(DrivetrainSubsystem drive, VisionSubsystem vis, double targetHeadingDegrees) {
         double targetHeadingRad = Math.toRadians(targetHeadingDegrees);
         Pose currentPose = drive.getFollower().getPose();
 
+        // 1. Força o ângulo na odometria imediatamente
         drive.getFollower().setPose(new Pose(currentPose.getX(), currentPose.getY(), targetHeadingRad));
 
-
+        // 2. Tenta pegar X/Y absoluto da MT2 usando esse ângulo perfeito
         vis.getRobotPoseMT2(targetHeadingRad).ifPresent(mt2Pose -> {
-
             drive.getFollower().setPose(new Pose(
                     mt2Pose.getX(),
                     mt2Pose.getY(),
-                    targetHeadingRad
+                    targetHeadingRad // Mantém o ângulo travado
             ));
             Log.i("Vision", "HARD RESET: Posição atualizada 100% via Limelight");
         });
@@ -48,31 +52,31 @@ public class UpdatePoseLimelightCommand extends CommandBase {
 
     @Override
     public void initialize() {
-        Optional<Pose> mt1Pose = vision.getRobotPoseMT1();
+        // --- FASE 1: INICIALIZAÇÃO ---
+        if (!hasInitialized) {
+            // Tenta usar MT2 usando o ângulo do Fallback (StartPose)
+            // A MT2 é muito mais precisa em X/Y do que a MT1
+            Optional<Pose> initPoseMT2 = vision.getRobotPoseMT2(fallbackPose.getHeading());
 
-        // 1. TRATAMENTO DE POSE VAZIA
-        if (mt1Pose.isEmpty()) {
-            if (!hasInitialized) {
-                drivetrain.getFollower().setPose(fallbackPose);
-                Log.w("Vision", "Pose vazia e não inicializado. Fallback aplicado.");
+            if (initPoseMT2.isPresent()) {
+                Pose p = initPoseMT2.get();
+                // Seta X/Y da câmera, mas mantém o ângulo confiável do Fallback
+                drivetrain.getFollower().setPose(new Pose(p.getX(), p.getY(), fallbackPose.getHeading()));
+                Log.d("Vision", "Inicializado via MT2 + Fallback Heading");
             } else {
-                Log.d("Vision", "Pose vazia. Mantendo odometria pura.");
+                // Se a câmera não ver nada, assume a posição inicial teórica
+                drivetrain.getFollower().setPose(fallbackPose);
+                Log.w("Vision", "Câmera cega no init. Usando Fallback Pose.");
             }
+            hasInitialized = true;
             return;
         }
 
-        Pose llPoseMT1 = mt1Pose.get();
+        // --- FASE 2: TRACKING CONTÍNUO ---
         Pose currentPose = drivetrain.getFollower().getPose();
 
-        if (!hasInitialized) {
-            drivetrain.getFollower().setPose(llPoseMT1);
-            hasInitialized = true;
-            Log.d("Vision", "MT1 Seed/Re-Sync Sucesso (Ângulo Corrigido): " + llPoseMT1);
-            return;
-        }
-
-        double currentYaw = currentPose.getHeading();
-        vision.getRobotPoseMT2(currentYaw).ifPresent(llPoseMT2 -> {
+        // Alimenta a MT2 com o ângulo ATUAL da odometria
+        vision.getRobotPoseMT2(currentPose.getHeading()).ifPresent(llPoseMT2 -> {
 
             double distInches = Math.hypot(llPoseMT2.getX() - currentPose.getX(), llPoseMT2.getY() - currentPose.getY());
             double maxDeltaInches = VisionConstants.MAX_DELTA_METERS * VisionConstants.METERS_TO_INCHES;
@@ -81,30 +85,22 @@ public class UpdatePoseLimelightCommand extends CommandBase {
                 Pose fusedPose = getFusedPose(currentPose, llPoseMT2);
                 drivetrain.getFollower().setPose(fusedPose);
             } else {
-                Log.w("Vision", "MT2 rejeitado: Salto de " + distInches + " in (Reflexo provável).");
+                Log.w("Vision", "MT2 Ignorada: Pulo muito grande (" + distInches + " in)");
             }
         });
     }
 
-    /**
-     * Fusão ponderada conforme padrão de elite.
-     * Mantém o heading da odometria no tracking para evitar glitches de 360/0. [8, 2]
-     */
     @NonNull
     private Pose getFusedPose(Pose currentPose, Pose llPose) {
         double wOdo = VisionConstants.ODOMETRY_WEIGHT;
         double wLL = VisionConstants.LIMELIGHT_WEIGHT;
-        double sum = wOdo + wLL;
-        if (sum == 0) return currentPose;
+        double total = wOdo + wLL;
 
-        wOdo /= sum;
-        wLL /= sum;
+        double fusedX = (currentPose.getX() * wOdo + llPose.getX() * wLL) / total;
+        double fusedY = (currentPose.getY() * wOdo + llPose.getY() * wLL) / total;
 
-        return new Pose(
-                currentPose.getX() * wOdo + llPose.getX() * wLL,
-                currentPose.getY() * wOdo + llPose.getY() * wLL,
-                currentPose.getHeading()
-        );
+        // RETORNA SEMPRE O HEADING DA ODOMETRIA
+        return new Pose(fusedX, fusedY, currentPose.getHeading());
     }
 
     @Override

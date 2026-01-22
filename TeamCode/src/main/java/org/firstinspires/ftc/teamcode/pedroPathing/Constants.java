@@ -79,10 +79,10 @@ public class Constants {
             .strafeEncoderDirection(GoBildaPinpointDriver.EncoderDirection.FORWARD);
 
     public static PathConstraints pathConstraints = new PathConstraints(
-            0.95,  // tValueConstraint (ok)
-            0.1,   // ve locityConstraint (ANTES: 0.05) -> bem mais lento
+            0.98,  // tValueConstraint (ok)
+            0.05,   // ve locityConstraint (ANTES: 0.05) -> bem mais lento
             0.02,   // translationalConstraint (ANTES: 0.05)
-            0.1,    // headingConstraint (ANTES: 2.0) -> gira bem mais devagar
+            0.05,    // headingConstraint (ANTES: 2.0) -> gira bem mais devagar
             200,    // timeoutConstraint
             2,    // brakingStrength (ANTES: 1.5) -> freia menos "bruscamente"
             10,     // bezier limit
