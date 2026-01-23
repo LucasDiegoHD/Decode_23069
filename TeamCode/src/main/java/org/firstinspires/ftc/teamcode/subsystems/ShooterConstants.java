@@ -61,8 +61,8 @@ public class ShooterConstants {
     /** Ganho de compensação: quanto o hood sobe por cada 1 RPM de erro. */
     public static double K_HOOD_COMPENSATION = 0.0002;
     /** Tolerância de cadência para tiros longos. */
-    public static double CADENCE_TOLERANCE_PERCENT = 0.995;
-    public static double STABILITY_WINDOW_PERCENT = 0.99;
+    public static double CADENCE_TOLERANCE_PERCENT = 0.985;
+    public static double STABILITY_WINDOW_PERCENT = 0.98;
     // --- TIMINGS ---
 
     /** The time in milliseconds to wait after triggering before shooting. */
@@ -98,7 +98,7 @@ public class ShooterConstants {
      * * Fit: Linear Approx
      * Formula: y = 434x + 2480
      */
-    public static double RPM_N0 = 2900.0;
+    public static double RPM_N0 = 2950.0;
     public static double RPM_N1 = -528.7;
     public static double RPM_N2 = 267.9;
     public static double ANGLE_KP = 0.6;
