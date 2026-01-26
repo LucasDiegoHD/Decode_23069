@@ -26,15 +26,15 @@ public class Constants {
             public static String PINPOINT_LOCALIZER = "pinpoint";
         }
     public static FollowerConstants followerConstants = new FollowerConstants()
-            .mass(13.5)
-            .forwardZeroPowerAcceleration(-33.315092662612045)
+            .mass(11)
+            .forwardZeroPowerAcceleration(-43.315092662612045)
             .lateralZeroPowerAcceleration(-97.42340280933647)
             .useSecondaryTranslationalPIDF(true)
             .useSecondaryHeadingPIDF(false)
             .useSecondaryDrivePIDF(false)
-            .centripetalScaling(0.0005)
+            .centripetalScaling(0.0007)
             .translationalPIDFCoefficients(
-                    new PIDFCoefficients(5, 0.01, 0.65, 0.3)
+                    new PIDFCoefficients(5, 0.01, 0.5, 0.3)
             )
             .secondaryTranslationalPIDFCoefficients(
                     new PIDFCoefficients(0.2, 0.0, 0.01, 0.01)
@@ -45,7 +45,7 @@ public class Constants {
             )
 
             .drivePIDFCoefficients(
-                    new FilteredPIDFCoefficients(0.008, 0.0008, 0.004, 0.5, 0.24)
+                    new FilteredPIDFCoefficients(0.01, 0.0008, 0.003, 0.5, 0.24)
             );
 
     public static MecanumConstants driveConstants = new MecanumConstants()
@@ -79,14 +79,14 @@ public class Constants {
             .strafeEncoderDirection(GoBildaPinpointDriver.EncoderDirection.FORWARD);
 
     public static PathConstraints pathConstraints = new PathConstraints(
-            0.98,  // tValueConstraint (ok)
-            0.05,   // ve locityConstraint (ANTES: 0.05) -> bem mais lento
-            0.02,   // translationalConstraint (ANTES: 0.05)
-            0.05,    // headingConstraint (ANTES: 2.0) -> gira bem mais devagar
-            200,    // timeoutConstraint
-            2,    // brakingStrength (ANTES: 1.5) -> freia menos "bruscamente"
+            0.99,  // tValueConstraint (ok)
+            1.0,   // ve locityConstraint (ANTES: 0.05) -> bem mais lento
+            0.1,   // translationalConstraint (ANTES: 0.05)
+            0.015,    // headingConstraint (ANTES: 2.0) -> gira bem mais devagar
+            500,    // timeoutConstraint
+            1.0,    // brakingStrength (ANTES: 1.5) -> freia menos "bruscamente"
             10,     // bezier limit
-            1     // brakingStart (ok)
+            0.7     // brakingStart (ok)
     );
 
 

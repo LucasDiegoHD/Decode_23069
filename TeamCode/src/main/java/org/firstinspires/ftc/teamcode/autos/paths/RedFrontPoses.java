@@ -5,13 +5,12 @@ import java.util.List;
 
 public class RedFrontPoses {
 
-    // AVISO: Espelhar ou ajustar para o lado Vermelho Grande
     public static final Pose[] POSES = {
             // StartPose
             new Pose(110, 126, Math.toRadians(40)),
 
             // GoToShoot1
-            new Pose(74, 90, Math.toRadians(43)),
+            new Pose(80.134, 90, Math.toRadians(45)),
 
             // GoToLine1
             new Pose(80.134, 85, Math.toRadians(180)),
@@ -22,20 +21,20 @@ public class RedFrontPoses {
             new Pose(114, 12, Math.toRadians(68)),
 
             // GoToLine2
-            new Pose(94.134, 58.169, Math.toRadians(180)),
+            new Pose(80.134, 61.169, Math.toRadians(180)),
             // CatchLine2
-            new Pose(132.776, 58.169, Math.toRadians(180)),
+            new Pose(123.776, 61.169, Math.toRadians(180)),
 
             // EndPose
             new Pose(84, 60, Math.toRadians(90)),
 
             // GoToLine3
-            new Pose(94.134, 38.169, Math.toRadians(180)),
+            new Pose(80.134, 38.169, Math.toRadians(180)),
             // CatchLine3
-            new Pose(132.776, 38.169, Math.toRadians(180)),
+            new Pose(123.776, 38.169, Math.toRadians(180)),
 
             // GatePose
-            new Pose(130.776, 64.169, Math.toRadians(90)),
+            new Pose(12.776, 64.169, Math.toRadians(90)),
     };
 
     public static Pose getPose(PosesNames name) {

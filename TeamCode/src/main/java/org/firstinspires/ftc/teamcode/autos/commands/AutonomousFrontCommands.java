@@ -50,6 +50,7 @@ public class AutonomousFrontCommands extends SequentialCommandGroup {
                 new InstantCommand(intake::run),
                 new GoToPoseCommand(drivetrain, poses.get(PosesNames.CatchLine3.ordinal())).withTimeout(2000),
                 new GoToPoseCommand(drivetrain, poses.get(PosesNames.GoToShoot1.ordinal())).withTimeout(2000),
+                new WaitCommand(500),
                 new AlignAndAdjustAutoCommand(drivetrain, vision, shooter),
                 new ShootCommand(shooter, intake, indexer,3, ledSubsystem).withTimeout(5000),
                 new GoToPoseCommand(drivetrain, poses.get(PosesNames.EndPose.ordinal())).withTimeout(2000),

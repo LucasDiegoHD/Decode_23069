@@ -107,7 +107,7 @@ public class RobotContainer {
 
             Command AdjustShooter = new RepeatCommand(
                     new SequentialCommandGroup(
-                            new WaitCommand(200),
+                            new WaitCommand(300),
                             new AdjustShooterCommand(shooter, vision)
                     )
             );
