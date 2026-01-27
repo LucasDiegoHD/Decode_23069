@@ -17,7 +17,7 @@ public class RedRearPoses {
             new Pose(86.335, 12.547, Math.toRadians(67.5)),
 
 
-            new Pose(130, 23, Math.toRadians(180)),
+            new Pose(83.35, 14.547, Math.toRadians(180)),
             new Pose(130, 12, Math.toRadians(180)),
 
             new Pose(106, 34, Math.toRadians(90)),

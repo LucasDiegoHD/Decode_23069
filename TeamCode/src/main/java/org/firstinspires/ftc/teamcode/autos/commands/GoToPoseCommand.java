@@ -1,63 +1,73 @@
 package org.firstinspires.ftc.teamcode.autos.commands;
 
 import com.arcrobotics.ftclib.command.CommandBase;
-import com.pedropathing.geometry.Pose;
 import com.pedropathing.geometry.BezierLine;
+import com.pedropathing.geometry.Pose;
 import com.pedropathing.paths.PathBuilder;
 import com.pedropathing.paths.PathChain;
 import com.pedropathing.paths.PathConstraints;
+import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 import org.firstinspires.ftc.teamcode.subsystems.DrivetrainSubsystem;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.Arrays;
+import java.util.List;
 
 public class GoToPoseCommand extends CommandBase {
     private final DrivetrainSubsystem drivetrain;
-    private final Pose targetPose;
-    private double cruiseSpeed = 1.0;
+    private final List<Pose> waypoints;
+    private final boolean holdEnd;
     private PathConstraints constraints;
-    private final Map<Double, Runnable> callbacks = new HashMap<>();
 
     public GoToPoseCommand(DrivetrainSubsystem drivetrain, Pose targetPose) {
+        this(drivetrain, true, targetPose);
+    }
+
+    public GoToPoseCommand(DrivetrainSubsystem drivetrain, boolean holdEnd, Pose targetPose) {
+        this(drivetrain, holdEnd, new Pose[]{targetPose});
+    }
+
+    public GoToPoseCommand(DrivetrainSubsystem drivetrain, boolean holdEnd, Pose... poses) {
         this.drivetrain = drivetrain;
-        this.targetPose = targetPose;
+        this.holdEnd = holdEnd;
+        this.waypoints = Arrays.asList(poses);
+        this.constraints = Constants.pathConstraints;
         addRequirements(drivetrain);
     }
 
-    public GoToPoseCommand(DrivetrainSubsystem drivetrain, Pose targetPose, double speed, PathConstraints constraints) {
-        this.drivetrain = drivetrain;
-        this.targetPose = targetPose;
-        this.cruiseSpeed = speed;
-        this.constraints = constraints;
-        addRequirements(drivetrain);
-    }
-
-    public GoToPoseCommand addCallback(double t, Runnable action) {
-        callbacks.put(t, action);
+    public GoToPoseCommand setConstraints(PathConstraints customConstraints) {
+        this.constraints = customConstraints;
         return this;
     }
 
     @Override
     public void initialize() {
+        if (waypoints.isEmpty()) return;
+
         Pose startPose = drivetrain.getFollower().getPose();
+        PathBuilder builder = drivetrain.getFollower().pathBuilder();
 
-        drivetrain.getFollower().setMaxPower(cruiseSpeed);
+        builder.addPath(new BezierLine(startPose, waypoints.get(0)));
+        builder.setLinearHeadingInterpolation(startPose.getHeading(), waypoints.get(0).getHeading());
+        applyConstraints(builder);
 
-        PathBuilder builder = drivetrain.getFollower().pathBuilder()
-                .addPath(new BezierLine(startPose, targetPose))
-                .setLinearHeadingInterpolation(startPose.getHeading(), targetPose.getHeading());
+        for (int i = 1; i < waypoints.size(); i++) {
+            Pose previous = waypoints.get(i - 1);
+            Pose current = waypoints.get(i);
 
+            builder.addPath(new BezierLine(previous, current));
+            builder.setLinearHeadingInterpolation(previous.getHeading(), current.getHeading());
+            applyConstraints(builder);
+        }
+
+        PathChain chain = builder.build();
+
+        drivetrain.getFollower().followPath(chain, holdEnd);
+    }
+
+    private void applyConstraints(PathBuilder builder) {
         if (constraints != null) {
-            builder.setTValueConstraint(constraints.getTValueConstraint());
-            builder.setTimeoutConstraint(constraints.getTimeoutConstraint());
+            builder.setConstraints(constraints);
         }
-
-        for (Map.Entry<Double, Runnable> entry : callbacks.entrySet()) {
-            builder.addParametricCallback(entry.getKey(), entry.getValue());
-        }
-
-        PathChain path = builder.build();
-        drivetrain.getFollower().followPath(path);
     }
 
     @Override
