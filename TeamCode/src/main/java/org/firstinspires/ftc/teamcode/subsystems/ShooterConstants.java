@@ -9,7 +9,7 @@ import com.bylazar.configurables.annotations.Configurable;
 public class ShooterConstants {
 
 
-    public static double kP = 25;
+    public static double kP = 30;
 
 
     public static double kI = 0.0;
@@ -20,12 +20,12 @@ public class ShooterConstants {
 
     public static double kF = 0.05;
 
-    public static double kS = 0.085 ;
+    public static double kS = 0.045 ;
 
-    public static double kV = 0.00017;
+    public static double kV = 0.000185;
 
-    public static double kF_SHOT_BOOST = 0.2;
-    public static double SHOT_BOOST_DURATION = 250;
+    public static double kF_SHOT_BOOST = 0.3;
+    public static double SHOT_BOOST_DURATION = 400;
 
 
     /** The hardware map name for the right shooter motor. */
@@ -45,9 +45,9 @@ public class ShooterConstants {
     public static final double TICKS_PER_REV = 28.0;
 
     /** The target velocity in RPM for short shots. */
-    public static double TARGET_VELOCITY_SHORT = 3100;
+    public static double TARGET_VELOCITY_SHORT = 3200;
     /** The target velocity in RPM for long shots. */
-    public static double TARGET_VELOCITY_LONG = 3600;
+    public static double TARGET_VELOCITY_LONG = 3575;
     /** The acceptable error margin for the shooter's target velocity in RPM. */
     public static double VELOCITY_TOLERANCE = 30;
 
@@ -59,14 +59,14 @@ public class ShooterConstants {
     public static double HOOD_INCREMENT = 0.05;
 
     /** Ganho de compensação: quanto o hood sobe por cada 1 RPM de erro. */
-    public static double K_HOOD_COMPENSATION = 0.0003;
+    public static double K_HOOD_COMPENSATION = 0.00025;
     /** Tolerância de cadência para tiros longos. */
-    public static double CADENCE_TOLERANCE_PERCENT = 0.98;
-    public static double STABILITY_WINDOW_PERCENT = 0.97;
+    public static double CADENCE_TOLERANCE_PERCENT = 0.97;
+    public static double STABILITY_WINDOW_PERCENT = 0.98;
     // --- TIMINGS ---
 
     /** The time in milliseconds to wait after triggering before shooting. */
-    public static double TRIGGER_TIMER_TO_SHOOT = 400;
+    public static double TRIGGER_TIMER_TO_SHOOT = 300;
     public static double TRIGGER_TIMER_TRIGGERING = 1300;
 
     /**

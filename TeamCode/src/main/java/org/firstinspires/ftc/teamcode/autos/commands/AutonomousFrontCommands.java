@@ -34,20 +34,22 @@ public class AutonomousFrontCommands extends SequentialCommandGroup {
                 new InstantCommand(intake::run),
                 new GoToPoseCommand(drivetrain, true,
                         poses.get(PosesNames.GoToLine1.ordinal()),
-                        poses.get(PosesNames.CatchLine1.ordinal()),
-                        poses.get(PosesNames.GatePose.ordinal())
+                        poses.get(PosesNames.CatchLine1.ordinal())
                 ).withTimeout(4000),
-                new GoToPoseCommand(drivetrain, poses.get(PosesNames.GoToShoot1.ordinal())),
+                new GoToPoseCommand(drivetrain, poses.get(PosesNames.GoToShoot2.ordinal())),
                 new AlignAndAdjustAutoCommand(drivetrain, vision, shooter),
+                new WaitCommand(500),
                 new ShootCommand(shooter, intake, indexer,3, ledSubsystem).withTimeout(5000),
                 new SpinShooterCommand(shooter, SpinShooterCommand.Action.SHORT_SHOOT),
                 new InstantCommand(intake::run),
                 new GoToPoseCommand(drivetrain, true,
                         poses.get(PosesNames.GoToLine2.ordinal()),
-                        poses.get(PosesNames.CatchLine2.ordinal())
+                        poses.get(PosesNames.CatchLine2.ordinal()),
+                        poses.get(PosesNames.GatePose.ordinal())
                 ).withTimeout(4000),
-                new GoToPoseCommand(drivetrain, poses.get(PosesNames.GoToShoot1.ordinal())).withTimeout(2000),
+                new GoToPoseCommand(drivetrain, poses.get(PosesNames.GoToShoot2.ordinal())).withTimeout(2000),
                 new AlignAndAdjustAutoCommand(drivetrain, vision, shooter),
+                new WaitCommand(500),
                 new ShootCommand(shooter, intake, indexer,3, ledSubsystem).withTimeout(5000),
                 new SpinShooterCommand(shooter, SpinShooterCommand.Action.SHORT_SHOOT),
                 new InstantCommand(intake::run),
@@ -55,9 +57,9 @@ public class AutonomousFrontCommands extends SequentialCommandGroup {
                         poses.get(PosesNames.GoToLine3.ordinal()),
                         poses.get(PosesNames.CatchLine3.ordinal())
                 ).withTimeout(4000),
-                new GoToPoseCommand(drivetrain, poses.get(PosesNames.GoToShoot1.ordinal())).withTimeout(2000),
-                new WaitCommand(500),
+                new GoToPoseCommand(drivetrain, poses.get(PosesNames.GoToShoot2.ordinal())).withTimeout(2000),
                 new AlignAndAdjustAutoCommand(drivetrain, vision, shooter),
+                new WaitCommand(750),
                 new ShootCommand(shooter, intake, indexer,3, ledSubsystem).withTimeout(5000),
                 new GoToPoseCommand(drivetrain, poses.get(PosesNames.EndPose.ordinal())).withTimeout(2000),
                 new SpinShooterCommand(shooter, SpinShooterCommand.Action.STOP)

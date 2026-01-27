@@ -27,7 +27,7 @@ public class Constants {
         }
     public static FollowerConstants followerConstants = new FollowerConstants()
             .mass(11)
-            .forwardZeroPowerAcceleration(-43.315092662612045)
+            .forwardZeroPowerAcceleration(-33.315092662612045)
             .lateralZeroPowerAcceleration(-97.42340280933647)
             .useSecondaryTranslationalPIDF(true)
             .useSecondaryHeadingPIDF(false)
@@ -41,11 +41,11 @@ public class Constants {
             )
 
             .headingPIDFCoefficients(
-                    new PIDFCoefficients(1.2, 0.0, 0.07, 0.02   )
+                    new PIDFCoefficients(1.0, 0.0, 0.1, 0.02   )
             )
 
             .drivePIDFCoefficients(
-                    new FilteredPIDFCoefficients(0.01, 0.0008, 0.003, 0.5, 0.24)
+                    new FilteredPIDFCoefficients(0.15, 0.0008, 0.01, 0.5, 0.015)
             );
 
     public static MecanumConstants driveConstants = new MecanumConstants()
@@ -79,14 +79,14 @@ public class Constants {
             .strafeEncoderDirection(GoBildaPinpointDriver.EncoderDirection.FORWARD);
 
     public static PathConstraints pathConstraints = new PathConstraints(
-            0.99,  // tValueConstraint (ok)
+            0.995,  // tValueConstraint (ok)
             1.0,   // ve locityConstraint (ANTES: 0.05) -> bem mais lento
             0.1,   // translationalConstraint (ANTES: 0.05)
-            0.015,    // headingConstraint (ANTES: 2.0) -> gira bem mais devagar
-            500,    // timeoutConstraint
-            1.0,    // brakingStrength (ANTES: 1.5) -> freia menos "bruscamente"
+            0.01,    // headingConstraint (ANTES: 2.0) -> gira bem mais devagar
+            250,    // timeoutConstraint
+            1.5,    // brakingStrength (ANTES: 1.5) -> freia menos "bruscamente"
             10,     // bezier limit
-            0.7     // brakingStart (ok)
+            0.4     // brakingStart (ok)
     );
 
 

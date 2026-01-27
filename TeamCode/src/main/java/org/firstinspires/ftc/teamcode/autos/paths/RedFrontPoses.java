@@ -18,12 +18,12 @@ public class RedFrontPoses {
             new Pose(114, 85, Math.toRadians(180)),
 
             // GoToShoot2
-            new Pose(114, 12, Math.toRadians(68)),
+            new Pose(80.134, 90, Math.toRadians(48)),
 
             // GoToLine2
             new Pose(80.134, 61.169, Math.toRadians(180)),
             // CatchLine2
-            new Pose(123.776, 61.169, Math.toRadians(180)),
+            new Pose(122.776, 61.169, Math.toRadians(180)),
 
             // EndPose
             new Pose(84, 60, Math.toRadians(90)),
@@ -31,10 +31,10 @@ public class RedFrontPoses {
             // GoToLine3
             new Pose(80.134, 38.169, Math.toRadians(180)),
             // CatchLine3
-            new Pose(123.776, 38.169, Math.toRadians(180)),
+            new Pose(122.776, 38.169, Math.toRadians(180)),
 
             // GatePose
-            new Pose(12.776, 64.169, Math.toRadians(90)),
+            new Pose(123.776, 64.169, Math.toRadians(90)),
     };
 
     public static Pose getPose(PosesNames name) {

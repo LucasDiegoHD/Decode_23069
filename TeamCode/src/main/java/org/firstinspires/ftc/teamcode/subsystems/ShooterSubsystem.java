@@ -121,9 +121,9 @@ public class ShooterSubsystem extends SubsystemBase {
 
             double power = Math.max(0, Math.min(1.0, feedforward + feedback + shotBoost));
 
-            if (rpmError > (targetRPM * (1 - ShooterConstants.STABILITY_WINDOW_PERCENT))) {
+            /*if (rpmError > (targetRPM * (1 - ShooterConstants.STABILITY_WINDOW_PERCENT))) {
                 power = 1.0;
-            }
+            }*/
 
             if (Math.abs(power - lastPower) > 0.0005) {
                 rShooterMotor.setPower(power);

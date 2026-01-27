@@ -13,19 +13,19 @@ public class RedRearPoses {
             new Pose(83.35, 14.547, Math.toRadians(68)),
 
             new Pose(94.134, 34.169, Math.toRadians(180)),
-            new Pose(130.776, 34.169, Math.toRadians(180)),
+            new Pose(126.276, 34.169, Math.toRadians(180)),
             new Pose(86.335, 12.547, Math.toRadians(67.5)),
 
 
             new Pose(83.35, 14.547, Math.toRadians(180)),
-            new Pose(130, 12, Math.toRadians(180)),
+            new Pose(128.276, 12, Math.toRadians(180)),
 
             new Pose(106, 34, Math.toRadians(90)),
 
             new Pose(94.134, 58.169, Math.toRadians(180)),
-            new Pose(130.776, 58.169, Math.toRadians(180)),
+            new Pose(128.276, 58.169, Math.toRadians(180)),
 
-            new Pose(130.776, 64.169, Math.toRadians(90)),
+            new Pose(128.276, 64.169, Math.toRadians(90)),
 
     };
 
