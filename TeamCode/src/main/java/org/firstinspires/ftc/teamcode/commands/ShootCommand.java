@@ -3,11 +3,8 @@ package org.firstinspires.ftc.teamcode.commands;
 import com.arcrobotics.ftclib.command.CommandBase;
 import com.bylazar.telemetry.PanelsTelemetry;
 import com.bylazar.telemetry.TelemetryManager;
-import com.pedropathing.util.Timer;
-import com.qualcomm.hardware.rev.RevBlinkinLedDriver;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-import org.firstinspires.ftc.ftccommon.internal.manualcontrol.commands.LedCommands;
 import org.firstinspires.ftc.teamcode.subsystems.IndexerSubsystem;
 import org.firstinspires.ftc.teamcode.subsystems.IntakeSubsystem;
 import org.firstinspires.ftc.teamcode.subsystems.LEDSubsystem;
@@ -15,29 +12,24 @@ import org.firstinspires.ftc.teamcode.subsystems.ShooterConstants;
 import org.firstinspires.ftc.teamcode.subsystems.ShooterSubsystem;
 
 /**
- * The ShootCommand orchestrates the process of shooting game pieces.
- * It manages a state machine to control the intake, shooter acceleration, and triggering.
+ * ShootCommand com Active Clearing.
+ * Usa o intake reverso para evitar travamento do gatilho e aumentar a velocidade.
  */
 public class ShootCommand extends CommandBase {
 
     private final ShooterSubsystem shooter;
     private final IntakeSubsystem intake;
+
     private final ElapsedTime timer = new ElapsedTime();
+    private final ElapsedTime cooldownTimer = new ElapsedTime();
 
-    /**
-     * Defines the states of the shooting process.
-     */
-    private enum SHOOT_STATES{
-        /**
-         * The state where the conveyor is running to feed a piece.
-         */
+    private static final double TRIGGER_RESET_DELAY_MS = 100;
+
+    private enum SHOOT_STATES {
         Conveyor,
-
         Acceleration,
-        /**
-         * The state after a piece is shot, waiting for the shooter to regain speed.
-         */
-        Shooting
+        Shooting,
+        Cooldown
     }
 
     private SHOOT_STATES state;
@@ -45,14 +37,7 @@ public class ShootCommand extends CommandBase {
     private final TelemetryManager telemetryM;
     private final IndexerSubsystem indexer;
     private final LEDSubsystem ledSubsystem;
-    private final boolean lastSensor = false;
 
-    /**
-     * Constructs a new ShootCommand.
-     * @param shooter The ShooterSubsystem to use.
-     * @param intake The IntakeSubsystem to use.
-     * @param shoots The number of pieces to shoot. Use a high number for continuous shooting.
-     */
     public ShootCommand(ShooterSubsystem shooter, IntakeSubsystem intake, IndexerSubsystem indexer, int shoots, LEDSubsystem led) {
         telemetryM = PanelsTelemetry.INSTANCE.getTelemetry();
         this.indexer = indexer;
@@ -63,33 +48,30 @@ public class ShootCommand extends CommandBase {
         addRequirements(shooter, indexer);
     }
 
-    /**
-     * Constructs a new ShootCommand for continuous shooting.
-     * @param shooter The ShooterSubsystem to use.
-     * @param intake The IntakeSubsystem to use.
-     */
     public ShootCommand(ShooterSubsystem shooter, IntakeSubsystem intake, IndexerSubsystem indexer, LEDSubsystem led) {
-        this(shooter, intake, indexer, 99, led); // A large number for effectively infinite shooting
+        this(shooter, intake, indexer, 99, led);
     }
 
-    /**
-     * Called when the command is initially scheduled. Sets the initial state.
-     */
     @Override
     public void initialize() {
         intake.run();
+        intake.stopTrigger();
         state = SHOOT_STATES.Conveyor;
         timer.reset();
     }
 
-    /**
-     * Called repeatedly when this Command is scheduled to run. Executes the shooting state machine.
-     */
     @Override
     public void execute() {
 
         switch (state) {
             case Conveyor:
+
+                if (indexer.getExitSensor()) {
+                    intake.stop();
+                } else {
+                    intake.run();
+                }
+
                 if (indexer.getExitSensor() || timer.milliseconds() > ShooterConstants.TRIGGER_TIMER_TO_SHOOT) {
 
                     if (shooter.getShooterAtTarget()) {
@@ -107,50 +89,78 @@ public class ShootCommand extends CommandBase {
                 break;
 
             case Acceleration:
+                if (indexer.getExitSensor()) {
+                    intake.stop();
+                } else {
+                    intake.run();
+                }
+
                 if (shooter.getShooterAtTarget()) {
                     state = SHOOT_STATES.Shooting;
                     shooter.anticipateShot();
                     intake.runTrigger();
                     ledSubsystem.setPattern(LEDSubsystem.GREEN);
-                    intake.run();
-
                     timer.reset();
                 }
                 break;
 
             case Shooting:
-
-                boolean pieceHasLeft =!indexer.getExitSensor();
+                boolean pieceHasLeft = !indexer.getExitSensor();
 
                 if (pieceHasLeft || timer.milliseconds() > ShooterConstants.TRIGGER_TIMER_TRIGGERING) {
-                    state = SHOOT_STATES.Conveyor;
-                    intake.run();
-                    ledSubsystem.setPattern(LEDSubsystem.OFF);
-                    timer.reset();
+
                     if (shooterCounter > 0) {
                         shooterCounter--;
                     }
+
+                    if (shooterCounter > 0) {
+                        state = SHOOT_STATES.Cooldown;
+
+                        intake.stopTrigger();
+
+                        cooldownTimer.reset();
+                    } else {
+                        state = SHOOT_STATES.Conveyor;
+                    }
+                }
+                break;
+
+            case Cooldown:
+
+                if (cooldownTimer.milliseconds() < TRIGGER_RESET_DELAY_MS) {
+                    intake.reverse();
+
+                    intake.stopTrigger();
+                }
+                else {
+                    if (indexer.getExitSensor()) {
+                        intake.stop();
+                    } else {
+                        intake.run();
+                    }
+                }
+
+                if (cooldownTimer.milliseconds() > ShooterConstants.DELAY_BETWEEN_SHOTS_MS) {
+                    state = SHOOT_STATES.Conveyor;
+                    intake.stop();
+                    timer.reset();
                 }
                 break;
         }
 
         telemetryM.addData("Shoot State", state);
-        telemetryM.addData("RPM Ready", shooter.getShooterAtTarget());
+        telemetryM.addData("Shots Left", shooterCounter);
+        if(state == SHOOT_STATES.Cooldown) {
+            boolean clearingMode = cooldownTimer.milliseconds() < TRIGGER_RESET_DELAY_MS;
+            telemetryM.addData("Mode", clearingMode ? "CLEARING JAM (REVERSE)" : "WAITING");
+        }
     }
 
-    /**
-     * Returns true when the command should end.
-     * @return True if the desired number of shots has been completed.
-     */
     @Override
     public boolean isFinished() {
         return shooterCounter <= 0;
     }
 
-    /**
-     * Called once the command ends or is interrupted. Stops all motors.
-     * @param interrupted Whether the command was interrupted.
-     */
     @Override
     public void end(boolean interrupted){
         intake.stopTrigger();

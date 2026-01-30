@@ -20,9 +20,9 @@ public class ShooterConstants {
 
     public static double kF = 0.05;
 
-    public static double kS = 0.045 ;
+    public static double kS = 0.2 ;
 
-    public static double kV = 0.000185;
+    public static double kV = 0.003;
 
     public static double kF_SHOT_BOOST = 0.3;
     public static double SHOT_BOOST_DURATION = 400;
@@ -45,7 +45,7 @@ public class ShooterConstants {
     public static final double TICKS_PER_REV = 28.0;
 
     /** The target velocity in RPM for short shots. */
-    public static double TARGET_VELOCITY_SHORT = 3200;
+    public static double TARGET_VELOCITY_SHORT = 2900;
     /** The target velocity in RPM for long shots. */
     public static double TARGET_VELOCITY_LONG = 3575;
     /** The acceptable error margin for the shooter's target velocity in RPM. */
@@ -59,15 +59,17 @@ public class ShooterConstants {
     public static double HOOD_INCREMENT = 0.05;
 
     /** Ganho de compensação: quanto o hood sobe por cada 1 RPM de erro. */
-    public static double K_HOOD_COMPENSATION = 0.00025;
+    public static double K_HOOD_COMPENSATION = 0.0003;
     /** Tolerância de cadência para tiros longos. */
     public static double CADENCE_TOLERANCE_PERCENT = 0.97;
-    public static double STABILITY_WINDOW_PERCENT = 0.98;
+
     // --- TIMINGS ---
 
     /** The time in milliseconds to wait after triggering before shooting. */
-    public static double TRIGGER_TIMER_TO_SHOOT = 300;
-    public static double TRIGGER_TIMER_TRIGGERING = 1300;
+    public static double TRIGGER_TIMER_TO_SHOOT = 800;
+    public static double TRIGGER_TIMER_TRIGGERING = 800;
+    public static double DELAY_BETWEEN_SHOTS_MS = 666.6667;
+
 
     /**
      * Equations for hood
@@ -98,9 +100,9 @@ public class ShooterConstants {
      * * Fit: Linear Approx
      * Formula: y = 434x + 2480
      */
-    public static double RPM_N0 = 2950.0;
-    public static double RPM_N1 = -528.7;
-    public static double RPM_N2 = 267.9;
+    public static double RPM_N0 = 2254.3;
+    public static double RPM_N1 = -303.7;
+    public static double RPM_N2 = 142.1;
     public static double ANGLE_KP = 0.6;
     public static double ANGLE_KI = 0.015;
     public static double ANGLE_KD = 0.05;

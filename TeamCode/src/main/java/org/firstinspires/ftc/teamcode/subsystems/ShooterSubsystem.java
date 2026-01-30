@@ -18,8 +18,8 @@ public class ShooterSubsystem extends SubsystemBase {
     private final Servo hoodServoLeft, hoodServoRight;
     private final PIDFController controller;
     private double targetRPM = 0.0;
-    private double hoodPosition = 0.90;
-    private double currentDynamicHoodPos = 0.90;
+    private double hoodPosition = 0.7;
+    private double currentDynamicHoodPos = 0.7;
     private double lastPower = 0;
     private boolean isLongShotMode = false;
 

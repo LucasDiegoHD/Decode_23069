@@ -24,8 +24,8 @@ public class VisionConstants {
     public static double TURN_KF = 0.2;
 
 
-    public static double LONGEST_HOOD = 0.7;
-    public static double LONGEST_RPM = 3600;
+    public static double LONGEST_HOOD = 0.6;
+    public static double LONGEST_RPM = 3000;
     public static double LONGEST_DISTANCE = 2.55;
 
     // distância máxima em METROS
