@@ -39,6 +39,12 @@ public class PurePursuitController {
      * @return double[] {forwardPower, strafePower, turnPower} (Robot Centric)
      */
     public double[] update(double robotX, double robotY, double robotHeading) {
+
+        if (path == null || path.isEmpty()) {
+            return new double[]{0, 0, 0};
+        }
+        // ---------------------------------------------
+
         Waypoint targetPoint = getLookaheadPoint(robotX, robotY);
 
         // If no lookahead point is found (end of path), aim for the very last waypoint

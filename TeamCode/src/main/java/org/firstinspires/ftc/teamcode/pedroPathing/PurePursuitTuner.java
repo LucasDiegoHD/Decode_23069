@@ -1,9 +1,9 @@
 package org.firstinspires.ftc.teamcode.pedroPathing;
 
 import com.arcrobotics.ftclib.controller.PIDController;
-import com.bylazar.configurables.annotations.IgnoreConfigurable;
 import com.bylazar.telemetry.PanelsTelemetry;
 import com.bylazar.telemetry.TelemetryManager;
+import com.pedropathing.geometry.Pose;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
@@ -19,8 +19,6 @@ public class PurePursuitTuner extends LinearOpMode {
 
     private DrivetrainSubsystem drivetrain;
     private PurePursuitController controller;
-
-    @IgnoreConfigurable
     static TelemetryManager telemetryM;
 
 
@@ -29,85 +27,101 @@ public class PurePursuitTuner extends LinearOpMode {
 
     @Override
     public void runOpMode() throws InterruptedException {
+        // Inicializa Dashboard
         telemetryM = PanelsTelemetry.INSTANCE.getTelemetry();
 
-        drivetrain = new DrivetrainSubsystem(hardwareMap, (com.bylazar.telemetry.TelemetryManager) null); // Null telemetry pq usamos a do OpMode
+        drivetrain = new DrivetrainSubsystem(hardwareMap, null);
 
-        // Inicializa PIDs com valores das constantes
+        // Inicializa PIDs
         fwdPID = new PIDController(PurePursuitConstants.FWD_P, PurePursuitConstants.FWD_I, PurePursuitConstants.FWD_D);
         strPID = new PIDController(PurePursuitConstants.STR_P, PurePursuitConstants.STR_I, PurePursuitConstants.STR_D);
         headPID = new PIDController(PurePursuitConstants.HEAD_P, PurePursuitConstants.HEAD_I, PurePursuitConstants.HEAD_D);
 
         controller = new PurePursuitController(fwdPID, strPID, headPID);
 
-        // Caminho de Teste (Inicialmente vazio)
-        ArrayList<Waypoint> testPath = new ArrayList<>();
-        testPath.add(new Waypoint(0, 0, 0)); // Ponto dummy inicial
+        // Define um caminho inicial (vazio ou posição 0) para evitar erro de lista vazia
+        ArrayList<Waypoint> initialPath = new ArrayList<>();
+        initialPath.add(new Waypoint(0, 0, 0));
+        controller.setPath(initialPath);
+
+        // Força a pose inicial para garantir que não comece como null
+        drivetrain.getFollower().setPose(new Pose(0,0,0));
+        drivetrain.periodic();
+
+        telemetry.addLine("Pronto para Tuning. Aperte Start.");
+        telemetry.update();
 
         waitForStart();
 
         while (opModeIsActive()) {
-            // 1. ATUALIZAÇÃO EM TEMPO REAL (Dashboard -> PID)
+            // Atualiza Odometria PRIMEIRO
+            drivetrain.periodic();
+
+            // --- CORREÇÃO DO ERRO DE HEADING VAZIO ---
+            // Capturamos a pose numa variável local
+            Pose currentPose = drivetrain.getFollower().getPose();
+
+            // Se for nulo (Pedro Pathing ainda a inicializar), pulamos este ciclo
+            if (currentPose == null) {
+                telemetryM.addData("Status", "A aguardar Odometria...");
+                telemetryM.update();
+                continue; // Volta para o início do while sem fazer contas
+            }
+            // -----------------------------------------
+
+            // 1. ATUALIZAÇÃO PIDs (Dashboard)
             fwdPID.setPID(PurePursuitConstants.FWD_P, PurePursuitConstants.FWD_I, PurePursuitConstants.FWD_D);
             strPID.setPID(PurePursuitConstants.STR_P, PurePursuitConstants.STR_I, PurePursuitConstants.STR_D);
             headPID.setPID(PurePursuitConstants.HEAD_P, PurePursuitConstants.HEAD_I, PurePursuitConstants.HEAD_D);
 
             // 2. CONTROLE PELO GAMEPAD
             if (gamepad1.a) {
-                // Teste Forward: Vai para X=48
-                testPath.clear();
-                testPath.add(new Waypoint(0, 0, 0));
-                testPath.add(new Waypoint(24, 0, 0)); // Waypoint intermediário
-                testPath.add(new Waypoint(48, 0, 0));
-                controller.setPath(testPath);
+                ArrayList<Waypoint> p = new ArrayList<>();
+                p.add(new Waypoint(0, 0, 0));
+                p.add(new Waypoint(24, 0, 0));
+                p.add(new Waypoint(48, 0, 0));
+                controller.setPath(p);
             }
             else if (gamepad1.b) {
-                // Teste Strafe: Vai para Y=24
-                testPath.clear();
-                testPath.add(new Waypoint(0, 0, 0));
-                testPath.add(new Waypoint(0, 24, 0));
-                controller.setPath(testPath);
+                ArrayList<Waypoint> p = new ArrayList<>();
+                p.add(new Waypoint(0, 0, 0));
+                p.add(new Waypoint(0, 24, 0));
+                controller.setPath(p);
             }
             else if (gamepad1.y) {
-                // Teste Turn: Gira 90 graus
-                testPath.clear();
-                testPath.add(new Waypoint(0, 0, 0));
-                testPath.add(new Waypoint(0, 0, Math.toRadians(90)));
-                controller.setPath(testPath);
+                ArrayList<Waypoint> p = new ArrayList<>();
+                p.add(new Waypoint(0, 0, 0));
+                p.add(new Waypoint(0, 0, Math.toRadians(90)));
+                controller.setPath(p);
             }
             else if (gamepad1.x) {
-                // Reset: Volta para 0,0,0
-                testPath.clear();
-                testPath.add(new Waypoint(0, 0, 0));
-                controller.setPath(testPath);
+                ArrayList<Waypoint> p = new ArrayList<>();
+                p.add(new Waypoint(0, 0, 0)); // Reset
+                controller.setPath(p);
             }
 
-            // 3. EXECUÇÃO DO PURE PURSUIT
-            double x = drivetrain.getFollower().getPose().getX();
-            double y = drivetrain.getFollower().getPose().getY();
-            double h = drivetrain.getFollower().getPose().getHeading();
+            // 3. EXECUÇÃO (Agora seguro pois currentPose não é null)
+            double x = currentPose.getX();
+            double y = currentPose.getY();
+            double h = currentPose.getHeading();
 
             double[] powers = controller.update(x, y, h);
 
-            // Aplica limite de velocidade global para segurança durante testes
+            // Limite de segurança
             for(int i=0; i<3; i++) {
                 powers[i] = Math.max(-PurePursuitConstants.MAX_SPEED, Math.min(PurePursuitConstants.MAX_SPEED, powers[i]));
             }
 
-            drivetrain.driveRobotCentric(powers[1], powers[0], powers[2]); // Strafe, Fwd, Turn
-            drivetrain.periodic(); // Atualiza odometria e desenhos
+            drivetrain.driveRobotCentric(powers[1], powers[0], powers[2]);
 
             // 4. TELEMETRIA
-            telemetry.addData("Mode", "TUNING");
-            telemetry.addData("Target Path Size", testPath.size());
-            telemetry.addData("X Error", fwdPID.getPositionError());
-            telemetry.addData("Y Error", strPID.getPositionError());
-            telemetry.addData("H Error", Math.toDegrees(headPID.getPositionError()));
-
-            telemetry.addData("FWD Power", powers[0]);
-            telemetry.addData("STR Power", powers[1]);
-            telemetry.addData("TRN Power", powers[2]);
-            telemetry.update();
+            telemetryM.addData("X", x);
+            telemetryM.addData("Y", y);
+            telemetryM.addData("Heading", Math.toDegrees(h));
+            telemetryM.addData("X Error", fwdPID.getPositionError());
+            telemetryM.addData("Y Error", strPID.getPositionError());
+            telemetryM.addData("H Error", Math.toDegrees(headPID.getPositionError()));
+            telemetryM.update();
         }
     }
 }

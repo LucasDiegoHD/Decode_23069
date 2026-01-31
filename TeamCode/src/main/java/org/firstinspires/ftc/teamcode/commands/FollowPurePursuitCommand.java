@@ -2,16 +2,18 @@ package org.firstinspires.ftc.teamcode.commands;
 
 import com.arcrobotics.ftclib.command.CommandBase;
 import com.arcrobotics.ftclib.controller.PIDController;
+import com.pedropathing.geometry.Pose;
+
+import org.firstinspires.ftc.teamcode.subsystems.DrivetrainSubsystem;
+import org.firstinspires.ftc.teamcode.utils.PurePursuitConstants;
 import org.firstinspires.ftc.teamcode.utils.PurePursuitController;
 import org.firstinspires.ftc.teamcode.utils.Waypoint;
-import org.firstinspires.ftc.teamcode.utils.PurePursuitConstants;
-import org.firstinspires.ftc.teamcode.subsystems.DrivetrainSubsystem;
 
 import java.util.ArrayList;
 
 /**
- * Command to follow a path using the custom Pure Pursuit controller.
- * Integration with PurePursuitConstants allows for real-time tuning via Dashboard.
+ * Comando para seguir um caminho usando o controlador Pure Pursuit customizado.
+ * Inclui proteção contra NullPointer (caso a odometria falhe) e limites de segurança.
  */
 public class FollowPurePursuitCommand extends CommandBase {
 
@@ -19,72 +21,80 @@ public class FollowPurePursuitCommand extends CommandBase {
     private final PurePursuitController controller;
     private final ArrayList<Waypoint> path;
 
+    // Controladores PID locais
+    private final PIDController fwdPID;
+    private final PIDController strPID;
+    private final PIDController headPID;
+
     public FollowPurePursuitCommand(DrivetrainSubsystem drivetrain, ArrayList<Waypoint> path) {
         this.drivetrain = drivetrain;
         this.path = path;
         addRequirements(drivetrain);
 
-        // --- PID INITIALIZATION USING CONSTANTS ---
-        // Puxa os valores iniciais da classe de configuração
-        PIDController fwdPID = new PIDController(
-                PurePursuitConstants.FWD_P,
-                PurePursuitConstants.FWD_I,
-                PurePursuitConstants.FWD_D
-        );
-
-        PIDController strPID = new PIDController(
-                PurePursuitConstants.STR_P,
-                PurePursuitConstants.STR_I,
-                PurePursuitConstants.STR_D
-        );
-
-        PIDController headPID = new PIDController(
-                PurePursuitConstants.HEAD_P,
-                PurePursuitConstants.HEAD_I,
-                PurePursuitConstants.HEAD_D
-        );
+        // Inicializa os PIDs usando as constantes globais
+        // Nota: Se você mudar as constantes no Dashboard DURANTE o init,
+        // estes valores serão atualizados no método initialize()
+        fwdPID = new PIDController(PurePursuitConstants.FWD_P, PurePursuitConstants.FWD_I, PurePursuitConstants.FWD_D);
+        strPID = new PIDController(PurePursuitConstants.STR_P, PurePursuitConstants.STR_I, PurePursuitConstants.STR_D);
+        headPID = new PIDController(PurePursuitConstants.HEAD_P, PurePursuitConstants.HEAD_I, PurePursuitConstants.HEAD_D);
 
         this.controller = new PurePursuitController(fwdPID, strPID, headPID);
     }
 
     @Override
     public void initialize() {
-        // Envia o caminho para o controlador
-        controller.setPath(path);
+        // --- ATUALIZAÇÃO DE TUNING ---
+        // Recarrega os valores do Dashboard na hora que o comando começa.
+        // Isso permite tunar sem reiniciar o OpMode se você reiniciar apenas o comando.
+        fwdPID.setPID(PurePursuitConstants.FWD_P, PurePursuitConstants.FWD_I, PurePursuitConstants.FWD_D);
+        strPID.setPID(PurePursuitConstants.STR_P, PurePursuitConstants.STR_I, PurePursuitConstants.STR_D);
+        headPID.setPID(PurePursuitConstants.HEAD_P, PurePursuitConstants.HEAD_I, PurePursuitConstants.HEAD_D);
 
-        // Dica de Mentor: Você poderia atualizar os PIDs aqui novamente se quisesse
-        // garantir que mudancas no dashboard afetem comandos ja instanciados,
-        // mas geralmente mudar e reiniciar o OpMode é mais seguro.
+        controller.setPath(path);
     }
 
     @Override
     public void execute() {
-        // 1. Get current pose from Pedro Pathing Odometry
-        double x = drivetrain.getFollower().getPose().getX();
-        double y = drivetrain.getFollower().getPose().getY();
-        double heading = drivetrain.getFollower().getPose().getHeading();
+        // --- BLINDAGEM CONTRA NULL POINTER ---
+        // Obtém a pose atual do Pedro Pathing
+        Pose currentPose = drivetrain.getFollower().getPose();
 
-        // 2. Run the Pure Pursuit Algorithm
-        // Returns Robot Centric powers: [Forward, Strafe, Turn]
+        if (currentPose == null) {
+            // Se o robô não sabe onde está (odometria iniciando), paramos por segurança
+            // e retornamos para tentar no próximo ciclo.
+            drivetrain.stop();
+            return;
+        }
+        // -------------------------------------
+
+        double x = currentPose.getX();
+        double y = currentPose.getY();
+        double heading = currentPose.getHeading();
+
+        // Roda o algoritmo Pure Pursuit
+        // Retorna potências Robot Centric: [Forward, Strafe, Turn]
         double[] powers = controller.update(x, y, heading);
 
-        // 3. Apply Speed Limits (Safety)
+        // Aplica limite de velocidade global (Segurança)
         double max = PurePursuitConstants.MAX_SPEED;
 
-        // 4. Apply powers to the drivetrain
+        // Limita as potências e envia para o Drivetrain
         // drivetrain.driveRobotCentric(Strafe, Forward, Turn)
         drivetrain.driveRobotCentric(
-                Math.max(-max, Math.min(max, powers[1])), // Strafe (Index 1 do array do controller)
-                Math.max(-max, Math.min(max, powers[0])), // Forward (Index 0)
-                Math.max(-max, Math.min(max, powers[2]))  // Turn (Index 2)
+                Math.max(-max, Math.min(max, powers[1])), // powers[1] é Strafe
+                Math.max(-max, Math.min(max, powers[0])), // powers[0] é Forward
+                Math.max(-max, Math.min(max, powers[2]))  // powers[2] é Turn
         );
     }
 
     @Override
     public boolean isFinished() {
-        double x = drivetrain.getFollower().getPose().getX();
-        double y = drivetrain.getFollower().getPose().getY();
-        return controller.isFinished(x, y);
+        Pose currentPose = drivetrain.getFollower().getPose();
+
+        // Se a pose for nula, não podemos saber se chegamos, então retornamos false
+        if (currentPose == null) return false;
+
+        return controller.isFinished(currentPose.getX(), currentPose.getY());
     }
 
     @Override
