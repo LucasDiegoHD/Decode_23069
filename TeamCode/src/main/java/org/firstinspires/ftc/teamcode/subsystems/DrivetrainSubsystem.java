@@ -53,6 +53,32 @@ public class DrivetrainSubsystem extends SubsystemBase {
     }
 
     /**
+     * Drives the robot using Pedro Pathing's internal vector system.
+     * This is the cleanest way to do manual control without declaring motors.
+     *
+     * @param strafe Speed in x direction (sideways)
+     * @param forward Speed in y direction (forward)
+     * @param turn Speed of rotation
+     */
+    public void driveRobotCentric(double strafe, double forward, double turn) {
+        follower.breakFollowing();
+
+        // Parâmetros: (forward, strafe, turn, robotCentric)
+        // Colocamos 'true' no final porque seu Pure Pursuit já calculou o erro relativo ao robô.
+        follower.setTeleOpDrive(forward, strafe, turn, true);
+
+    }
+
+    /**
+     * Stops the robot.
+     */
+    public void stop() {
+        follower.breakFollowing();
+        // Envia vetores zerados
+        follower.setTeleOpDrive(0, 0, 0, true);
+    }
+
+    /**
      * This method is called periodically to update the subsystem's state, including the follower,
      * telemetry, and dashboard visualizations.
      */

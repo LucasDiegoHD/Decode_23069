@@ -22,7 +22,6 @@ public class ShooterSubsystem extends SubsystemBase {
     private double currentDynamicHoodPos = 0.7;
     private double lastPower = 0;
     private boolean isLongShotMode = false;
-
     private final ElapsedTime shotBoostTimer = new ElapsedTime();
     private boolean isBoostActive = false;
 

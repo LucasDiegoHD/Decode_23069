@@ -11,10 +11,6 @@ import org.firstinspires.ftc.teamcode.subsystems.LEDSubsystem;
 import org.firstinspires.ftc.teamcode.subsystems.ShooterConstants;
 import org.firstinspires.ftc.teamcode.subsystems.ShooterSubsystem;
 
-/**
- * ShootCommand com Active Clearing.
- * Usa o intake reverso para evitar travamento do gatilho e aumentar a velocidade.
- */
 public class ShootCommand extends CommandBase {
 
     private final ShooterSubsystem shooter;
@@ -23,7 +19,9 @@ public class ShootCommand extends CommandBase {
     private final ElapsedTime timer = new ElapsedTime();
     private final ElapsedTime cooldownTimer = new ElapsedTime();
 
-    private static final double TRIGGER_RESET_DELAY_MS = 100;
+    private static final double TRIGGER_CLEAR_DELAY_MS = 100;
+
+    private static final double TRIGGER_SETTLE_DELAY_MS = 100;
 
     private enum SHOOT_STATES {
         Conveyor,
@@ -115,9 +113,8 @@ public class ShootCommand extends CommandBase {
 
                     if (shooterCounter > 0) {
                         state = SHOOT_STATES.Cooldown;
-
                         intake.stopTrigger();
-
+                        // intake.stop(); // Não precisa parar aqui, o Cooldown gerencia
                         cooldownTimer.reset();
                     } else {
                         state = SHOOT_STATES.Conveyor;
@@ -126,12 +123,17 @@ public class ShootCommand extends CommandBase {
                 break;
 
             case Cooldown:
+                double time = cooldownTimer.milliseconds();
 
-                if (cooldownTimer.milliseconds() < TRIGGER_RESET_DELAY_MS) {
+                if (time < TRIGGER_CLEAR_DELAY_MS) {
                     intake.reverse();
-
                     intake.stopTrigger();
                 }
+
+                else if (time < (TRIGGER_CLEAR_DELAY_MS + TRIGGER_SETTLE_DELAY_MS)) {
+                    intake.stop();
+                }
+
                 else {
                     if (indexer.getExitSensor()) {
                         intake.stop();
@@ -140,9 +142,10 @@ public class ShootCommand extends CommandBase {
                     }
                 }
 
-                if (cooldownTimer.milliseconds() > ShooterConstants.DELAY_BETWEEN_SHOTS_MS) {
+                if (time > ShooterConstants.DELAY_BETWEEN_SHOTS_MS) {
                     state = SHOOT_STATES.Conveyor;
-                    intake.stop();
+
+                    if (indexer.getExitSensor()) intake.stop();
                     timer.reset();
                 }
                 break;
@@ -151,8 +154,12 @@ public class ShootCommand extends CommandBase {
         telemetryM.addData("Shoot State", state);
         telemetryM.addData("Shots Left", shooterCounter);
         if(state == SHOOT_STATES.Cooldown) {
-            boolean clearingMode = cooldownTimer.milliseconds() < TRIGGER_RESET_DELAY_MS;
-            telemetryM.addData("Mode", clearingMode ? "CLEARING JAM (REVERSE)" : "WAITING");
+            String mode = "WAITING";
+            if (cooldownTimer.milliseconds() < TRIGGER_CLEAR_DELAY_MS) mode = "REVERSING";
+            else if (cooldownTimer.milliseconds() < (TRIGGER_CLEAR_DELAY_MS + TRIGGER_SETTLE_DELAY_MS)) mode = "SETTLING";
+            else mode = "FEEDING";
+
+            telemetryM.addData("Mode", mode);
         }
     }
 
