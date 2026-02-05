@@ -19,8 +19,6 @@ public class VisionSubsystem extends SubsystemBase {
     private final Limelight3A limelight;
     private LLResult latestResult;
     private final TelemetryManager telemetry;
-
-    // Constante de conversão industrial precisa [3]
     private static final double INCHES_IN_METER = 39.3701;
 
     public VisionSubsystem(HardwareMap hardwareMap, TelemetryManager telemetry) {
@@ -30,26 +28,18 @@ public class VisionSubsystem extends SubsystemBase {
         limelight.pipelineSwitch(0);
     }
 
-    /**
-     * MegaTag1: Ideal para o 'Snap' inicial (Seeding).
-     * Resolve posição e ângulo absoluto sem depender da IMU.
-     */
     public Optional<Pose> getRobotPoseMT1() {
         latestResult = limelight.getLatestResult();
         if (!hasTarget()) return Optional.empty();
 
-        Pose3D botPose = latestResult.getBotpose(); // MT1
+        Pose3D botPose = latestResult.getBotpose();
         if (botPose == null) return Optional.empty();
 
         return Optional.of(convertToPedro(botPose));
     }
 
-    /**
-     * MegaTag2: Estabilidade extrema para correções em movimento (Tracking).
-     * Requer o Yaw da IMU para restringir o algoritmo PnP e evitar ambiguidades.
-     */
     public Optional<Pose> getRobotPoseMT2(double yawRadians) {
-        // Offset de +90 para alinhar o sistema da Limelight com o campo FTC
+        // Offset de +90 para alinhar o sistema da Limelight com o campo da FTC
         limelight.updateRobotOrientation(Math.toDegrees(yawRadians) + 90);
         latestResult = limelight.getLatestResult();
 

@@ -45,9 +45,9 @@ public class ShooterConstants {
     public static final double TICKS_PER_REV = 28.0;
 
     /** The target velocity in RPM for short shots. */
-    public static double TARGET_VELOCITY_SHORT = 3000;
+    public static double TARGET_VELOCITY_SHORT = 2800;
     /** The target velocity in RPM for long shots. */
-    public static double TARGET_VELOCITY_LONG = 3575;
+    public static double TARGET_VELOCITY_LONG = 3000;
     /** The acceptable error margin for the shooter's target velocity in RPM. */
     public static double VELOCITY_TOLERANCE = 30;
 
@@ -61,14 +61,14 @@ public class ShooterConstants {
     /** Ganho de compensação: quanto o hood sobe por cada 1 RPM de erro. */
     public static double K_HOOD_COMPENSATION = 0.00065;
     /** Tolerância de cadência para tiros longos. */
-    public static double CADENCE_TOLERANCE_PERCENT = 0.97;
+    public static double CADENCE_TOLERANCE_PERCENT = 0.90;
 
     // --- TIMINGS ---
 
     /** The time in milliseconds to wait after triggering before shooting. */
     public static double TRIGGER_TIMER_TO_SHOOT = 400;
     public static double TRIGGER_TIMER_TRIGGERING = 1000;
-    public static double DELAY_BETWEEN_SHOTS_MS = 50;
+    public static double DELAY_BETWEEN_SHOTS_MS = 25;
 
 
     /**
@@ -93,17 +93,18 @@ public class ShooterConstants {
      * y = RPM
      * x = Distance (from Vision/Limelight in Meters)
      * * Points used:
-     * 0.75m -> 3000
-     * 1.00m -> 3000
-     * 1.50m -> 3300
-     * 2.00m -> 3500
+     * 0.75m -> 2500
+     * 1.00m -> 2500
+     * 1.50m -> 3800
+     * 2.00m -> 3000
      * * Fit: Linear Approx
      * Formula: y = 434x + 2480
      */
     public static double RPM_N0 = 2254.3;
     public static double RPM_N1 = -303.7;
     public static double RPM_N2 = 142.1;
-    public static double ANGLE_KP = 0.6;
+
+    public static double ANGLE_KP = 0.8;
     public static double ANGLE_KI = 0.015;
     public static double ANGLE_KD = 0.05;
     public static double ANGLE_KF = 0.125;

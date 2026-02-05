@@ -36,10 +36,8 @@ public class UpdatePoseLimelightCommand extends CommandBase {
         double targetHeadingRad = Math.toRadians(targetHeadingDegrees);
         Pose currentPose = drive.getFollower().getPose();
 
-        // 1. Força o ângulo na odometria imediatamente
         drive.getFollower().setPose(new Pose(currentPose.getX(), currentPose.getY(), targetHeadingRad));
 
-        // 2. Tenta pegar X/Y absoluto da MT2 usando esse ângulo perfeito
         vis.getRobotPoseMT2(targetHeadingRad).ifPresent(mt2Pose -> {
             drive.getFollower().setPose(new Pose(
                     mt2Pose.getX(),
@@ -52,19 +50,16 @@ public class UpdatePoseLimelightCommand extends CommandBase {
 
     @Override
     public void initialize() {
-        // --- FASE 1: INICIALIZAÇÃO ---
         if (!hasInitialized) {
-            // Tenta usar MT2 usando o ângulo do Fallback (StartPose)
-            // A MT2 é muito mais precisa em X/Y do que a MT1
+
+
             Optional<Pose> initPoseMT2 = vision.getRobotPoseMT2(fallbackPose.getHeading());
 
             if (initPoseMT2.isPresent()) {
                 Pose p = initPoseMT2.get();
-                // Seta X/Y da câmera, mas mantém o ângulo confiável do Fallback
                 drivetrain.getFollower().setPose(new Pose(p.getX(), p.getY(), fallbackPose.getHeading()));
                 Log.d("Vision", "Inicializado via MT2 + Fallback Heading");
             } else {
-                // Se a câmera não ver nada, assume a posição inicial teórica
                 drivetrain.getFollower().setPose(fallbackPose);
                 Log.w("Vision", "Câmera cega no init. Usando Fallback Pose.");
             }
@@ -72,10 +67,8 @@ public class UpdatePoseLimelightCommand extends CommandBase {
             return;
         }
 
-        // --- FASE 2: TRACKING CONTÍNUO ---
         Pose currentPose = drivetrain.getFollower().getPose();
 
-        // Alimenta a MT2 com o ângulo ATUAL da odometria
         vision.getRobotPoseMT2(currentPose.getHeading()).ifPresent(llPoseMT2 -> {
 
             double distInches = Math.hypot(llPoseMT2.getX() - currentPose.getX(), llPoseMT2.getY() - currentPose.getY());
@@ -99,7 +92,6 @@ public class UpdatePoseLimelightCommand extends CommandBase {
         double fusedX = (currentPose.getX() * wOdo + llPose.getX() * wLL) / total;
         double fusedY = (currentPose.getY() * wOdo + llPose.getY() * wLL) / total;
 
-        // RETORNA SEMPRE O HEADING DA ODOMETRIA
         return new Pose(fusedX, fusedY, currentPose.getHeading());
     }
 
