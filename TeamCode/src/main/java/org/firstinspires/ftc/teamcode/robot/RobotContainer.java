@@ -8,6 +8,7 @@ import com.arcrobotics.ftclib.command.RepeatCommand;
 import com.arcrobotics.ftclib.command.SequentialCommandGroup;
 import com.arcrobotics.ftclib.command.WaitCommand;
 import com.arcrobotics.ftclib.command.button.GamepadButton;
+import com.arcrobotics.ftclib.command.button.Trigger;
 import com.arcrobotics.ftclib.gamepad.GamepadEx;
 import com.arcrobotics.ftclib.gamepad.GamepadKeys;
 import com.arcrobotics.ftclib.geometry.Translation2d;
@@ -41,6 +42,8 @@ public class RobotContainer {
     private final VisionSubsystem vision;
     private final IndexerSubsystem indexer;
     private final LEDSubsystem led;
+    private final HuskySubsystem husky;
+
 
     public RobotContainer(HardwareMap hardwareMap, TelemetryManager telemetry, GamepadEx driver, GamepadEx operator, AllianceEnum alliance) {
         // Subsystem Initialization
@@ -50,6 +53,7 @@ public class RobotContainer {
         vision = new VisionSubsystem(hardwareMap, telemetry);
         indexer = new IndexerSubsystem(hardwareMap, telemetry);
         led = new LEDSubsystem(hardwareMap);
+        husky = new HuskySubsystem(hardwareMap,telemetry);
 
         //led.setDefaultCommand(new LedCommand(led, alliance));
 
@@ -139,6 +143,10 @@ public class RobotContainer {
 
             new GamepadButton(driver, GamepadKeys.Button.DPAD_DOWN)
                     .whenPressed(new SpinShooterCommand(shooter, SpinShooterCommand.Action.STOP));
+
+            Trigger ChaseTrigger = new Trigger(() -> driver.getTrigger(GamepadKeys.Trigger.RIGHT_TRIGGER) > 0.1);
+
+            ChaseTrigger.whileActiveContinuous(new ChaseAnyArtifactCommand(drivetrain, husky));
 
             new GamepadButton(driver, GamepadKeys.Button.START)
                     .whenPressed(new InstantCommand(() -> {

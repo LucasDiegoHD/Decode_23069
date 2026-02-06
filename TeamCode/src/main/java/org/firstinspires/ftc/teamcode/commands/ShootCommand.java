@@ -19,7 +19,7 @@ public class ShootCommand extends CommandBase {
     private final ElapsedTime timer = new ElapsedTime();
     private final ElapsedTime cooldownTimer = new ElapsedTime();
 
-    private static final double TRIGGER_CLEAR_DELAY_MS = 50;
+    private static final double TRIGGER_CLEAR_DELAY_MS = 100;
 
     private enum SHOOT_STATES {
         Conveyor,

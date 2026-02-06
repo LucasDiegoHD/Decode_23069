@@ -67,6 +67,7 @@ public class DrivetrainSubsystem extends SubsystemBase {
         // Colocamos 'true' no final porque seu Pure Pursuit já calculou o erro relativo ao robô.
         follower.setTeleOpDrive(forward, strafe, turn, true);
 
+        follower.update();
     }
 
     /**

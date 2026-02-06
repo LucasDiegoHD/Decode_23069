@@ -41,7 +41,7 @@ public class PurePursuitTuner extends LinearOpMode {
 
         // Define um caminho inicial (vazio ou posição 0) para evitar erro de lista vazia
         ArrayList<Waypoint> initialPath = new ArrayList<>();
-        initialPath.add(new Waypoint(0, 0, 0));
+        initialPath.add(new Waypoint(0, 0, 90));
         controller.setPath(initialPath);
 
         // Força a pose inicial para garantir que não comece como null
