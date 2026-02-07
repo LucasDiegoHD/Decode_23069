@@ -146,7 +146,7 @@ public class RobotContainer {
 
             Trigger ChaseTrigger = new Trigger(() -> driver.getTrigger(GamepadKeys.Trigger.RIGHT_TRIGGER) > 0.1);
 
-            ChaseTrigger.whileActiveContinuous(new ChaseAnyArtifactCommand(drivetrain, husky));
+            ChaseTrigger.whileActiveContinuous(new ChaseArtifactCommand(drivetrain, husky));
 
             new GamepadButton(driver, GamepadKeys.Button.START)
                     .whenPressed(new InstantCommand(() -> {

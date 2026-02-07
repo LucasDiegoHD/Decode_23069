@@ -63,8 +63,7 @@ public class DrivetrainSubsystem extends SubsystemBase {
     public void driveRobotCentric(double strafe, double forward, double turn) {
         follower.breakFollowing();
 
-        // Parâmetros: (forward, strafe, turn, robotCentric)
-        // Colocamos 'true' no final porque seu Pure Pursuit já calculou o erro relativo ao robô.
+
         follower.setTeleOpDrive(forward, strafe, turn, true);
 
         follower.update();
@@ -75,7 +74,6 @@ public class DrivetrainSubsystem extends SubsystemBase {
      */
     public void stop() {
         follower.breakFollowing();
-        // Envia vetores zerados
         follower.setTeleOpDrive(0, 0, 0, true);
     }
 

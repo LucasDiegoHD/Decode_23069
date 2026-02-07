@@ -6,11 +6,10 @@ import com.qualcomm.hardware.dfrobot.HuskyLens;
 import org.firstinspires.ftc.teamcode.subsystems.DrivetrainSubsystem;
 import org.firstinspires.ftc.teamcode.subsystems.HuskyConstants;
 import org.firstinspires.ftc.teamcode.subsystems.HuskySubsystem;
-import org.firstinspires.ftc.teamcode.subsystems.VisionConstants;
 
 import java.util.Optional;
 
-public class ChaseAnyArtifactCommand extends CommandBase {
+public class ChaseArtifactCommand extends CommandBase {
 
     private final DrivetrainSubsystem drivetrain;
     private final HuskySubsystem vision;
@@ -18,7 +17,7 @@ public class ChaseAnyArtifactCommand extends CommandBase {
     private final PIDController turnPID;
     private final PIDController drivePID;
 
-    public ChaseAnyArtifactCommand(DrivetrainSubsystem drivetrain, HuskySubsystem vision) {
+    public ChaseArtifactCommand(DrivetrainSubsystem drivetrain, HuskySubsystem vision) {
         this.drivetrain = drivetrain;
         this.vision = vision;
 
