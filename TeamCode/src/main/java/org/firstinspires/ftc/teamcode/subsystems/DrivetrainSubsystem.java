@@ -61,8 +61,6 @@ public class DrivetrainSubsystem extends SubsystemBase {
      * @param turn Speed of rotation
      */
     public void driveRobotCentric(double strafe, double forward, double turn) {
-        follower.breakFollowing();
-
 
         follower.setTeleOpDrive(forward, strafe, turn, true);
 

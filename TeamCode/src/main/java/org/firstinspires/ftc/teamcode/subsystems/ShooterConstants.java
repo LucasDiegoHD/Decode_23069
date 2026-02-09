@@ -45,7 +45,7 @@ public class ShooterConstants {
     public static final double TICKS_PER_REV = 28.0;
 
     /** The target velocity in RPM for short shots. */
-    public static double TARGET_VELOCITY_SHORT = 2800;
+    public static double TARGET_VELOCITY_SHORT = 2500;
     /** The target velocity in RPM for long shots. */
     public static double TARGET_VELOCITY_LONG = 3000;
     /** The acceptable error margin for the shooter's target velocity in RPM. */

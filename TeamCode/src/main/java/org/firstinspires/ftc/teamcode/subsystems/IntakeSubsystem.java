@@ -31,7 +31,8 @@ public class IntakeSubsystem extends SubsystemBase {
     /**
      * Runs the intake motor to collect game pieces.
      */
-    public void run() { intakeMotor.setPower(1.0);
+    public void run() {
+        intakeMotor.setPower(1.0);
     }
 
     /**
@@ -61,6 +62,8 @@ public class IntakeSubsystem extends SubsystemBase {
     /**
      * Stops the trigger motor.
      */
-    public void stopTrigger() { triggerMotor.setPower(0); }
+    public void stopTrigger() {
+        triggerMotor.setPower(0);
+    }
 
 }
