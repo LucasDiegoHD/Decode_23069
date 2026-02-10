@@ -8,7 +8,6 @@ import com.arcrobotics.ftclib.command.RepeatCommand;
 import com.arcrobotics.ftclib.command.SequentialCommandGroup;
 import com.arcrobotics.ftclib.command.WaitCommand;
 import com.arcrobotics.ftclib.command.button.GamepadButton;
-import com.arcrobotics.ftclib.command.button.Trigger;
 import com.arcrobotics.ftclib.gamepad.GamepadEx;
 import com.arcrobotics.ftclib.gamepad.GamepadKeys;
 import com.arcrobotics.ftclib.geometry.Translation2d;
@@ -16,7 +15,6 @@ import com.bylazar.telemetry.PanelsTelemetry;
 import com.bylazar.telemetry.TelemetryManager;
 import com.pedropathing.geometry.Pose;
 import com.qualcomm.robotcore.hardware.HardwareMap;
-
 import org.firstinspires.ftc.teamcode.autos.commands.AutonomousCommands;
 import org.firstinspires.ftc.teamcode.autos.commands.AutonomousFrontCommands;
 import org.firstinspires.ftc.teamcode.autos.paths.BlueFrontPoses;
@@ -43,6 +41,7 @@ public class RobotContainer {
     private final IndexerSubsystem indexer;
     private final LEDSubsystem led;
     private final HuskySubsystem husky;
+    private boolean isShooterAutoAdjustActive = true;
 
 
     public RobotContainer(HardwareMap hardwareMap, TelemetryManager telemetry, GamepadEx driver, GamepadEx operator, AllianceEnum alliance) {
@@ -112,7 +111,11 @@ public class RobotContainer {
             Command AdjustShooter = new RepeatCommand(
                     new SequentialCommandGroup(
                             new WaitCommand(300),
-                            new AdjustShooterCommand(shooter, vision)
+                            new ConditionalCommand(
+                            new AdjustShooterCommand(shooter, vision, drivetrain, 144, 36),
+                            new InstantCommand(),
+                            () -> isShooterAutoAdjustActive
+                        )
                     )
             );
 
@@ -141,11 +144,17 @@ public class RobotContainer {
                     .whenPressed(new InstantCommand(intake::run, intake))
                     .whenReleased(new InstantCommand(intake::stop, intake));
 
+            new GamepadButton(driver, GamepadKeys.Button.DPAD_LEFT)
+                    .whileHeld(new ChaseArtifactCommand(drivetrain,husky));
+
             new GamepadButton(driver, GamepadKeys.Button.DPAD_DOWN)
-                    .whenPressed(new SpinShooterCommand(shooter, SpinShooterCommand.Action.STOP));
+                    .whenPressed(new InstantCommand(() -> {
+                        isShooterAutoAdjustActive = false;
+                        shooter.stop();
+                    }));
 
             new GamepadButton(driver, GamepadKeys.Button.DPAD_UP)
-                    .whileHeld(new ChaseArtifactCommand(drivetrain,husky));
+                    .whenPressed(new InstantCommand(() -> isShooterAutoAdjustActive = true));
 
             new GamepadButton(driver, GamepadKeys.Button.START)
                     .whenPressed(new InstantCommand(() -> {
@@ -172,10 +181,7 @@ public class RobotContainer {
         new GamepadButton(operator, GamepadKeys.Button.DPAD_RIGHT)
                 .whenPressed(new InstantCommand(shooter::increaseHood, shooter));
 
-        new GamepadButton(operator, GamepadKeys.Button.LEFT_BUMPER)
-                .whenPressed(new InstantCommand(shooter::stop, shooter));
-
-        new GamepadButton(operator, GamepadKeys.Button.Y)
+        new GamepadButton(operator, GamepadKeys.Button. LEFT_BUMPER)
                 .whenPressed(new InstantCommand(intake::run, intake))
                 .whenReleased(new InstantCommand(intake::stop, intake));
 
@@ -183,7 +189,7 @@ public class RobotContainer {
                 .whenPressed(new InstantCommand(intake::reverse, intake))
                 .whenReleased(new InstantCommand(intake::stop, intake));
 
-        new GamepadButton(operator, GamepadKeys.Button.DPAD_DOWN)
+        new GamepadButton(operator, GamepadKeys.Button.X)
                 .whenPressed(new InstantCommand(intake::runTrigger, intake))
                 .whenReleased(new InstantCommand(intake::stop, intake));
 
@@ -215,7 +221,6 @@ public class RobotContainer {
         return new AutonomousFrontCommands(drivetrain, shooter, intake, indexer, vision, BlueFrontPoses.asList(), led);
     }
 
-    // Método para o Triângulo Grande VERMELHO
     public Command getAutonomousRedFrontCommand() {
         return new AutonomousFrontCommands(drivetrain, shooter, intake, indexer, vision, RedFrontPoses.asList(), led);
     }

@@ -25,47 +25,78 @@ public class ChaseArtifactCommand extends CommandBase {
         this.drivePID = new PIDController(HuskyConstants.DRIVE_KP, HuskyConstants.DRIVE_KI, HuskyConstants.DRIVE_KD);
 
         this.turnPID.setSetPoint(HuskyConstants.CENTER_X_PIXELS); // 160
-        this.drivePID.setSetPoint(HuskyConstants.TARGET_DISTANCE_INCHES); // 8.0
+        this.drivePID.setSetPoint(HuskyConstants.TARGET_DISTANCE_INCHES); // 1.0
 
         addRequirements(drivetrain, vision);
     }
 
     @Override
     public void initialize() {
-        // CRÍTICO: Reseta os PIDs ao apertar o botão para evitar "pulos" bruscos
         turnPID.reset();
         drivePID.reset();
     }
+
+    private long timeSinceLostTarget = 0;
+    private boolean wasClose = false;
 
     @Override
     public void execute() {
         Optional<HuskyLens.Block> target = vision.getClosestAnyArtifact();
 
+        double drivePower = 0;
+        double turnPower = 0;
+
         if (target.isPresent()) {
             HuskyLens.Block block = target.get();
             double currentDist = vision.getDistanceToBlock(block);
 
-            // Calcula PID
-            double turnPower = turnPID.calculate(block.x);
+            // Reseta o timer de perda de alvo
+            timeSinceLostTarget = System.currentTimeMillis();
 
-            // ATENÇÃO: Se o robô for para TRÁS quando deveria ir para FRENTE,
-            // remova o sinal negativo (-) abaixo.
-            double drivePower = -drivePID.calculate(currentDist);
+            // --- LÓGICA DE DECISÃO ---
 
-            // Clamp (Segurança para não acelerar demais no teste)
-            turnPower = MathUtils.clamp(turnPower, -0.5, 0.5);
-            drivePower = MathUtils.clamp(drivePower, -0.5, 0.5);
+            if (currentDist > HuskyConstants.TARGET_DISTANCE_INCHES) {
+                // ZONA 1: APROXIMAÇÃO (Longe)
+                // Usa PID para chegar perto suavemente
+                wasClose = false;
+                turnPower = turnPID.calculate(block.x);
+                drivePower = -drivePID.calculate(currentDist); // Negativo para ir para frente
 
-            // Feedforward (Força mínima para vencer o atrito do chão)
-            if (Math.abs(drivePower) > 0.01 && Math.abs(drivePower) < 0.12) {
-                drivePower = 0.12 * Math.signum(drivePower);
+                // Limita a velocidade para não ir rápido demais
+                drivePower = MathUtils.clamp(drivePower, -0.6, 0.6);
+
+            } else {
+                // ZONA 2: COLETA (Perto - Menos de 8 polegadas / 20cm)
+                // AQUI ESTÁ O SEGREDO: Ignora o PID de distância!
+                // Força o robô a ir para cima do artefato.
+                wasClose = true;
+
+                drivePower = -0.4; // Velocidade fixa para frente (ajuste conforme seu robô)
+                turnPower = turnPID.calculate(block.x) * 0.5; // Alinha um pouco, mas com menos força
+
+                // IMPORTANTE: Se tiver comando de Intake, ligue aqui!
+                // intake.setPower(1.0);
             }
 
-            // Manda para o drive
             drivetrain.driveRobotCentric(drivePower, 0, turnPower);
+
         } else {
-            // Se não vê nada, para imediatamente
-            drivetrain.driveRobotCentric(0, 0, 0);
+            // --- O ROBÔ NÃO ESTÁ VENDO NADA ---
+
+            // Se ele estava perto (wasClose) e perdeu a visão faz pouco tempo (menos de 1 seg),
+            // significa que o bloco está DEBAIXO do intake (Ponto Cego).
+            if (wasClose && (System.currentTimeMillis() - timeSinceLostTarget < 1000)) {
+
+                // CONTINUA ANDANDO PARA FRENTE "NO ESCURO"
+                drivetrain.driveRobotCentric(-0.4, 0, 0);
+                // intake.setPower(1.0);
+
+            } else {
+                // Realmente perdeu ou já coletou
+                drivetrain.driveRobotCentric(0, 0, 0);
+                // intake.setPower(0);
+                wasClose = false;
+            }
         }
     }
 

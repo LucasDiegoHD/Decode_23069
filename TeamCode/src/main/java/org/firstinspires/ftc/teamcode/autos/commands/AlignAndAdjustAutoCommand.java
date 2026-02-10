@@ -16,7 +16,7 @@ public class AlignAndAdjustAutoCommand extends SequentialCommandGroup {
 
                 //new AlignToAprilTagCommand(drivetrain, vision, PanelsTelemetry.INSTANCE.getTelemetry(), null).withTimeout(200),
 
-                new AdjustShooterCommand(shooter, vision),
+                new AdjustShooterCommand(shooter, vision,drivetrain,144, 36),
                 new AdjustHoodCommand(shooter, vision)
 
         );
