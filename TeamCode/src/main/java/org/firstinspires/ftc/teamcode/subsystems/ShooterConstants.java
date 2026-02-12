@@ -61,7 +61,7 @@ public class ShooterConstants {
     /** Ganho de compensação: quanto o hood sobe por cada 1 RPM de erro. */
     public static double K_HOOD_COMPENSATION = 0.00065;
     /** Tolerância de cadência para tiros longos. */
-    public static double CADENCE_TOLERANCE_PERCENT = 0.90;
+    public static double CADENCE_TOLERANCE_PERCENT = 0.98;
 
     // --- TIMINGS ---
 

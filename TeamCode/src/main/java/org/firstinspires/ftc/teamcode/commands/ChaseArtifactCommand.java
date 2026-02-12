@@ -1,12 +1,18 @@
 package org.firstinspires.ftc.teamcode.commands;
 
+import static org.firstinspires.ftc.teamcode.subsystems.HuskyConstants.BLIND_DURATION_MS;
+import static org.firstinspires.ftc.teamcode.subsystems.HuskyConstants.MIN_DRIVE_SPEED_PID;
+import static org.firstinspires.ftc.teamcode.subsystems.HuskyConstants.TURBO_SPEED;
+import static org.firstinspires.ftc.teamcode.subsystems.HuskyConstants.TURBO_THRESHOLD;
+
 import com.arcrobotics.ftclib.command.CommandBase;
 import com.arcrobotics.ftclib.controller.PIDController;
 import com.arcrobotics.ftclib.util.MathUtils;
 import com.qualcomm.hardware.dfrobot.HuskyLens;
 import org.firstinspires.ftc.teamcode.subsystems.DrivetrainSubsystem;
-import org.firstinspires.ftc.teamcode.subsystems.HuskyConstants; // Seus arquivos de constantes
+import org.firstinspires.ftc.teamcode.subsystems.HuskyConstants;
 import org.firstinspires.ftc.teamcode.subsystems.HuskySubsystem;
+import org.firstinspires.ftc.teamcode.subsystems.IntakeSubsystem;
 
 import java.util.Optional;
 
@@ -16,16 +22,25 @@ public class ChaseArtifactCommand extends CommandBase {
     private final HuskySubsystem vision;
     private final PIDController turnPID, drivePID;
 
-    public ChaseArtifactCommand(DrivetrainSubsystem drivetrain, HuskySubsystem vision) {
+    private final IntakeSubsystem intakeSubsystem;
+
+    private static final double MAX_TURN_SPEED = 0.25;
+
+    private static final double BLIND_SPEED = -0.4;
+
+    private long timeSinceLostTarget = 0;
+    private boolean wasClose = false;
+
+    public ChaseArtifactCommand(DrivetrainSubsystem drivetrain, HuskySubsystem vision, IntakeSubsystem intakeSubsystem) {
         this.drivetrain = drivetrain;
         this.vision = vision;
+        this.intakeSubsystem = intakeSubsystem;
 
-        // PIDs
         this.turnPID = new PIDController(HuskyConstants.TURN_KP, HuskyConstants.TURN_KI, HuskyConstants.TURN_KD);
         this.drivePID = new PIDController(HuskyConstants.DRIVE_KP, HuskyConstants.DRIVE_KI, HuskyConstants.DRIVE_KD);
 
-        this.turnPID.setSetPoint(HuskyConstants.CENTER_X_PIXELS); // 160
-        this.drivePID.setSetPoint(HuskyConstants.TARGET_DISTANCE_INCHES); // 1.0
+        this.turnPID.setSetPoint(HuskyConstants.CENTER_X_PIXELS);
+        this.drivePID.setSetPoint(HuskyConstants.TARGET_DISTANCE_INCHES);
 
         addRequirements(drivetrain, vision);
     }
@@ -34,10 +49,9 @@ public class ChaseArtifactCommand extends CommandBase {
     public void initialize() {
         turnPID.reset();
         drivePID.reset();
+        wasClose = false;
+        timeSinceLostTarget = 0;
     }
-
-    private long timeSinceLostTarget = 0;
-    private boolean wasClose = false;
 
     @Override
     public void execute() {
@@ -50,51 +64,62 @@ public class ChaseArtifactCommand extends CommandBase {
             HuskyLens.Block block = target.get();
             double currentDist = vision.getDistanceToBlock(block);
 
-            // Reseta o timer de perda de alvo
+            // Reseta timer
             timeSinceLostTarget = System.currentTimeMillis();
 
-            // --- LÓGICA DE DECISÃO ---
+            // === 1. GIRO (Suave e Controlado) ===
+            double errorX = block.x - HuskyConstants.CENTER_X_PIXELS;
 
-            if (currentDist > HuskyConstants.TARGET_DISTANCE_INCHES) {
-                // ZONA 1: APROXIMAÇÃO (Longe)
-                // Usa PID para chegar perto suavemente
-                wasClose = false;
+            if (Math.abs(errorX) > HuskyConstants.DEADZONE_ALIGN_PIXELS) {
                 turnPower = turnPID.calculate(block.x);
-                drivePower = -drivePID.calculate(currentDist); // Negativo para ir para frente
-
-                // Limita a velocidade para não ir rápido demais
-                drivePower = MathUtils.clamp(drivePower, -0.6, 0.6);
-
+                turnPower = MathUtils.clamp(turnPower, -MAX_TURN_SPEED, MAX_TURN_SPEED);
             } else {
-                // ZONA 2: COLETA (Perto - Menos de 8 polegadas / 20cm)
-                // AQUI ESTÁ O SEGREDO: Ignora o PID de distância!
-                // Força o robô a ir para cima do artefato.
-                wasClose = true;
-
-                drivePower = -0.4; // Velocidade fixa para frente (ajuste conforme seu robô)
-                turnPower = turnPID.calculate(block.x) * 0.5; // Alinha um pouco, mas com menos força
-
-                // IMPORTANTE: Se tiver comando de Intake, ligue aqui!
-                // intake.setPower(1.0);
+                turnPower = 0;
             }
 
-            drivetrain.driveRobotCentric(drivePower, 0, turnPower);
+            // === 2. DISTÂNCIA (LÓGICA DE 3 ZONAS) ===
 
-        } else {
-            // --- O ROBÔ NÃO ESTÁ VENDO NADA ---
+            if (currentDist > TURBO_THRESHOLD) {
+                // --- ZONA 1: TURBO (Muito Longe > 12 pol) ---
+                // Ignora PID. Vai com tudo para chegar rápido.
+                wasClose = false;
+                drivePower = TURBO_SPEED; // Ex: -0.85
 
-            // Se ele estava perto (wasClose) e perdeu a visão faz pouco tempo (menos de 1 seg),
-            // significa que o bloco está DEBAIXO do intake (Ponto Cego).
-            if (wasClose && (System.currentTimeMillis() - timeSinceLostTarget < 1000)) {
+            } else if (currentDist > HuskyConstants.TARGET_DISTANCE_INCHES) {
+                // --- ZONA 2: APROXIMAÇÃO FINA (Entre 12 e 5 pol) ---
+                // Usa PID para desacelerar suavemente e não bater com tudo
+                wasClose = false;
 
-                // CONTINUA ANDANDO PARA FRENTE "NO ESCURO"
-                drivetrain.driveRobotCentric(-0.4, 0, 0);
-                // intake.setPower(1.0);
+                intakeSubsystem.run();
+
+                drivePower = drivePID.calculate(currentDist);
+
+                // Garante que não fique lento demais (Feedforward)
+                if (Math.abs(drivePower) > 0.01 && Math.abs(drivePower) < MIN_DRIVE_SPEED_PID) {
+                    drivePower = Math.signum(drivePower) * MIN_DRIVE_SPEED_PID;
+                }
+
+                // Limita para não ser mais rápido que o turbo
+                drivePower = MathUtils.clamp(drivePower, TURBO_SPEED, -MIN_DRIVE_SPEED_PID);
 
             } else {
-                // Realmente perdeu ou já coletou
+                // --- ZONA 3: ATAQUE (Perto < 5 pol) ---
+                wasClose = true;
+                drivePower = BLIND_SPEED; // Ex: -0.6 constante
+
+                // Reduz giro para estabilizar a coleta
+                turnPower = turnPower * 0.1;
+            }
+
+            // Envia comando (Strafe=0, Drive, Turn)
+            drivetrain.driveRobotCentric(0, drivePower, turnPower);
+
+        } else {
+            // === MODO CEGO ===
+            if (wasClose && (System.currentTimeMillis() - timeSinceLostTarget < BLIND_DURATION_MS)) {
+                drivetrain.driveRobotCentric(0, BLIND_SPEED, 0);
+            } else {
                 drivetrain.driveRobotCentric(0, 0, 0);
-                // intake.setPower(0);
                 wasClose = false;
             }
         }
@@ -102,13 +127,11 @@ public class ChaseArtifactCommand extends CommandBase {
 
     @Override
     public boolean isFinished() {
-        // Retorna false para rodar "enquanto o botão estiver apertado"
         return false;
     }
 
     @Override
     public void end(boolean interrupted) {
-        // Garante que o robô pare quando você soltar o botão
         drivetrain.driveRobotCentric(0, 0, 0);
     }
 }

@@ -99,23 +99,23 @@ public class RobotContainer {
 
             CommandScheduler.getInstance().schedule(periodicUpdateLoop);
 
-                Command AdjustHood = new RepeatCommand(
-                        new SequentialCommandGroup(
-                        new WaitCommand(300),
-                        new AdjustHoodCommand(shooter, vision)
-                        )
-                );
+            Command AdjustHood = new RepeatCommand(
+                    new SequentialCommandGroup(
+                            new WaitCommand(300),
+                            new AdjustHoodCommand(shooter, vision)
+                    )
+            );
 
-                CommandScheduler.getInstance().schedule(AdjustHood);
+            CommandScheduler.getInstance().schedule(AdjustHood);
 
             Command AdjustShooter = new RepeatCommand(
                     new SequentialCommandGroup(
                             new WaitCommand(300),
                             new ConditionalCommand(
-                            new AdjustShooterCommand(shooter, vision, drivetrain, 144, 36),
-                            new InstantCommand(),
-                            () -> isShooterAutoAdjustActive
-                        )
+                                    new AdjustShooterCommand(shooter, vision),
+                                    new InstantCommand(),
+                                    () -> isShooterAutoAdjustActive
+                            )
                     )
             );
 
@@ -145,7 +145,7 @@ public class RobotContainer {
                     .whenReleased(new InstantCommand(intake::stop, intake));
 
             new GamepadButton(driver, GamepadKeys.Button.DPAD_LEFT)
-                    .whileHeld(new ChaseArtifactCommand(drivetrain,husky));
+                    .whileHeld(new ChaseArtifactCommand(drivetrain,husky,intake));
 
             new GamepadButton(driver, GamepadKeys.Button.DPAD_DOWN)
                     .whenPressed(new InstantCommand(() -> {
@@ -226,6 +226,6 @@ public class RobotContainer {
     }
     private boolean isRobotShooting() {
         Command current = drivetrain.getCurrentCommand();
-            return current instanceof AlignToAprilTagCommand;
+        return current instanceof AlignToAprilTagCommand;
     }
 }

@@ -13,25 +13,21 @@ public class HuskyConstants {
     public static double ARTIFACT_REAL_WIDTH_INCHES = 5.0; // Diâmetro da bola DECODE
 
     // --- Setpoints de Navegação ---
-    public static double TARGET_DISTANCE_INCHES = 1.0; // Distância que o robô deve parar da bola
+    public static double TARGET_DISTANCE_INCHES = 5.0; // Distância que o robô deve parar da bola
     public static double CENTER_X_PIXELS = 160.0;      // Centro horizontal da tela (320x240)
-
-    // --- Ganhos PID (Alinhamento) ---
-    public static double TURN_KP = 0.1;  // Força do giro por erro de pixel
+    public static double TURN_KP = 0.002;
     public static double TURN_KI = 0.0;
-    public static double TURN_KD = 0.0001;
-
-    // --- Ganhos PID (Aproximação) ---
-    public static double DRIVE_KP = 0.1;  // Força do drive por erro de polegadas
+    public static double TURN_KD = 0.0;
+    public static double DEADZONE_ALIGN_PIXELS = 20.0;
+    public static double DRIVE_KP = 0.5;
     public static double DRIVE_KI = 0.0;
-    public static double DRIVE_KD = 0.001;
-
-    // --- Limites de Segurança ---
-    public static double MAX_DRIVE_SPEED = 0.6;
-    public static double MAX_TURN_SPEED = 0.5;
-    public static double DEADZONE_ALIGN_PIXELS = 5.0; // Margem de erro aceitável para X
-    public static double DEADZONE_DIST_INCHES = 1.0;  // Margem de erro aceitável para Distância
-    public static int COLOR_ID_PURPLE = 1;
-    public static int COLOR_ID_GREEN = 2;
-
+    public static double DRIVE_KD = 0.00;
+    public static int COLOR_ID_PURPLE = 2;
+    public static int COLOR_ID_GREEN = 1;
+    public static int COLOR_ID_PURPLE2 = 3;
+    public static int COLOR_ID_GREEN2 = 4;
+    public static final double TURBO_THRESHOLD = 12.0;
+    public static final double TURBO_SPEED = -0.85;
+    public static final double MIN_DRIVE_SPEED_PID = 0.15;
+    public static final long BLIND_DURATION_MS = 1500;
 }

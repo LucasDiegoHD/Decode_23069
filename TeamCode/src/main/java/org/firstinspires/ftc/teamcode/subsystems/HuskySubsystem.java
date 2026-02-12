@@ -4,7 +4,6 @@ import com.arcrobotics.ftclib.command.SubsystemBase;
 import com.bylazar.telemetry.TelemetryManager;
 import com.qualcomm.hardware.dfrobot.HuskyLens;
 import com.qualcomm.robotcore.hardware.HardwareMap;
-import org.firstinspires.ftc.robotcore.external.Telemetry;
 import java.util.Optional;
 
 public class HuskySubsystem extends SubsystemBase {
@@ -25,30 +24,37 @@ public class HuskySubsystem extends SubsystemBase {
     }
 
     /**
-     * Retorna o Artifact mais relevante (mais próximo) com o ID especificado.
+     * Retorna o Artifact mais relevante (mais próximo/maior área).
      * Retorna um Optional vazio se nada for encontrado.
      */
     public Optional<HuskyLens.Block> getClosestAnyArtifact() {
         HuskyLens.Block[] blocks = huskyLens.blocks();
 
+        // SEGURANÇA: Se a câmera falhar ou não ver nada, retorna vazio imediatamente
+        if (blocks == null || blocks.length == 0) {
+            return Optional.empty();
+        }
+
         HuskyLens.Block bestBlock = null;
-        double maxArea = 0;
+        double maxArea = -1;
 
         for (HuskyLens.Block block : blocks) {
-            if (block.id!= HuskyConstants.COLOR_ID_PURPLE &&
-                    block.id!= HuskyConstants.COLOR_ID_GREEN) {
-                continue;
-            }
+            // 1. Filtro de ID (Aceita apenas as cores desejadas)
+            boolean isValidId = (block.id == HuskyConstants.COLOR_ID_PURPLE ||
+                    block.id == HuskyConstants.COLOR_ID_GREEN ||
+                    block.id == HuskyConstants.COLOR_ID_GREEN2 ||
+                    block.id == HuskyConstants.COLOR_ID_PURPLE2);
 
-            // 2. Filtro de Ruído (Tamanho mínimo)
+            if (!isValidId) continue;
+
+            // 2. Filtro de Ruído (Tamanho mínimo em pixels)
             if (block.width < 15 || block.height < 15) continue;
 
-            // 3. Filtro de Geometria (Deve parecer uma bola quadrada)
+            // 3. Filtro de Geometria (Deve parecer uma bola/quadrado e não um risco)
             double ratio = (double) block.width / block.height;
             if (ratio < 0.6 || ratio > 1.6) continue;
 
-            // 4. Critério: Escolhe o objeto com maior área (mais próximo)
-            // Isso faz com que o robô ignore uma bola verde longe se tiver uma roxa perto
+            // 4. Critério: Escolhe o objeto com maior área (O mais próximo da câmera)
             double area = block.width * block.height;
             if (area > maxArea) {
                 maxArea = area;
@@ -56,7 +62,7 @@ public class HuskySubsystem extends SubsystemBase {
             }
         }
 
-        if (bestBlock!= null) {
+        if (bestBlock != null) {
             lastValidBlock = bestBlock;
             return Optional.of(bestBlock);
         }
@@ -69,17 +75,17 @@ public class HuskySubsystem extends SubsystemBase {
      */
     public double getDistanceToBlock(HuskyLens.Block block) {
         if (block == null) return 0;
-        // Z = (W_real * f) / W_pixel
+        // Fórmula: Z = (W_real * f) / W_pixel
         return (HuskyConstants.ARTIFACT_REAL_WIDTH_INCHES * HuskyConstants.FOCAL_LENGTH_PIXELS) / block.width;
     }
 
     @Override
     public void periodic() {
-        // Telemetria de debug para ajudar você a calibrar
-        if (lastValidBlock!= null) {
-            telemetry.addData("Husky Detectado", "ID: " + lastValidBlock.id);
-            telemetry.addData("Husky Largura (px)", lastValidBlock.width);
-            telemetry.addData("Husky Distancia (pol)", getDistanceToBlock(lastValidBlock));
+        // Telemetria de debug
+        if (lastValidBlock != null) {
+            telemetry.addData("Husky ID", lastValidBlock.id);
+            telemetry.addData("Husky X", lastValidBlock.x); // Ajuda a ver o centro
+            telemetry.addData("Husky Dist (in)", getDistanceToBlock(lastValidBlock));
         } else {
             telemetry.addData("Husky", "Procurando...");
         }
