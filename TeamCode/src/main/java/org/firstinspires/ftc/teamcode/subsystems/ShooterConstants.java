@@ -100,7 +100,7 @@ public class ShooterConstants {
      * * Fit: Linear Approx
      * Formula: y = 434x + 2480
      */
-    public static double RPM_N0 = 2154.3;
+    public static double RPM_N0 = 2304.3;
     public static double RPM_N1 = -303.7;
     public static double RPM_N2 = 142.1;
 

@@ -108,6 +108,9 @@ public class RobotContainer {
 
             CommandScheduler.getInstance().schedule(AdjustHood);
 
+            double targetx = (alliance == AllianceEnum.Red)? 144 : 0;
+            double targety = 144;
+
             Command AdjustShooter = new RepeatCommand(
                     new SequentialCommandGroup(
                             new WaitCommand(300),
@@ -130,9 +133,6 @@ public class RobotContainer {
 
             new GamepadButton(driver, GamepadKeys.Button.B)
                     .whileHeld(new GoToPose(drivetrain, shootPose));
-
-            double targetx = (alliance == AllianceEnum.Red)? 144 : 0;
-            double targety = 144;
 
             new GamepadButton(driver, GamepadKeys.Button.X)
                     .whileHeld(new AimByPoseCommand(drivetrain, targetx, targety, telemetry));
