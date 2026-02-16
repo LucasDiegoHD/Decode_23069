@@ -47,7 +47,7 @@ public class ShooterConstants {
     /** The target velocity in RPM for short shots. */
     public static double TARGET_VELOCITY_SHORT = 2500;
     /** The target velocity in RPM for long shots. */
-    public static double TARGET_VELOCITY_LONG = 2950;
+    public static double TARGET_VELOCITY_LONG = 2900;
     /** The acceptable error margin for the shooter's target velocity in RPM. */
     public static double VELOCITY_TOLERANCE = 30;
 
@@ -59,15 +59,15 @@ public class ShooterConstants {
     public static double HOOD_INCREMENT = 0.05;
 
     /** Ganho de compensação: quanto o hood sobe por cada 1 RPM de erro. */
-    public static double K_HOOD_COMPENSATION = 0.00065;
+    public static double K_HOOD_COMPENSATION = 0.00045;
     /** Tolerância de cadência para tiros longos. */
     public static double CADENCE_TOLERANCE_PERCENT = 0.90;
 
     // --- TIMINGS ---
 
     /** The time in milliseconds to wait after triggering before shooting. */
-    public static double TRIGGER_TIMER_TO_SHOOT = 400;
-    public static double TRIGGER_TIMER_TRIGGERING = 1000;
+    public static double TRIGGER_TIMER_TO_SHOOT = 800;
+    public static double TRIGGER_TIMER_TRIGGERING = 700;
     public static double DELAY_BETWEEN_SHOTS_MS = 25;
 
 

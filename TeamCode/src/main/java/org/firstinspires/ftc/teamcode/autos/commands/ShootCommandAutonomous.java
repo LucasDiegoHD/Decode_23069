@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.commands;
+package org.firstinspires.ftc.teamcode.autos.commands;
 
 import com.arcrobotics.ftclib.command.CommandBase;
 import com.bylazar.telemetry.PanelsTelemetry;
@@ -11,7 +11,7 @@ import org.firstinspires.ftc.teamcode.subsystems.LEDSubsystem;
 import org.firstinspires.ftc.teamcode.subsystems.ShooterConstants;
 import org.firstinspires.ftc.teamcode.subsystems.ShooterSubsystem;
 
-public class ShootCommand extends CommandBase {
+public class ShootCommandAutonomous extends CommandBase {
 
     private final ShooterSubsystem shooter;
     private final IntakeSubsystem intake;
@@ -34,7 +34,7 @@ public class ShootCommand extends CommandBase {
     private final IndexerSubsystem indexer;
     private final LEDSubsystem ledSubsystem;
 
-    public ShootCommand(ShooterSubsystem shooter, IntakeSubsystem intake, IndexerSubsystem indexer, int shoots, LEDSubsystem led) {
+    public ShootCommandAutonomous(ShooterSubsystem shooter, IntakeSubsystem intake, IndexerSubsystem indexer, int shoots, LEDSubsystem led) {
         telemetryM = PanelsTelemetry.INSTANCE.getTelemetry();
         this.indexer = indexer;
         this.shooterCounter = shoots;
@@ -44,7 +44,7 @@ public class ShootCommand extends CommandBase {
         addRequirements(shooter, indexer);
     }
 
-    public ShootCommand(ShooterSubsystem shooter, IntakeSubsystem intake, IndexerSubsystem indexer, LEDSubsystem led) {
+    public ShootCommandAutonomous(ShooterSubsystem shooter, IntakeSubsystem intake, IndexerSubsystem indexer, LEDSubsystem led) {
         this(shooter, intake, indexer, 99, led);
     }
 
@@ -103,7 +103,7 @@ public class ShootCommand extends CommandBase {
             case Shooting:
                 boolean pieceHasLeft = !indexer.getExitSensor();
 
-                if (pieceHasLeft || timer.milliseconds() > ShooterConstants.TRIGGER_TIMER_TRIGGERING) {
+                if (pieceHasLeft || timer.milliseconds() > 1200) {
 
                     if (shooterCounter > 0) {
                         shooterCounter--;

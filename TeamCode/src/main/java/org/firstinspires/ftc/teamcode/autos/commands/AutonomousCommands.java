@@ -5,7 +5,6 @@ import androidx.annotation.NonNull;
 import com.arcrobotics.ftclib.command.InstantCommand;
 import com.arcrobotics.ftclib.command.SequentialCommandGroup;
 import com.arcrobotics.ftclib.command.WaitCommand;
-import com.bylazar.telemetry.TelemetryManager;
 import com.pedropathing.geometry.Pose;
 import org.firstinspires.ftc.teamcode.autos.paths.PosesNames;
 import org.firstinspires.ftc.teamcode.commands.ShootCommand;
@@ -63,7 +62,7 @@ public class AutonomousCommands extends SequentialCommandGroup {
                 new UpdatePoseLimelightCommand(drivetrain, vision, poses.get(PosesNames.StartPose.ordinal())),
                 new AlignAndAdjustAutoCommand(drivetrain, vision, shooter),
                 new GoToPoseCommand(drivetrain, poses.get(PosesNames.GoToShoot1.ordinal())),
-                new ShootCommand(shooter, intake, indexer,3, ledSubsystem ).withTimeout(5000),
+                new ShootCommandAutonomous(shooter, intake, indexer,3, ledSubsystem ).withTimeout(3000),
                 new SpinShooterCommand(shooter, SpinShooterCommand.Action.LONG_SHOOT),
                 new InstantCommand(intake::run),
                 new GoToPoseCommand(drivetrain, true,
@@ -71,8 +70,9 @@ public class AutonomousCommands extends SequentialCommandGroup {
                         poses.get(PosesNames.CatchLine1.ordinal())
                 ).withTimeout(4000),
                 new GoToPoseCommand(drivetrain, poses.get(PosesNames.GoToShoot1.ordinal())),
+                new WaitCommand(200),
                 new AlignAndAdjustAutoCommand(drivetrain, vision, shooter),
-                new ShootCommand(shooter, intake, indexer,3, ledSubsystem).withTimeout(5000),
+                new ShootCommandAutonomous(shooter, intake, indexer,3, ledSubsystem ).withTimeout(3000),
                 new InstantCommand(intake::run),
                 new GoToPoseCommand(drivetrain, true,
                         poses.get(PosesNames.GoToLine3.ordinal()),
@@ -80,17 +80,19 @@ public class AutonomousCommands extends SequentialCommandGroup {
                 ).withTimeout(4000),
                 new GoToPoseCommand(drivetrain,poses.get(PosesNames.GatePose.ordinal())).withTimeout(1000),
                 new GoToPoseCommand(drivetrain, poses.get(PosesNames.GoToShoot1.ordinal())),
+                new WaitCommand(200),
                 new AlignAndAdjustAutoCommand(drivetrain, vision, shooter),
-                new ShootCommand(shooter, intake, indexer, 3, ledSubsystem).withTimeout(5000),
+                new ShootCommandAutonomous(shooter, intake, indexer,3, ledSubsystem ).withTimeout(3000),
                 new InstantCommand(intake::run),
                 new GoToPoseCommand(drivetrain, true,
                         poses.get(PosesNames.GoToLine2.ordinal()),
                         poses.get(PosesNames.CatchLine2.ordinal())
                 ).withTimeout(2000),
-                new WaitCommand(500),
+                new WaitCommand(600),
                 new GoToPoseCommand(drivetrain, poses.get(PosesNames.GoToShoot1.ordinal())),
+                new WaitCommand(200),
                 new AlignAndAdjustAutoCommand(drivetrain, vision, shooter),
-                new ShootCommand(shooter, intake, indexer, 3, ledSubsystem).withTimeout(2000),
+                new ShootCommandAutonomous(shooter, intake, indexer,3, ledSubsystem ).withTimeout(3000),
                 /*new InstantCommand(intake::run),
                 new GoToPoseCommand(drivetrain, true,
                         poses.get(PosesNames.GoToLine2.ordinal()),

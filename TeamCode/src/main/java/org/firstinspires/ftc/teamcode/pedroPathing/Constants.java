@@ -26,7 +26,7 @@ public class Constants {
             public static String PINPOINT_LOCALIZER = "pinpoint";
         }
     public static FollowerConstants followerConstants = new FollowerConstants()
-            .mass(11)
+            .mass(9)
             .forwardZeroPowerAcceleration(-33.315092662612045)
             .lateralZeroPowerAcceleration(-97.42340280933647)
             .useSecondaryTranslationalPIDF(true)
@@ -45,7 +45,7 @@ public class Constants {
             )
 
             .drivePIDFCoefficients(
-                    new FilteredPIDFCoefficients(0.15, 0.0008, 0.01, 0.5, 0.015)
+                    new FilteredPIDFCoefficients(0.25, 0.0008, 0.01, 0.5, 0.015)
             );
 
     public static MecanumConstants driveConstants = new MecanumConstants()
