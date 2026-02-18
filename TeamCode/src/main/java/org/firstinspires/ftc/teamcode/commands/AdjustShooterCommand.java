@@ -1,6 +1,8 @@
 package org.firstinspires.ftc.teamcode.commands;
 
 import com.arcrobotics.ftclib.command.CommandBase;
+import com.pedropathing.geometry.Pose;
+import org.firstinspires.ftc.teamcode.subsystems.DrivetrainSubsystem;
 
 import org.firstinspires.ftc.teamcode.subsystems.ShooterConstants;
 import org.firstinspires.ftc.teamcode.subsystems.ShooterSubsystem;
@@ -16,38 +18,46 @@ public class AdjustShooterCommand extends CommandBase {
     private final ShooterSubsystem shooter;
     private final VisionSubsystem vision;
 
+    private final DrivetrainSubsystem drivetrain;
+    private final double targetX;
+    private final double targetY;
 
-    /**
-     * Creates a new SpinShooterCommand.
-     *
-     * @param shooter The ShooterSubsystem to control.
-     */
-    public AdjustShooterCommand(ShooterSubsystem shooter, VisionSubsystem vision) {
+    public AdjustShooterCommand(ShooterSubsystem shooter, VisionSubsystem vision, DrivetrainSubsystem drivetrain, double targetX, double targetY) {
         this.shooter = shooter;
         this.vision = vision;
+        this.drivetrain = drivetrain;
+        this.targetX = targetX;
+        this.targetY = targetY;
     }
 
-    /**
-     * Called when the command is initially scheduled. Executes the specified shooter action.
-     */
     @Override
     public void initialize() {
         double distance = vision.getDirectDistanceToTarget().orElse((double) 0);
+
+        if (distance > 0) {
+            distance = distance;
+        } else {
+            Pose pose = drivetrain.getFollower().getPose();
+
+            double dx = targetX - pose.getX();
+            double dy = targetY - pose.getY();
+            double groundDistance = Math.hypot(dx, dy);
+
+            double deltaZ = 38.75;
+            double distanceInches = Math.hypot(groundDistance, deltaZ);
+
+            distance = distanceInches / 39.3701;
+        }
+
         double rpm = ShooterConstants.RPM_N0 + ShooterConstants.RPM_N1 * distance + ShooterConstants.RPM_N2 * Math.pow(distance, 2);
-        if ((distance > VisionConstants.LONGEST_DISTANCE)) {
+
+        if (distance > VisionConstants.LONGEST_DISTANCE) {
             rpm = VisionConstants.LONGEST_RPM;
         }
-        if (distance == 0){
-            rpm = ShooterConstants.TARGET_VELOCITY_SHORT;
-        }
+
         shooter.setTargetVelocity(rpm);
     }
 
-    /**
-     * Returns true when the command should end.
-     *
-     * @return True immediately, as this is an instant command.
-     */
     @Override
     public boolean isFinished() {
         return true;

@@ -15,7 +15,7 @@ public class IndexerConstants {
     /**
      * The hardware map name for the entry sensor (e.g., a beam break sensor).
      */
-    public static String ENTRY_SENSOR_NAME = "sensorInput";
+    public static String ENTRY_SENSOR_NAME = "sensorEntry";
     /** The hardware map name for the exit sensor (e.g., a color/distance sensor). */
     public static String EXIT_SENSOR_NAME = "sensor_color_distance";
 
@@ -24,6 +24,7 @@ public class IndexerConstants {
     /** The distance threshold in centimeters for the exit sensor to be considered triggered. */
     public static double HUE_OFFSET = 100;
     public static double SATURATION_OFFSET = 0.5;
-    public static double VALUE_OFFSET = 0.001;
+    public static double VALUE_OFFSET = 0.005;
+    public static double ENTRY_DISTANCE_CM = 8.0;
     public static float SENSOR_GAIN = 2;
 }

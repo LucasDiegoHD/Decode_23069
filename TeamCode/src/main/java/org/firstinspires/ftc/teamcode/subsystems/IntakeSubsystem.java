@@ -40,7 +40,7 @@ public class IntakeSubsystem extends SubsystemBase {
      */
     public void reverse() {
         intakeMotor.setPower(-1.0);
-        triggerMotor.setPower(0.8);
+        triggerMotor.setPower(1.0);
     }
 
     /**

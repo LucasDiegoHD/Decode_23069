@@ -85,10 +85,15 @@ public class RobotContainer {
             Pose shootPose = (alliance == AllianceEnum.Red)?
                     RedRearPoses.getPose(PosesNames.GoToShoot1) : BlueRearPoses.getPose(PosesNames.GoToShoot1);
 
+            double goalX = (alliance == AllianceEnum.Red)? 130 : 14;
+            double goalY = 130;
+
+
+
 
             Command periodicUpdateLoop = new RepeatCommand(
                     new SequentialCommandGroup(
-                            new WaitCommand(1000),
+                            new WaitCommand(2000),
                             new ConditionalCommand(
                                     new InstantCommand(),
                                     new UpdatePoseLimelightCommand(drivetrain, vision, innitialPose),
@@ -101,21 +106,20 @@ public class RobotContainer {
 
             Command AdjustHood = new RepeatCommand(
                     new SequentialCommandGroup(
-                            new WaitCommand(300),
-                            new AdjustHoodCommand(shooter, vision)
+                            new WaitCommand(200),
+                            new AdjustHoodCommand(shooter, vision, drivetrain, goalX, goalY)
                     )
             );
 
             CommandScheduler.getInstance().schedule(AdjustHood);
 
-            double targetx = (alliance == AllianceEnum.Red)? 144 : 0;
-            double targety = 144;
+
 
             Command AdjustShooter = new RepeatCommand(
                     new SequentialCommandGroup(
-                            new WaitCommand(300),
+                            new WaitCommand(200),
                             new ConditionalCommand(
-                                    new AdjustShooterCommand(shooter, vision),
+                                    new AdjustShooterCommand(shooter, vision, drivetrain, goalX, goalY),
                                     new InstantCommand(),
                                     () -> isShooterAutoAdjustActive
                             )
@@ -133,6 +137,9 @@ public class RobotContainer {
 
             new GamepadButton(driver, GamepadKeys.Button.B)
                     .whileHeld(new GoToPose(drivetrain, shootPose));
+
+            double targetx = (alliance == AllianceEnum.Red)? 144 : 0;
+            double targety = 144;
 
             new GamepadButton(driver, GamepadKeys.Button.X)
                     .whileHeld(new AimByPoseCommand(drivetrain, targetx, targety, telemetry));

@@ -4,6 +4,7 @@ import android.graphics.Color;
 
 import com.arcrobotics.ftclib.command.SubsystemBase;
 import com.bylazar.telemetry.TelemetryManager;
+import com.qualcomm.robotcore.hardware.DistanceSensor; // IMPORTANTE: Import do Sensor de Distância
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.NormalizedColorSensor;
 import com.qualcomm.robotcore.hardware.NormalizedRGBA;
@@ -11,21 +12,28 @@ import com.qualcomm.robotcore.hardware.SwitchableLight;
 
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
-
 /**
  * The IndexerSubsystem is responsible for managing the game pieces within the robot's indexer.
  * It uses a variety of sensors to detect the presence and count of game pieces.
  */
-//@AutoLog
 public class IndexerSubsystem extends SubsystemBase {
 
     private final TelemetryManager telemetry;
+
+    // Sensor de Saída (Cor)
     private final NormalizedColorSensor sensorColor;
+
+    // Sensor de Entrada (Distância 2M)
+    private final DistanceSensor entrySensor;
+
     private int pieceCount = 0;
 
-    private final boolean lastEntryState = false;
-    private final boolean lastExitState = false;
     private final float[] hsvValues = new float[3];
+
+    private boolean previousEntryState = false;
+    private long lastBallCountTime = 0;
+    private static final long DEBOUNCE_DELAY_MS = 300;
+
     /**
      * Constructs a new IndexerSubsystem.
      *
@@ -35,15 +43,13 @@ public class IndexerSubsystem extends SubsystemBase {
     public IndexerSubsystem(HardwareMap hardwareMap, TelemetryManager telemetry) {
         this.telemetry = telemetry;
 
-        // get a reference to the color sensor.
         sensorColor = hardwareMap.get(NormalizedColorSensor.class, IndexerConstants.EXIT_SENSOR_NAME);
 
-        // get a reference to the distance sensor that shares the same name.
-        //sensorDistance = hardwareMap.get(DistanceSensor.class, IndexerConstants.EXIT_SENSOR_NAME);
+        entrySensor = hardwareMap.get(DistanceSensor.class, IndexerConstants.ENTRY_SENSOR_NAME);
+
         if (sensorColor instanceof SwitchableLight) {
             ((SwitchableLight) sensorColor).enableLight(false);
         }
-
     }
 
     /**
@@ -55,13 +61,28 @@ public class IndexerSubsystem extends SubsystemBase {
         NormalizedRGBA colors = sensorColor.getNormalizedColors();
         Color.colorToHSV(colors.toColor(), hsvValues);
 
+        boolean currentEntryState = getEntrySensor();
 
-        telemetry.addData("Hue", hsvValues[0]);
-        telemetry.addData("Saturation", hsvValues[1]);
-        telemetry.addData("Value", hsvValues[2]);
-        telemetry.addData("Sensor", getExitSensor());
+        if (currentEntryState && !previousEntryState && (System.currentTimeMillis() - lastBallCountTime > DEBOUNCE_DELAY_MS)) {
+            if (pieceCount < IndexerConstants.MAX_PIECE_CAPACITY) {
+                pieceCount++;
+            }
+            lastBallCountTime = System.currentTimeMillis();
+        }
+        previousEntryState = currentEntryState;
+
+        // Telemetria
+        telemetry.addData("Indexer Pieces", pieceCount);
+
+        // Info da Saída
+        telemetry.addData("Exit Hue", hsvValues[0]);
+        telemetry.addData("Exit Sat", hsvValues[1]);
+        telemetry.addData("Exit Val", hsvValues[2]);
+        telemetry.addData("Exit Triggered", getExitSensor());
+
+        telemetry.addData("Entry Dist (CM)", entrySensor.getDistance(DistanceUnit.CM));
+        telemetry.addData("Entry Triggered", getEntrySensor());
     }
-
 
     /**
      * Gets the state of the exit sensor.
@@ -73,6 +94,13 @@ public class IndexerSubsystem extends SubsystemBase {
                 hsvValues[2] > IndexerConstants.VALUE_OFFSET);
     }
 
+    /**
+     * Gets the state of the ENTRY sensor.
+     * @return True if the sensor is triggered, false otherwise.
+     */
+    public boolean getEntrySensor() {
+        return entrySensor.getDistance(DistanceUnit.CM) < IndexerConstants.ENTRY_DISTANCE_CM;
+    }
 
     /**
      * Gets the current number of game pieces in the indexer.
