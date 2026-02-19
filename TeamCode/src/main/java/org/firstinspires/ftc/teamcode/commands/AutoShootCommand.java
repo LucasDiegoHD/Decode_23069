@@ -32,7 +32,7 @@ public class AutoShootCommand extends SequentialCommandGroup {
 
                 //new AdjustShooterCommand(shooter, vision),
 
-                new ShootCommand(shooter, intake, indexer, ledSubsystem)
+                new ShootCommand(shooter, intake, indexer)
         );
     }
 }

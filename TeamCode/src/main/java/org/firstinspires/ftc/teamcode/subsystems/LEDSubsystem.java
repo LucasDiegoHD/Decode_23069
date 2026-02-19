@@ -13,6 +13,12 @@ public class LEDSubsystem extends SubsystemBase {
     public static final double BLUE = 0.611;
     public static final double OFF = 0.0;
     public static final double WHITE = 1.0;
+    public static final double ORANGE = 0.333;
+
+    public static final double YELLOW = 0.338;
+
+
+
 
     public LEDSubsystem(HardwareMap hardwareMap) {
         led = hardwareMap.get(ServoImplEx.class, "led_indicator");

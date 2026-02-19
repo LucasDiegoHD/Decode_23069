@@ -32,20 +32,18 @@ public class ShootCommand extends CommandBase {
     private int shooterCounter;
     private final TelemetryManager telemetryM;
     private final IndexerSubsystem indexer;
-    private final LEDSubsystem ledSubsystem;
 
-    public ShootCommand(ShooterSubsystem shooter, IntakeSubsystem intake, IndexerSubsystem indexer, int shoots, LEDSubsystem led) {
+    public ShootCommand(ShooterSubsystem shooter, IntakeSubsystem intake, IndexerSubsystem indexer, int shoots) {
         telemetryM = PanelsTelemetry.INSTANCE.getTelemetry();
         this.indexer = indexer;
         this.shooterCounter = shoots;
         this.shooter = shooter;
         this.intake = intake;
-        this.ledSubsystem = led;
         addRequirements(shooter, indexer);
     }
 
-    public ShootCommand(ShooterSubsystem shooter, IntakeSubsystem intake, IndexerSubsystem indexer, LEDSubsystem led) {
-        this(shooter, intake, indexer, 99, led);
+    public ShootCommand(ShooterSubsystem shooter, IntakeSubsystem intake, IndexerSubsystem indexer) {
+        this(shooter, intake, indexer, 99);
     }
 
     @Override
@@ -74,11 +72,9 @@ public class ShootCommand extends CommandBase {
                         state = SHOOT_STATES.Shooting;
                         shooter.anticipateShot();
                         intake.runTrigger();
-                        ledSubsystem.setPattern(LEDSubsystem.WHITE);
                         timer.reset();
                     } else {
                         state = SHOOT_STATES.Acceleration;
-                        ledSubsystem.setPattern(LEDSubsystem.OFF);
                         intake.stopTrigger();
                     }
                 }
@@ -95,7 +91,6 @@ public class ShootCommand extends CommandBase {
                     state = SHOOT_STATES.Shooting;
                     shooter.anticipateShot();
                     intake.runTrigger();
-                    ledSubsystem.setPattern(LEDSubsystem.WHITE);
                     timer.reset();
                 }
                 break;

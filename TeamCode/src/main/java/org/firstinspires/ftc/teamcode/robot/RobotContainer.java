@@ -54,7 +54,7 @@ public class RobotContainer {
         led = new LEDSubsystem(hardwareMap);
         husky = new HuskySubsystem(hardwareMap,telemetry);
 
-        //led.setDefaultCommand(new LedCommand(led, alliance));
+        led.setDefaultCommand(new LedCommand(led, indexer));
 
 
         Polygon2d triangleBig = new Polygon2d(new Translation2d(72, 72), new Translation2d(144, 144), new Translation2d(0, 144));
