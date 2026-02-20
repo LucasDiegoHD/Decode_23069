@@ -25,8 +25,8 @@ public class IndexerConstants {
     public static double HUE_OFFSET = 100;
     public static double SATURATION_OFFSET = 0.5;
     public static double VALUE_OFFSET = 0.005;
-    public static double EXIT_DISTANCE_CM = 9.0;
+    public static double EXIT_DISTANCE_CM = 10.0;
 
-    public static double ENTRY_DISTANCE_CM = 9.0;
+    public static double ENTRY_DISTANCE_CM = 10.0;
     public static float SENSOR_GAIN = 2;
 }

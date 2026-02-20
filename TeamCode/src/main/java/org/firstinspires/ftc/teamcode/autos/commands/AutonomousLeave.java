@@ -27,7 +27,7 @@ public class AutonomousLeave extends SequentialCommandGroup {
     public AutonomousLeave(@NonNull DrivetrainSubsystem drivetrain, ShooterSubsystem shooter, IntakeSubsystem intake, IndexerSubsystem indexer, VisionSubsystem vision, List<Pose> poses, LEDSubsystem ledSubsystem) {
 
         addCommands(
-                new AutonomousCommands(drivetrain, shooter, intake, indexer, vision, poses, ledSubsystem).withTimeout(28000),
+                //new AutonomousCommands(drivetrain, shooter, intake, indexer, vision, poses, ledSubsystem,husky).withTimeout(28000),
                 new LeaveCommand(drivetrain, poses.get(PosesNames.GoToLine1.ordinal()))
 
         );

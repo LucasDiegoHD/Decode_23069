@@ -14,6 +14,7 @@ import org.firstinspires.ftc.teamcode.subsystems.HuskyConstants;
 import org.firstinspires.ftc.teamcode.subsystems.HuskySubsystem;
 import org.firstinspires.ftc.teamcode.subsystems.IntakeSubsystem;
 import org.firstinspires.ftc.teamcode.subsystems.IndexerSubsystem;
+import org.firstinspires.ftc.teamcode.subsystems.IndexerConstants;
 
 import java.util.Optional;
 
@@ -21,37 +22,25 @@ public class AutoChaseArtifactCommand extends CommandBase {
 
     private final DrivetrainSubsystem drivetrain;
     private final HuskySubsystem vision;
+    private final PIDController turnPID, drivePID;
     private final IntakeSubsystem intakeSubsystem;
     private final IndexerSubsystem indexer;
-    private final PIDController turnPID, drivePID;
-
-    private final int maxBalls;
-    private int ballsCollected = 0;
-
-    private boolean previousEntryState = false;
-
-    // --- VARIÁVEIS DE PROTEÇÃO (DEBOUNCE) ---
-    // Tempo que o sensor fica "cego" após contar uma bola para evitar contagem dupla (Tremor)
-    private static final long DEBOUNCE_DELAY_MS = 300;
-    private long lastBallCountTime = 0;
 
     private static final double MAX_TURN_SPEED = 0.25;
     private static final double BLIND_SPEED = -0.4;
 
     private long timeSinceLostTarget = 0;
-    private long startSearchTime = 0;
     private boolean wasClose = false;
-    private boolean isDone = false;
 
-    private boolean everSawBall = false;
-    private static final long SEARCH_TIMEOUT_MS = 1500;
+    // Variáveis da Lógica de Finalização
+    private long startTime = 0;
+    private static final long TIMEOUT_MS = 3000; // Tempo máximo caçando (3 segundos)
 
-    public AutoChaseArtifactCommand(DrivetrainSubsystem drivetrain, HuskySubsystem vision, IntakeSubsystem intakeSubsystem, IndexerSubsystem indexer, int maxBalls) {
+    public AutoChaseArtifactCommand(DrivetrainSubsystem drivetrain, HuskySubsystem vision, IntakeSubsystem intakeSubsystem, IndexerSubsystem indexer) {
         this.drivetrain = drivetrain;
         this.vision = vision;
         this.intakeSubsystem = intakeSubsystem;
         this.indexer = indexer;
-        this.maxBalls = maxBalls;
 
         this.turnPID = new PIDController(HuskyConstants.TURN_KP, HuskyConstants.TURN_KI, HuskyConstants.TURN_KD);
         this.drivePID = new PIDController(HuskyConstants.DRIVE_KP, HuskyConstants.DRIVE_KI, HuskyConstants.DRIVE_KD);
@@ -67,113 +56,97 @@ public class AutoChaseArtifactCommand extends CommandBase {
         turnPID.reset();
         drivePID.reset();
         wasClose = false;
-        isDone = false;
-        everSawBall = false;
-        ballsCollected = 0;
-
-        previousEntryState = indexer.getEntrySensor();
-        lastBallCountTime = 0; // Zera o relógio de proteção
-
         timeSinceLostTarget = 0;
-        startSearchTime = System.currentTimeMillis();
 
-        intakeSubsystem.run();
+        // Inicia o cronômetro
+        startTime = System.currentTimeMillis();
     }
 
     @Override
     public void execute() {
-        if (isDone) return;
-
-        // =========================================================
-        // 1. DETEÇÃO DE BORDA + PROTEÇÃO ANTI-TREMOR (DEBOUNCE)
-        // =========================================================
-        boolean currentEntryState = indexer.getEntrySensor();
-
-        // "Se não via nada (!previous) e começou a ver (current) E já passou o tempo de proteção"
-        if (currentEntryState && !previousEntryState && (System.currentTimeMillis() - lastBallCountTime > DEBOUNCE_DELAY_MS)) {
-            ballsCollected++;
-            lastBallCountTime = System.currentTimeMillis(); // Ativa o escudo de proteção temporal
-            startSearchTime = System.currentTimeMillis(); // Renova o tempo de busca da câmara
-
-            indexer.setPieceCount(ballsCollected);
-        }
-
-        previousEntryState = currentEntryState;
-
-        // Se apanhou a quantidade que pedimos, finaliza o comando na hora!
-        if (ballsCollected >= maxBalls) {
-            drivetrain.driveRobotCentric(0, 0, 0);
-            isDone = true;
-            return;
-        }
-
-        // =========================================================
-        // 2. LÓGICA DE CAÇA DA CÂMARA (HUNTER MODE)
-        // =========================================================
+        // === LÓGICA ORIGINAL EXATAMENTE COMO VOCÊ ESCREVEU ===
         Optional<HuskyLens.Block> target = vision.getClosestAnyArtifact();
+
         double drivePower = 0;
         double turnPower = 0;
 
         if (target.isPresent()) {
-            everSawBall = true;
-
             HuskyLens.Block block = target.get();
             double currentDist = vision.getDistanceToBlock(block);
+
+            // Reseta timer
             timeSinceLostTarget = System.currentTimeMillis();
 
+            // === 1. GIRO (Suave e Controlado) ===
             double errorX = block.x - HuskyConstants.CENTER_X_PIXELS;
+
             if (Math.abs(errorX) > HuskyConstants.DEADZONE_ALIGN_PIXELS) {
                 turnPower = turnPID.calculate(block.x);
                 turnPower = MathUtils.clamp(turnPower, -MAX_TURN_SPEED, MAX_TURN_SPEED);
+            } else {
+                turnPower = 0;
             }
 
+            // === 2. DISTÂNCIA (LÓGICA DE 3 ZONAS) ===
+
             if (currentDist > TURBO_THRESHOLD) {
+                // --- ZONA 1: TURBO (Muito Longe > 12 pol) ---
                 wasClose = false;
                 drivePower = TURBO_SPEED;
+
             } else if (currentDist > HuskyConstants.TARGET_DISTANCE_INCHES) {
+                // --- ZONA 2: APROXIMAÇÃO FINA (Entre 12 e 5 pol) ---
                 wasClose = false;
+
+                intakeSubsystem.run(); // O seu intake original ligava aqui
+
                 drivePower = drivePID.calculate(currentDist);
+
                 if (Math.abs(drivePower) > 0.01 && Math.abs(drivePower) < MIN_DRIVE_SPEED_PID) {
                     drivePower = Math.signum(drivePower) * MIN_DRIVE_SPEED_PID;
                 }
+
                 drivePower = MathUtils.clamp(drivePower, TURBO_SPEED, -MIN_DRIVE_SPEED_PID);
+
             } else {
+                // --- ZONA 3: ATAQUE (Perto < 5 pol) ---
                 wasClose = true;
                 drivePower = BLIND_SPEED;
+
                 turnPower = turnPower * 0.1;
             }
+
             drivetrain.driveRobotCentric(0, drivePower, turnPower);
 
         } else {
-            if (wasClose) {
-                if (System.currentTimeMillis() - timeSinceLostTarget < BLIND_DURATION_MS) {
-                    drivetrain.driveRobotCentric(0, BLIND_SPEED, 0);
-                } else {
-                    wasClose = false;
-                    startSearchTime = System.currentTimeMillis();
-                }
+            // === MODO CEGO ===
+            if (wasClose && (System.currentTimeMillis() - timeSinceLostTarget < BLIND_DURATION_MS)) {
+                drivetrain.driveRobotCentric(0, BLIND_SPEED, 0);
             } else {
                 drivetrain.driveRobotCentric(0, 0, 0);
-
-                if (System.currentTimeMillis() - startSearchTime > SEARCH_TIMEOUT_MS) {
-                    isDone = true;
-                }
+                wasClose = false;
             }
         }
     }
 
     @Override
     public boolean isFinished() {
-        return isDone;
+        // CONDIÇÃO 1: Acabou o tempo (Evita que o robô fique preso caçando para sempre)
+        if (System.currentTimeMillis() - startTime > TIMEOUT_MS) {
+            return true;
+        }
+
+        // CONDIÇÃO 2: O robô engoliu 3 bolas
+        if (indexer.getPieceCount() >= IndexerConstants.MAX_PIECE_CAPACITY) {
+            return true;
+        }
+
+        return false;
     }
 
     @Override
     public void end(boolean interrupted) {
         drivetrain.driveRobotCentric(0, 0, 0);
         intakeSubsystem.stop();
-    }
-
-    public boolean needsFallbackRoute() {
-        return !everSawBall;
     }
 }

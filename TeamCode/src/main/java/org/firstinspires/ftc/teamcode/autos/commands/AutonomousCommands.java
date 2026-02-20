@@ -60,8 +60,10 @@ public class AutonomousCommands extends SequentialCommandGroup {
 
         addCommands(
                 new UpdatePoseLimelightCommand(drivetrain, vision, poses.get(PosesNames.StartPose.ordinal())),
-                new AlignAndAdjustAutoCommand(drivetrain, vision, shooter),
+                new SpinShooterCommand(shooter, SpinShooterCommand.Action.LONG_SHOOT),
                 new GoToPoseCommand(drivetrain, poses.get(PosesNames.GoToShoot1.ordinal())),
+                new AlignAndAdjustAutoCommand(drivetrain, vision, shooter),
+                new WaitCommand(200),
                 new ShootCommandAutonomous(shooter, intake, indexer,3, ledSubsystem ).withTimeout(3000),
                 new SpinShooterCommand(shooter, SpinShooterCommand.Action.LONG_SHOOT),
                 new InstantCommand(intake::run),
@@ -107,4 +109,3 @@ public class AutonomousCommands extends SequentialCommandGroup {
     }
 
 }
-

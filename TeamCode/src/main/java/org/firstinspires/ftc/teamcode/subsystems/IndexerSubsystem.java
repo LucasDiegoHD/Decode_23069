@@ -7,10 +7,6 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
-/**
- * The IndexerSubsystem is responsible for managing the game pieces within the robot's indexer.
- * It passively keeps track of the inventory using entry and exit sensors.
- */
 public class IndexerSubsystem extends SubsystemBase {
 
     private final TelemetryManager telemetry;
@@ -26,12 +22,13 @@ public class IndexerSubsystem extends SubsystemBase {
     private boolean previousExitState = false;
     private long lastExitCountTime = 0;
 
-    private static final long DEBOUNCE_DELAY_MS = 100;
+    private static final long DEBOUNCE_DELAY_MS = 200;
 
     private double currentEntryDist = 23069.0;
     private double currentExitDist = 23069.0;
 
     private boolean isInitialized = false;
+    private boolean isShooting = false;
 
     public IndexerSubsystem(HardwareMap hardwareMap, TelemetryManager telemetry) {
         this.telemetry = telemetry;
@@ -49,9 +46,13 @@ public class IndexerSubsystem extends SubsystemBase {
         boolean currentExitState = getExitSensor();
 
         if (!isInitialized) {
-            if (currentEntryState) {
+            if (currentExitState || currentEntryState) {
                 pieceCount = IndexerConstants.MAX_PIECE_CAPACITY;
-            } else {
+            }
+            if (currentExitState != currentEntryState) {
+                pieceCount = 1;
+            }
+            else {
                 pieceCount = 0;
             }
             previousEntryState = currentEntryState;
@@ -65,8 +66,7 @@ public class IndexerSubsystem extends SubsystemBase {
             }
             lastEntryCountTime = System.currentTimeMillis();
         }
-
-        if (!currentExitState && previousExitState && (System.currentTimeMillis() - lastExitCountTime > DEBOUNCE_DELAY_MS)) {
+        if (!currentExitState && previousExitState && isShooting && (System.currentTimeMillis() - lastExitCountTime > DEBOUNCE_DELAY_MS)) {
             if (pieceCount > 0) {
                 pieceCount--;
             }
@@ -77,13 +77,17 @@ public class IndexerSubsystem extends SubsystemBase {
         previousExitState = currentExitState;
 
         telemetry.addData("Indexer Pieces", pieceCount);
-        telemetry.addData("Is Initialized?", isInitialized);
+        telemetry.addData("Is Shooting?", isShooting);
 
         telemetry.addData("Entry Dist (CM)", currentEntryDist);
         telemetry.addData("Entry Triggered", currentEntryState);
 
         telemetry.addData("Exit Dist (CM)", currentExitDist);
         telemetry.addData("Exit Triggered", currentExitState);
+    }
+
+    public void setShootingState(boolean state) {
+        this.isShooting = state;
     }
 
     public boolean getExitSensor() {
