@@ -103,7 +103,7 @@ public class ShootCommandAutonomous extends CommandBase {
             case Shooting:
                 boolean pieceHasLeft = !indexer.getExitSensor();
 
-                if (pieceHasLeft || timer.milliseconds() > 1200) {
+                if (pieceHasLeft || timer.milliseconds() > 1100) {
 
                     if (shooterCounter > 0) {
                         shooterCounter--;

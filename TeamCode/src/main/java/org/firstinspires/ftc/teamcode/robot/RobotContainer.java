@@ -88,9 +88,6 @@ public class RobotContainer {
             double goalX = (alliance == AllianceEnum.Red)? 130 : 14;
             double goalY = 130;
 
-
-
-
             Command periodicUpdateLoop = new RepeatCommand(
                     new SequentialCommandGroup(
                             new WaitCommand(2000),
@@ -169,6 +166,13 @@ public class RobotContainer {
 
                         UpdatePoseLimelightCommand.forceHardReset(drivetrain, vision, targetAngle);
                     }));
+
+            new GamepadButton(driver, GamepadKeys.Button.BACK)
+                    .whenPressed(new InstantCommand(() -> {
+                        double targetAngle = 40.0;
+
+                        UpdatePoseLimelightCommand.forceHardReset(drivetrain, vision, targetAngle);
+                    }));
         }
 
         if (operator!= null) {
@@ -183,11 +187,6 @@ public class RobotContainer {
         new GamepadButton(operator, GamepadKeys.Button.RIGHT_BUMPER)
                 .whileHeld(new AutoShootCommand(drivetrain, vision, shooter, intake, indexer, endPose, led));
 
-        new GamepadButton(operator, GamepadKeys.Button.DPAD_LEFT)
-                .whenPressed(new InstantCommand(shooter::decreaseHood, shooter));
-        new GamepadButton(operator, GamepadKeys.Button.DPAD_RIGHT)
-                .whenPressed(new InstantCommand(shooter::increaseHood, shooter));
-
         new GamepadButton(operator, GamepadKeys.Button. LEFT_BUMPER)
                 .whenPressed(new InstantCommand(intake::run, intake))
                 .whenReleased(new InstantCommand(intake::stop, intake));
@@ -200,10 +199,14 @@ public class RobotContainer {
                 .whenPressed(new InstantCommand(intake::runTrigger, intake))
                 .whenReleased(new InstantCommand(intake::stop, intake));
 
-        new GamepadButton(operator, GamepadKeys.Button.B)
-                .whenPressed(new SpinShooterCommand(shooter, SpinShooterCommand.Action.SHORT_SHOOT));
-        new GamepadButton(operator, GamepadKeys.Button.X)
-                .whenPressed(new SpinShooterCommand(shooter, SpinShooterCommand.Action.LONG_SHOOT));
+        new GamepadButton(operator, GamepadKeys.Button.DPAD_DOWN)
+                .whenPressed(new InstantCommand(() -> {
+                    isShooterAutoAdjustActive = false;
+                    shooter.stop();
+                }));
+
+        new GamepadButton(operator, GamepadKeys.Button.DPAD_UP)
+                .whenPressed(new InstantCommand(() -> isShooterAutoAdjustActive = true));
 
     }
 
@@ -224,7 +227,6 @@ public class RobotContainer {
     }
 
     public Command getAutonomousBlueFrontCommand() {
-        // Reutiliza o AutonomousCommands, mas passa a lista do FrontPoses
         return new AutonomousFrontCommands(drivetrain, shooter, intake, indexer, vision, BlueFrontPoses.asList(), led);
     }
 

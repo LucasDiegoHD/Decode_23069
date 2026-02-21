@@ -7,6 +7,7 @@ import com.bylazar.configurables.annotations.IgnoreConfigurable;
 import com.bylazar.telemetry.PanelsTelemetry;
 import com.bylazar.telemetry.TelemetryManager;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 
 import org.firstinspires.ftc.teamcode.autos.paths.BlueFrontPoses; // Importe o novo arquivo
 import org.firstinspires.ftc.teamcode.autos.paths.PosesNames;
@@ -14,6 +15,7 @@ import org.firstinspires.ftc.teamcode.robot.RobotContainer;
 import org.firstinspires.ftc.teamcode.utils.AllianceEnum;
 import org.firstinspires.ftc.teamcode.utils.DataStorage;
 
+@Disabled
 @Autonomous(name = "Auto: Azul Triangulo GRANDE")
 public class AutoBlueFront extends CommandOpMode {
 

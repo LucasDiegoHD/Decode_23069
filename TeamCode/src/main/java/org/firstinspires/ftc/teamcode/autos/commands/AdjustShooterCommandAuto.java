@@ -30,10 +30,10 @@ public class AdjustShooterCommandAuto extends CommandBase {
         double rpm = ShooterConstants.RPM_N0 + ShooterConstants.RPM_N1 * distance + ShooterConstants.RPM_N2 * Math.pow(distance, 2);
 
         if (distance > VisionConstants.LONGEST_DISTANCE) {
-            rpm = VisionConstants.LONGEST_RPM;
+            rpm = 2800;
         }
         if (distance == 0){
-            rpm = VisionConstants.LONGEST_RPM;
+            rpm = 2800;
         }
 
         shooter.setTargetVelocity(rpm);

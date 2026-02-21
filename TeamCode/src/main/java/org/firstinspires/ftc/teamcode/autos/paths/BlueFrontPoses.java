@@ -4,37 +4,39 @@ import com.pedropathing.geometry.Pose;
 import java.util.List;
 
 public class BlueFrontPoses {
-
-    // AVISO: Ajuste estas coordenadas para o lado do Triângulo Grande!
     public static final Pose[] POSES = {
+            // StartPose
+            new Pose(34, 126, Math.toRadians(130)),
 
-            new Pose(15, 8.5, Math.toRadians(90)),
+            // GoToShoot1
+            new Pose(56.134, 90, Math.toRadians(135)),
 
-            new Pose(30, 12, Math.toRadians(112)),
+            // GoToLine1
+            new Pose(56.134, 85, Math.toRadians(0)),
+            // CatchLine1
+            new Pose(30, 85, Math.toRadians(0)),
 
-            new Pose(45, 48, Math.toRadians(0)),
+            // GoToShoot2
+            new Pose(56.134, 90, Math.toRadians(138)),
 
-            new Pose(11.776, 48, Math.toRadians(0)),
+            // GoToLine2
+            new Pose(56.134, 61.169, Math.toRadians(0)),
+            // CatchLine2
+            new Pose(22.776, 61.169, Math.toRadians(0)),
 
-            new Pose(30, 12, Math.toRadians(112)),
+            // EndPose
+            new Pose(50, 60, Math.toRadians(90)),
 
-            new Pose(45, 55, Math.toRadians(0)),
+            // GoToLine3
+            new Pose(56.134, 38.169, Math.toRadians(0)),
+            // CatchLine3
+            new Pose(22.776, 38.169, Math.toRadians(0)),
 
-            new Pose(11.776, 55, Math.toRadians(0)),
-
-            new Pose(50, 12, Math.toRadians(90)),
-
-            new Pose(45, 60, Math.toRadians(0)),
-
-            new Pose(11.776, 60, Math.toRadians(0)),
-
-            new Pose(30, 30, Math.toRadians(90)),
-
-            new Pose(15, 15, Math.toRadians(0))
+            // GatePose
+            new Pose(12.774, 64.169, Math.toRadians(90)),
     };
 
     public static Pose getPose(PosesNames name) {
-        // Garante que não estoure o array se o Enum for maior
         if (name.ordinal() >= POSES.length) return POSES[0];
         return POSES[name.ordinal()];
     }
