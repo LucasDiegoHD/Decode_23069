@@ -76,7 +76,6 @@ public class ShootCommand extends CommandBase {
                         timer.reset();
                     } else {
                         state = SHOOT_STATES.Acceleration;
-                        intake.stopTrigger();
                     }
                 }
                 break;

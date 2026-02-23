@@ -17,7 +17,7 @@ public class BlueRearPoses {
             new Pose(64.335, 12.547, Math.toRadians(112)),
 
 
-            new Pose(60.335, 14.547, Math.toRadians(0)),
+            new Pose(60.335, 18.547, Math.toRadians(0)),
             new Pose(16, 12, Math.toRadians(0)),
 
             new Pose(38, 34, Math.toRadians(90)),
@@ -25,7 +25,7 @@ public class BlueRearPoses {
             new Pose(52.134, 58.169, Math.toRadians(0)),
             new Pose(11.776, 58.169, Math.toRadians(0)),
 
-            new Pose(16.276, 64.169, Math.toRadians(90)),
+            new Pose(11.276, 64.169, Math.toRadians(90)),
 
 
     };

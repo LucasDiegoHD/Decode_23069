@@ -7,7 +7,6 @@ import com.arcrobotics.ftclib.command.SequentialCommandGroup;
 import com.arcrobotics.ftclib.command.WaitCommand;
 import com.pedropathing.geometry.Pose;
 import org.firstinspires.ftc.teamcode.autos.paths.PosesNames;
-import org.firstinspires.ftc.teamcode.commands.ShootCommand;
 import org.firstinspires.ftc.teamcode.commands.SpinShooterCommand;
 import org.firstinspires.ftc.teamcode.commands.UpdatePoseLimelightCommand;
 import org.firstinspires.ftc.teamcode.subsystems.DrivetrainSubsystem;
@@ -41,7 +40,7 @@ import java.util.List;
  * <p>
  * This command group requires the {@link DrivetrainSubsystem}, {@link ShooterSubsystem}, and {@link IntakeSubsystem}.
  */
-public class AutonomousCommands extends SequentialCommandGroup {
+public class AutonomousTuffCommand extends SequentialCommandGroup {
 
 
     /**
@@ -56,7 +55,7 @@ public class AutonomousCommands extends SequentialCommandGroup {
      * @param poses      A list of {@link Pose} objects defining the robot's path and key locations.
      *                   The order and meaning of these poses are defined by the {@link PosesNames} enum.
      */
-    public AutonomousCommands(@NonNull DrivetrainSubsystem drivetrain, ShooterSubsystem shooter, IntakeSubsystem intake, IndexerSubsystem indexer, VisionSubsystem vision, List<Pose> poses, LEDSubsystem ledSubsystem) {
+    public AutonomousTuffCommand(@NonNull DrivetrainSubsystem drivetrain, ShooterSubsystem shooter, IntakeSubsystem intake, IndexerSubsystem indexer, VisionSubsystem vision, List<Pose> poses, LEDSubsystem ledSubsystem) {
 
         addCommands(
                 new UpdatePoseLimelightCommand(drivetrain, vision, poses.get(PosesNames.StartPose.ordinal())),
@@ -64,7 +63,7 @@ public class AutonomousCommands extends SequentialCommandGroup {
                 new GoToPoseCommand(drivetrain, poses.get(PosesNames.GoToShoot1.ordinal())),
                 new UpdatePoseLimelightCommand(drivetrain, vision, poses.get(PosesNames.GoToShoot1.ordinal())),
                 new AlignAndAdjustAutoCommand(drivetrain, vision, shooter),
-                new WaitCommand(1400),
+                new WaitCommand(1200),
                 new ShootCommandAutonomous(shooter, intake, indexer,3, ledSubsystem ).withTimeout(3000),
                 new SpinShooterCommand(shooter, SpinShooterCommand.Action.LONG_SHOOT),
                 new InstantCommand(intake::run),
@@ -74,33 +73,34 @@ public class AutonomousCommands extends SequentialCommandGroup {
                 ).withTimeout(4000),
                 new GoToPoseCommand(drivetrain, poses.get(PosesNames.GoToShoot1.ordinal())),
                 new AlignAndAdjustAutoCommand(drivetrain, vision, shooter),
-                new ShootCommandAutonomous(shooter, intake, indexer,3, ledSubsystem ).withTimeout(3000),
-                new InstantCommand(intake::run),
-                new GoToPoseCommand(drivetrain, true,
-                        poses.get(PosesNames.GoToLine3.ordinal()),
-                        poses.get(PosesNames.CatchLine3.ordinal())
-                ).withTimeout(4000),
-                new GoToPoseCommand(drivetrain,poses.get(PosesNames.GatePose.ordinal())).withTimeout(1000),
-                new GoToPoseCommand(drivetrain, poses.get(PosesNames.GoToShoot1.ordinal())),
-                new AlignAndAdjustAutoCommand(drivetrain, vision, shooter),
-                new ShootCommandAutonomous(shooter, intake, indexer,3, ledSubsystem ).withTimeout(3000),
+                new ShootCommandAutonomous(shooter, intake, indexer,3, ledSubsystem ).withTimeout(1500),
                 new InstantCommand(intake::run),
                 new GoToPoseCommand(drivetrain, true,
                         poses.get(PosesNames.GoToLine2.ordinal()),
                         poses.get(PosesNames.CatchLine2.ordinal())
                 ).withTimeout(2000),
-                new WaitCommand(800),
+                new WaitCommand(600),
                 new GoToPoseCommand(drivetrain, poses.get(PosesNames.GoToShoot1.ordinal())),
                 new AlignAndAdjustAutoCommand(drivetrain, vision, shooter),
-                new ShootCommandAutonomous(shooter, intake, indexer,3, ledSubsystem).withTimeout(3000),
-                /*new InstantCommand(intake::run),
+                new ShootCommandAutonomous(shooter, intake, indexer,3, ledSubsystem).withTimeout(1500),
+                new InstantCommand(intake::run),
                 new GoToPoseCommand(drivetrain, true,
                         poses.get(PosesNames.GoToLine2.ordinal()),
                         poses.get(PosesNames.CatchLine2.ordinal())
                 ).withTimeout(2000),
+                new WaitCommand(600),
                 new GoToPoseCommand(drivetrain, poses.get(PosesNames.GoToShoot1.ordinal())),
                 new AlignAndAdjustAutoCommand(drivetrain, vision, shooter),
-                new ShootCommand(shooter, intake, indexer, 3, ledSubsystem).withTimeout(1200),*/
+                new ShootCommandAutonomous(shooter, intake, indexer,3, ledSubsystem).withTimeout(1500),
+                new InstantCommand(intake::run),
+                new GoToPoseCommand(drivetrain, true,
+                        poses.get(PosesNames.GoToLine2.ordinal()),
+                        poses.get(PosesNames.CatchLine2.ordinal())
+                ).withTimeout(2000),
+                new WaitCommand(600),
+                new GoToPoseCommand(drivetrain, poses.get(PosesNames.GoToShoot1.ordinal())),
+                new AlignAndAdjustAutoCommand(drivetrain, vision, shooter),
+                new ShootCommandAutonomous(shooter, intake, indexer, 3, ledSubsystem).withTimeout(1200),
                 new GoToPoseCommand(drivetrain, poses.get(PosesNames.EndPose.ordinal()))
         );
         addRequirements(drivetrain, shooter, intake);

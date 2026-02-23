@@ -4,6 +4,7 @@ import com.arcrobotics.ftclib.controller.PIDController;
 import com.bylazar.telemetry.PanelsTelemetry;
 import com.bylazar.telemetry.TelemetryManager;
 import com.pedropathing.geometry.Pose;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
@@ -13,7 +14,7 @@ import org.firstinspires.ftc.teamcode.utils.PurePursuitController;
 import org.firstinspires.ftc.teamcode.utils.Waypoint;
 
 import java.util.ArrayList;
-
+@Disabled
 @TeleOp(name = "Pure Pursuit Tuner", group = "Tuning")
 public class PurePursuitTuner extends LinearOpMode {
 

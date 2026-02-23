@@ -74,12 +74,9 @@ public class ShootCommandAutonomous extends CommandBase {
                         state = SHOOT_STATES.Shooting;
                         shooter.anticipateShot();
                         intake.runTrigger();
-                        ledSubsystem.setPattern(LEDSubsystem.WHITE);
                         timer.reset();
                     } else {
                         state = SHOOT_STATES.Acceleration;
-                        ledSubsystem.setPattern(LEDSubsystem.OFF);
-                        intake.stopTrigger();
                     }
                 }
                 break;
@@ -95,7 +92,6 @@ public class ShootCommandAutonomous extends CommandBase {
                     state = SHOOT_STATES.Shooting;
                     shooter.anticipateShot();
                     intake.runTrigger();
-                    ledSubsystem.setPattern(LEDSubsystem.WHITE);
                     timer.reset();
                 }
                 break;

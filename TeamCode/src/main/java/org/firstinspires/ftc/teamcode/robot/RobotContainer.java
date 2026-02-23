@@ -17,6 +17,7 @@ import com.pedropathing.geometry.Pose;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import org.firstinspires.ftc.teamcode.autos.commands.AutonomousCommands;
 import org.firstinspires.ftc.teamcode.autos.commands.AutonomousFrontCommands;
+import org.firstinspires.ftc.teamcode.autos.commands.AutonomousTuffCommand;
 import org.firstinspires.ftc.teamcode.autos.paths.BlueFrontPoses;
 import org.firstinspires.ftc.teamcode.autos.paths.BlueRearPoses;
 import org.firstinspires.ftc.teamcode.autos.paths.PosesNames;
@@ -141,13 +142,6 @@ public class RobotContainer {
             new GamepadButton(driver, GamepadKeys.Button.X)
                     .whileHeld(new AimByPoseCommand(drivetrain, targetx, targety, telemetry));
 
-            new GamepadButton(driver, GamepadKeys.Button.RIGHT_BUMPER)
-                    .whileHeld(new AutoShootCommand(drivetrain, vision, shooter, intake, indexer, endPose, led));
-
-            new GamepadButton(driver, GamepadKeys.Button. LEFT_BUMPER)
-                    .whenPressed(new InstantCommand(intake::run, intake))
-                    .whenReleased(new InstantCommand(intake::stop, intake));
-
             new GamepadButton(driver, GamepadKeys.Button.DPAD_LEFT)
                     .whileHeld(new ChaseArtifactCommand(drivetrain,husky,intake));
 
@@ -167,9 +161,16 @@ public class RobotContainer {
                         UpdatePoseLimelightCommand.forceHardReset(drivetrain, vision, targetAngle);
                     }));
 
-            new GamepadButton(driver, GamepadKeys.Button.BACK)
+            new GamepadButton(driver, GamepadKeys.Button.RIGHT_BUMPER)
                     .whenPressed(new InstantCommand(() -> {
                         double targetAngle = 40.0;
+
+                        UpdatePoseLimelightCommand.forceHardReset(drivetrain, vision, targetAngle);
+                    }));
+
+            new GamepadButton(driver, GamepadKeys.Button.LEFT_BUMPER)
+                    .whenPressed(new InstantCommand(() -> {
+                        double targetAngle = 130.0;
 
                         UpdatePoseLimelightCommand.forceHardReset(drivetrain, vision, targetAngle);
                     }));
@@ -232,6 +233,14 @@ public class RobotContainer {
 
     public Command getAutonomousRedFrontCommand() {
         return new AutonomousFrontCommands(drivetrain, shooter, intake, indexer, vision, RedFrontPoses.asList(), led);
+    }
+
+    public Command getAutonomousRedTuffCommand() {
+        return new AutonomousTuffCommand(drivetrain, shooter, intake, indexer, vision, RedRearPoses.asList(), led);
+    }
+
+    public Command getAutonomousBlueTuffCommand() {
+        return new AutonomousTuffCommand(drivetrain, shooter, intake, indexer, vision, BlueRearPoses.asList(), led);
     }
     private boolean isRobotShooting() {
         Command current = drivetrain.getCurrentCommand();

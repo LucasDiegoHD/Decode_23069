@@ -22,39 +22,46 @@ public class Autos extends CommandOpMode {
 
     @IgnoreConfigurable
     static TelemetryManager telemetryM;
+    enum Strategy { FRONT, REAR_NORMAL, REAR_NO_GATE }
 
     AllianceEnum selectedAlliance = AllianceEnum.Red;
-    boolean isFront = false;
+    Strategy selectedStrategy = Strategy.REAR_NORMAL;
 
-    // A variável mágica que diz se o piloto já confirmou a escolha
     boolean isConfigured = false;
 
-    boolean xAnt = false, bAnt = false, upAnt = false, downAnt = false;
+    boolean xAnt = false, bAnt = false;
+    boolean upAnt = false, downAnt = false, rightAnt = false, leftAnt = false;
 
     @Override
     public void initialize() {
         telemetryM = PanelsTelemetry.INSTANCE.getTelemetry();
 
-        // =========================================================
-        // FASE 1: MENU DE SELEÇÃO (Fica aqui até apertar 'A')
-        // =========================================================
         while (!isStarted() && !isStopRequested() && !isConfigured) {
 
-            if (gamepad1.x && !xAnt) selectedAlliance = AllianceEnum.Blue;
-            if (gamepad1.b && !bAnt) selectedAlliance = AllianceEnum.Red;
-            if (gamepad1.right_bumper && !upAnt) isFront = true;
-            if (gamepad1.left_bumper && !downAnt) isFront = false;
+            if (gamepad2.x && !xAnt) selectedAlliance = AllianceEnum.Blue;
+            if (gamepad2.b && !bAnt) selectedAlliance = AllianceEnum.Red;
 
-            // O botão de CONFIRMAÇÃO (Lock-in)
-            if (gamepad1.a) {
+            if (gamepad2.dpad_up && !upAnt) selectedStrategy = Strategy.FRONT;
+            if (gamepad2.dpad_down && !downAnt) selectedStrategy = Strategy.REAR_NORMAL;
+            if (gamepad2.dpad_right && !rightAnt) selectedStrategy = Strategy.REAR_NO_GATE;
+            if (gamepad2.dpad_left && !leftAnt) selectedStrategy = Strategy.REAR_NORMAL;
+
+            if (gamepad2.a) {
                 isConfigured = true;
             }
 
-            xAnt = gamepad1.x; bAnt = gamepad1.b; upAnt = gamepad1.dpad_up; downAnt = gamepad1.dpad_down;
+            xAnt = gamepad2.x; bAnt = gamepad2.b;
+            upAnt = gamepad2.dpad_up; downAnt = gamepad2.dpad_down;
+            rightAnt = gamepad2.dpad_right; leftAnt = gamepad2.dpad_left;
 
             telemetry.addData("=== CONFIGURAÇÃO DO AUTÔNOMO ===", "");
             telemetry.addData("Aliança [X / B]", selectedAlliance == AllianceEnum.Red ? "🔴 VERMELHA" : "🔵 AZUL");
-            telemetry.addData("Posição [RT / LT]", isFront ? "🔼 FRENTE (Triângulo Grande)" : "🔽 TRÁS (Triângulo Pequeno)");
+            String stratText = "";
+            if (selectedStrategy == Strategy.FRONT) stratText = "🔼 FRENTE (Triângulo Grande)";
+            else if (selectedStrategy == Strategy.REAR_NORMAL) stratText = "🔽/◀️ TRÁS (Com Gate / Padrão)";
+            else if (selectedStrategy == Strategy.REAR_NO_GATE) stratText = "▶️ TRÁS (Sem Gate / 15 Artefatos)";
+
+            telemetry.addData("Posição [Setas D-PAD]", stratText);
             telemetry.addData("--------------------------------", "");
             telemetry.addData(">> APERTE 'A' PARA CONFIRMAR <<", "");
             telemetry.update();
@@ -62,9 +69,6 @@ public class Autos extends CommandOpMode {
 
         if (isStopRequested()) return;
 
-        // =========================================================
-        // FASE 2: INICIALIZAÇÃO DE HARDWARE (Ainda estamos no INIT!)
-        // =========================================================
         telemetry.addData("Status", "⏳ Carregando Hardware... Não mexa no robô!");
         telemetry.update();
 
@@ -72,26 +76,31 @@ public class Autos extends CommandOpMode {
         RobotContainer robot = new RobotContainer(hardwareMap, telemetryM, null, null, selectedAlliance);
         Command autonomousCommand = null;
 
-        // Pega o comando correto
         if (selectedAlliance == AllianceEnum.Red) {
-            if (isFront) autonomousCommand = robot.getAutonomousRedFrontCommand();
-            else autonomousCommand = robot.getAutonomousRedRearCommand();
+            if (selectedStrategy == Strategy.FRONT) {
+                autonomousCommand = robot.getAutonomousRedFrontCommand();
+            } else if (selectedStrategy == Strategy.REAR_NORMAL) {
+                autonomousCommand = robot.getAutonomousRedRearCommand();
+            } else if (selectedStrategy == Strategy.REAR_NO_GATE) {
+                autonomousCommand = robot.getAutonomousRedTuffCommand();
+            }
         } else {
-            if (isFront) autonomousCommand = robot.getAutonomousBlueFrontCommand();
-            else autonomousCommand = robot.getAutonomousBlueRearCommand();
+            if (selectedStrategy == Strategy.FRONT) {
+                autonomousCommand = robot.getAutonomousBlueFrontCommand();
+            } else if (selectedStrategy == Strategy.REAR_NORMAL) {
+                autonomousCommand = robot.getAutonomousBlueRearCommand();
+            } else if (selectedStrategy == Strategy.REAR_NO_GATE) {
+                autonomousCommand = robot.getAutonomousBlueTuffCommand();
+            }
         }
 
-        // =========================================================
-        // FASE 3: TRAVA DE ODOMETRIA (Espera o PLAY sem enlouquecer o robô)
-        // =========================================================
         while (!isStarted() && !isStopRequested()) {
 
-            // Atualiza a posição inicial constantemente para o PedroPathing não derivar
             if (selectedAlliance == AllianceEnum.Red) {
-                if (isFront) robot.updateRobotPose(AllianceEnum.Red, RedFrontPoses.getPose(PosesNames.StartPose));
+                if (selectedStrategy == Strategy.FRONT) robot.updateRobotPose(AllianceEnum.Red, RedFrontPoses.getPose(PosesNames.StartPose));
                 else robot.updateRobotPose(AllianceEnum.Red, RedRearPoses.getPose(PosesNames.StartPose));
             } else {
-                if (isFront) robot.updateRobotPose(AllianceEnum.Blue, BlueFrontPoses.getPose(PosesNames.StartPose));
+                if (selectedStrategy == Strategy.FRONT) robot.updateRobotPose(AllianceEnum.Blue, BlueFrontPoses.getPose(PosesNames.StartPose));
                 else robot.updateRobotPose(AllianceEnum.Blue, BlueRearPoses.getPose(PosesNames.StartPose));
             }
 
@@ -99,9 +108,6 @@ public class Autos extends CommandOpMode {
             telemetry.update();
         }
 
-        // =========================================================
-        // O JOGO COMEÇOU!
-        // =========================================================
         if (autonomousCommand != null) {
             schedule(autonomousCommand);
         }
