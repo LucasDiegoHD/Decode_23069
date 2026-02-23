@@ -91,11 +91,11 @@ public class RobotContainer {
 
             Command periodicUpdateLoop = new RepeatCommand(
                     new SequentialCommandGroup(
-                            new WaitCommand(2000),
+                            new WaitCommand(1000),
                             new ConditionalCommand(
                                     new InstantCommand(),
                                     new UpdatePoseLimelightCommand(drivetrain, vision, innitialPose),
-                                    () -> isRobotShooting()
+                                    () -> isRobotShooting() || !drivetrain.isRobotStopped()
                             )
                     )
             );
