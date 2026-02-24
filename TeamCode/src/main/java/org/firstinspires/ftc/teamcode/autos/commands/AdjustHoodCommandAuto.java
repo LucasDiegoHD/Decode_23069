@@ -38,11 +38,11 @@ public class AdjustHoodCommandAuto extends CommandBase {
                 + ShooterConstants.HOOD_N2 * Math.pow(distance, 2) + ShooterConstants.HOOD_N3 * Math.pow(distance, 3);
 
         if (distance > VisionConstants.LONGEST_DISTANCE) {
-            hood = VisionConstants.LONGEST_HOOD;
+            hood = 0.71;
         }
 
         if (distance == 0){
-            hood = VisionConstants.LONGEST_HOOD;
+            hood = 0.71;
         }
 
         boolean longShotMode = distance > VisionConstants.LONGEST_DISTANCE;

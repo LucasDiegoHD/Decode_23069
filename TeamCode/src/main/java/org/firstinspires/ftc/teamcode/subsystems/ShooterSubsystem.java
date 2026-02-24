@@ -82,6 +82,11 @@ public class ShooterSubsystem extends SubsystemBase {
         return getCurrentRPM() > (targetRPM * ShooterConstants.CADENCE_TOLERANCE_PERCENT);
     }
 
+    public boolean isReady() {
+        if (targetRPM <= 50) return false;
+        return getCurrentRPM() > (targetRPM * 0.95);
+    }
+
     public double getCurrentRPM() {
         double ticksPerSecond = (rShooterMotor.getVelocity() + lShooterMotor.getVelocity()) / 2.0;
         return (ticksPerSecond / ShooterConstants.TICKS_PER_REV) * 60.0;

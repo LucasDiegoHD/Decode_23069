@@ -71,7 +71,7 @@ public class DrivetrainSubsystem extends SubsystemBase {
         double linearVelocity = follower.getVelocity().getMagnitude();
         double angularVelocity = Math.toDegrees(Math.abs(follower.getAngularVelocity()));
 
-        return linearVelocity < 2.0 && angularVelocity < 5.0;
+        return linearVelocity < 2.0 && angularVelocity < 3.0;
     }
 
     /**

@@ -129,13 +129,6 @@ public class ShootCommand extends CommandBase {
 
         telemetryM.addData("Shoot State", state);
         telemetryM.addData("Shots Left", shooterCounter);
-        if(state == SHOOT_STATES.Cooldown) {
-            String mode = "WAITING";
-            if (cooldownTimer.milliseconds() < TRIGGER_CLEAR_DELAY_MS) mode = "REVERSING";
-            else mode = "FEEDING";
-
-            telemetryM.addData("Mode", mode);
-        }
     }
 
     @Override

@@ -64,10 +64,9 @@ public class ShooterConstants {
     public static double CADENCE_TOLERANCE_PERCENT = 0.88;
 
     // --- TIMINGS ---
-
     /** The time in milliseconds to wait after triggering before shooting. */
     public static double TRIGGER_TIMER_TO_SHOOT = 800;
-    public static double TRIGGER_TIMER_TRIGGERING = 900;
+    public static double TRIGGER_TIMER_TRIGGERING = 800;
     public static double DELAY_BETWEEN_SHOTS_MS = 25;
 
 
@@ -102,8 +101,7 @@ public class ShooterConstants {
      */
     public static double RPM_N0 = 2154.3;
     public static double RPM_N1 = -303.7;
-    public static double RPM_N2 = 130.2;
-
+    public static double RPM_N2 = 133.2;
     public static double ANGLE_KP = 0.8;
     public static double ANGLE_KI = 0.015;
     public static double ANGLE_KD = 0.05;

@@ -68,9 +68,9 @@ public class ShootCommandAutonomous extends CommandBase {
                     intake.run();
                 }
 
-                if (indexer.getExitSensor() || timer.milliseconds() > ShooterConstants.TRIGGER_TIMER_TO_SHOOT) {
+                if (indexer.getExitSensor() || timer.milliseconds() > 1000) {
 
-                    if (shooter.getShooterAtTarget()) {
+                    if (shooter.isReady()) {
                         state = SHOOT_STATES.Shooting;
                         shooter.anticipateShot();
                         intake.runTrigger();
@@ -88,7 +88,7 @@ public class ShootCommandAutonomous extends CommandBase {
                     intake.run();
                 }
 
-                if (shooter.getShooterAtTarget()) {
+                if (shooter.isReady()) {
                     state = SHOOT_STATES.Shooting;
                     shooter.anticipateShot();
                     intake.runTrigger();
@@ -99,7 +99,7 @@ public class ShootCommandAutonomous extends CommandBase {
             case Shooting:
                 boolean pieceHasLeft = !indexer.getExitSensor();
 
-                if (pieceHasLeft || timer.milliseconds() > 1100) {
+                if (pieceHasLeft || timer.milliseconds() > 1400) {
 
                     if (shooterCounter > 0) {
                         shooterCounter--;
@@ -130,13 +130,6 @@ public class ShootCommandAutonomous extends CommandBase {
 
         telemetryM.addData("Shoot State", state);
         telemetryM.addData("Shots Left", shooterCounter);
-        if(state == SHOOT_STATES.Cooldown) {
-            String mode = "WAITING";
-            if (cooldownTimer.milliseconds() < TRIGGER_CLEAR_DELAY_MS) mode = "REVERSING";
-            else mode = "FEEDING";
-
-            telemetryM.addData("Mode", mode);
-        }
     }
 
     @Override
