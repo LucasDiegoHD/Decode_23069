@@ -68,7 +68,7 @@ public class ShootCommandAutonomous extends CommandBase {
                     intake.run();
                 }
 
-                if (indexer.getExitSensor() || timer.milliseconds() > 1000) {
+                if (indexer.getExitSensor() || timer.milliseconds() > ShooterConstants.TRIGGER_TIMER_TO_SHOOT) {
 
                     if (shooter.isReady()) {
                         state = SHOOT_STATES.Shooting;
@@ -99,7 +99,7 @@ public class ShootCommandAutonomous extends CommandBase {
             case Shooting:
                 boolean pieceHasLeft = !indexer.getExitSensor();
 
-                if (pieceHasLeft || timer.milliseconds() > 1400) {
+                if (pieceHasLeft || timer.milliseconds() > 1200) {
 
                     if (shooterCounter > 0) {
                         shooterCounter--;
@@ -119,7 +119,7 @@ public class ShootCommandAutonomous extends CommandBase {
             case Cooldown:
                 double time = cooldownTimer.milliseconds();
 
-                if (time > ShooterConstants.DELAY_BETWEEN_SHOTS_MS) {
+                if (time > 200) {
                     state = SHOOT_STATES.Conveyor;
 
                     if (indexer.getExitSensor()) intake.stop();
