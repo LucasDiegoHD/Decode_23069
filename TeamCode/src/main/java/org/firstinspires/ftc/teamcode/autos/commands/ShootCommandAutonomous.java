@@ -119,7 +119,7 @@ public class ShootCommandAutonomous extends CommandBase {
             case Cooldown:
                 double time = cooldownTimer.milliseconds();
 
-                if (time > 200) {
+                if (time > 300) {
                     state = SHOOT_STATES.Conveyor;
 
                     if (indexer.getExitSensor()) intake.stop();

@@ -84,7 +84,7 @@ public class ShooterSubsystem extends SubsystemBase {
 
     public boolean isReady() {
         if (targetRPM <= 50) return false;
-        return getCurrentRPM() > (targetRPM * 0.95);
+        return getCurrentRPM() > (targetRPM * 0.93);
     }
 
     public double getCurrentRPM() {

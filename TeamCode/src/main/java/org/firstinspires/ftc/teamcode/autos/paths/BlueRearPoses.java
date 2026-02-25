@@ -13,13 +13,13 @@ public class BlueRearPoses {
             new Pose(60.335, 14.547, Math.toRadians(113.5)),
 
             new Pose(52.134, 35.169, Math.toRadians(0)),
-            new Pose(16.776, 35.169, Math.toRadians(0)),
+            new Pose(21, 35.169, Math.toRadians(0)),
 
             new Pose(60.335, 14.547, Math.toRadians(111.5)),
 
 
             new Pose(41, 18.547, Math.toRadians(0)),
-            new Pose(21, 8, Math.toRadians(0)),
+            new Pose(12, 7, Math.toRadians(0)),
 
             new Pose(60.335, 34, Math.toRadians(90)),
 

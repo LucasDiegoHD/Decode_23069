@@ -41,7 +41,7 @@ public class Constants {
             )
 
             .headingPIDFCoefficients(
-                    new PIDFCoefficients(1.2, 0.0, 0.18, 0.02   )
+                    new PIDFCoefficients(1.2, 0.0, 0.25, 0.02   )
             )
 
             .drivePIDFCoefficients(
