@@ -46,10 +46,10 @@ public class IndexerSubsystem extends SubsystemBase {
         boolean currentExitState = getExitSensor();
 
         if (!isInitialized) {
-            if (currentExitState || currentEntryState) {
+            if (currentExitState && currentEntryState) {
                 pieceCount = IndexerConstants.MAX_PIECE_CAPACITY;
             }
-            if (currentExitState != currentEntryState) {
+            if (currentExitState ||  currentEntryState) {
                 pieceCount = 1;
             }
             else {
