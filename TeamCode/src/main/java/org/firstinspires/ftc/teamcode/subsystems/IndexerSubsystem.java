@@ -22,7 +22,7 @@ public class IndexerSubsystem extends SubsystemBase {
     private boolean previousExitState = false;
     private long lastExitCountTime = 0;
 
-    private static final long DEBOUNCE_DELAY_MS = 200;
+    private static final long DEBOUNCE_DELAY_MS = 100;
 
     private double currentEntryDist = 23069.0;
     private double currentExitDist = 23069.0;

@@ -1,9 +1,13 @@
 package org.firstinspires.ftc.teamcode.subsystems;
 
 import com.arcrobotics.ftclib.command.SubsystemBase;
+import com.bylazar.telemetry.TelemetryManager;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
+
+import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit;
 
 
 /**
@@ -12,20 +16,28 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
  */
 //@AutoLog
 public class IntakeSubsystem extends SubsystemBase {
-    private final DcMotor intakeMotor;
+    private final DcMotorEx intakeMotor;
     private final DcMotor triggerMotor;
+    private final TelemetryManager telemetry;
+
 
     /**
      * Constructs a new IntakeSubsystem.
      *
      * @param hardwareMap The hardware map to retrieve hardware devices from.
      */
-    public IntakeSubsystem(HardwareMap hardwareMap) {
-        intakeMotor = hardwareMap.get(DcMotor.class, "intakeMotor");
+    public IntakeSubsystem(HardwareMap hardwareMap, TelemetryManager telemetry) {
+        intakeMotor = hardwareMap.get(DcMotorEx.class, "intakeMotor");
         triggerMotor = hardwareMap.get(DcMotor.class, "triggerMotor");
         intakeMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         triggerMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         triggerMotor.setDirection(DcMotorSimple.Direction.REVERSE);
+        this.telemetry = telemetry;
+    }
+
+    @Override
+    public void periodic() {
+        telemetry.addData("Corrente Motor Intake", intakeMotor.getCurrent(CurrentUnit.AMPS));
     }
 
     /**

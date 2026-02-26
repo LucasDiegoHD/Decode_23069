@@ -48,7 +48,7 @@ public class RobotContainer {
     public RobotContainer(HardwareMap hardwareMap, TelemetryManager telemetry, GamepadEx driver, GamepadEx operator, AllianceEnum alliance) {
         // Subsystem Initialization
         drivetrain = new DrivetrainSubsystem(hardwareMap, telemetry);
-        intake = new IntakeSubsystem(hardwareMap);
+        intake = new IntakeSubsystem(hardwareMap,telemetry);
         shooter = new ShooterSubsystem(hardwareMap, telemetry);
         vision = new VisionSubsystem(hardwareMap, telemetry);
         indexer = new IndexerSubsystem(hardwareMap, telemetry);
@@ -104,7 +104,7 @@ public class RobotContainer {
 
             Command AdjustHood = new RepeatCommand(
                     new SequentialCommandGroup(
-                            new WaitCommand(200),
+                            new WaitCommand(100),
                             new AdjustHoodCommand(shooter, vision, drivetrain, goalX, goalY)
                     )
             );
@@ -115,7 +115,7 @@ public class RobotContainer {
 
             Command AdjustShooter = new RepeatCommand(
                     new SequentialCommandGroup(
-                            new WaitCommand(200),
+                            new WaitCommand(100),
                             new ConditionalCommand(
                                     new AdjustShooterCommand(shooter, vision, drivetrain, goalX, goalY),
                                     new InstantCommand(),
@@ -139,15 +139,6 @@ public class RobotContainer {
             new GamepadButton(driver, GamepadKeys.Button.DPAD_LEFT)
                     .whileHeld(new ChaseArtifactCommand(drivetrain,husky,intake));
 
-            new GamepadButton(driver, GamepadKeys.Button.DPAD_DOWN)
-                    .whenPressed(new InstantCommand(() -> {
-                        isShooterAutoAdjustActive = false;
-                        shooter.stop();
-                    }));
-
-            new GamepadButton(driver, GamepadKeys.Button.DPAD_UP)
-                    .whenPressed(new InstantCommand(() -> isShooterAutoAdjustActive = true));
-
             new GamepadButton(driver, GamepadKeys.Button.START)
                     .whenPressed(new InstantCommand(() -> {
                         double targetAngle = 90.0;
@@ -155,16 +146,10 @@ public class RobotContainer {
                         UpdatePoseLimelightCommand.forceHardReset(drivetrain, vision, targetAngle);
                     }));
 
-            new GamepadButton(driver, GamepadKeys.Button.RIGHT_BUMPER)
-                    .whenPressed(new InstantCommand(() -> {
-                        double targetAngle = 40.0;
-
-                        UpdatePoseLimelightCommand.forceHardReset(drivetrain, vision, targetAngle);
-                    }));
 
             new GamepadButton(driver, GamepadKeys.Button.LEFT_BUMPER)
                     .whenPressed(new InstantCommand(() -> {
-                        double targetAngle = 130.0;
+                        double targetAngle = 180.0;
 
                         UpdatePoseLimelightCommand.forceHardReset(drivetrain, vision, targetAngle);
                     }));
@@ -183,7 +168,7 @@ public class RobotContainer {
                 .whileHeld(new AutoShootCommand(drivetrain, vision, shooter, intake, indexer, endPose, led));
 
         new GamepadButton(operator, GamepadKeys.Button. LEFT_BUMPER)
-                .whenPressed(new InstantCommand(intake::run, intake))
+                .whileHeld(new InstantCommand(intake::run, intake))
                 .whenReleased(new InstantCommand(intake::stop, intake));
 
         new GamepadButton(operator, GamepadKeys.Button.A)

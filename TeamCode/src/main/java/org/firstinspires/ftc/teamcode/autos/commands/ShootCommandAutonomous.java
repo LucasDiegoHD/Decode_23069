@@ -54,6 +54,7 @@ public class ShootCommandAutonomous extends CommandBase {
         intake.stopTrigger();
         state = SHOOT_STATES.Conveyor;
         timer.reset();
+        indexer.setShootingState(true);
     }
 
     @Override
@@ -141,6 +142,7 @@ public class ShootCommandAutonomous extends CommandBase {
     public void end(boolean interrupted){
         intake.stopTrigger();
         intake.stop();
+        indexer.setShootingState(false);
         telemetryM.addData("Shoot State", "Finish");
     }
 }
