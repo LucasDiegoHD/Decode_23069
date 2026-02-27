@@ -36,9 +36,6 @@ public class Constants {
             .translationalPIDFCoefficients(
                     new PIDFCoefficients(5, 0.01, 0.5, 0.3)
             )
-            .secondaryTranslationalPIDFCoefficients(
-                    new PIDFCoefficients(0.2, 0.0, 0.01, 0.01)
-            )
 
             .headingPIDFCoefficients(
                     new PIDFCoefficients(1.4, 0.0, 0.5, 0.02   )
@@ -80,9 +77,9 @@ public class Constants {
 
     public static PathConstraints pathConstraints = new PathConstraints(
             0.995,  // tValueConstraint (ok)
-            1.0,   // ve locityConstraint (ANTES: 0.05) -> bem mais lento
-            0.1,   // translationalConstraint (ANTES: 0.05)
-            0.01,    // headingConstraint (ANTES: 2.0) -> gira bem mais devagar
+            2.0,   // ve locityConstraint (ANTES: 0.05) -> bem mais lento
+            1.0,   // translationalConstraint (ANTES: 0.05)
+            0.04,    // headingConstraint (ANTES: 2.0) -> gira bem mais devagar
             250,    // timeoutConstraint
             1.5,    // brakingStrength (ANTES: 1.5) -> freia menos "bruscamente"
             10,     // bezier limit
