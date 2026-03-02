@@ -4,6 +4,7 @@ import android.util.Log;
 
 import com.arcrobotics.ftclib.command.CommandBase;
 import com.arcrobotics.ftclib.controller.PIDFController;
+import com.arcrobotics.ftclib.gamepad.GamepadEx;
 import com.bylazar.telemetry.TelemetryManager;
 import com.pedropathing.control.PIDFCoefficients;
 import com.pedropathing.follower.Follower;
@@ -18,19 +19,19 @@ public class AimByPoseCommand extends CommandBase {
 
     private final Follower follower;
     private final PIDFController turnController;
-
-
     private final TelemetryManager telemetry;
-
+    private final GamepadEx operator;
     private final double targetX;
     private final double targetY;
+    boolean hasVibrated = false;
 
-    public AimByPoseCommand(DrivetrainSubsystem drivetrain, double targetX, double targetY, TelemetryManager telemetry) {
+    public AimByPoseCommand(DrivetrainSubsystem drivetrain, double targetX, double targetY, TelemetryManager telemetry, GamepadEx operator) {
 
         this.follower = drivetrain.getFollower();
         this.targetX = targetX;
         this.targetY = targetY;
         this.telemetry = telemetry;
+        this.operator = operator;
         turnController = new PIDFController(ShooterConstants.ANGLE_KP,
                 ShooterConstants.ANGLE_KI,
                 ShooterConstants.ANGLE_KD,
@@ -45,6 +46,7 @@ public class AimByPoseCommand extends CommandBase {
         turnController.reset();
         turnController.setSetPoint(0);
         turnController.setTolerance((Math.PI / 180.0) * ShooterConstants.ANGLE_TOLERANCE);  // ~0.2 graus
+        hasVibrated = false;
     }
 
     @Override
@@ -69,6 +71,12 @@ public class AimByPoseCommand extends CommandBase {
 
         if (turnController.atSetPoint()) {
             turnPower = 0;
+            if (!hasVibrated && operator != null) {
+                operator.gamepad.rumble(1, 1, 500); // Vibrate for 500ms
+                hasVibrated = true; // Mark as vibrated
+            }
+        } else {
+            hasVibrated = false;
         }
         // Limita rotação igual ao AlignToAprilTag
         turnPower = Math.max(-0.7, Math.min(0.7, turnPower));

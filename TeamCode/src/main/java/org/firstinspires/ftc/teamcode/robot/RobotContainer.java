@@ -134,7 +134,7 @@ public class RobotContainer {
             double targety = 144;
 
             new GamepadButton(driver, GamepadKeys.Button.X)
-                    .whileHeld(new AimByPoseCommand(drivetrain, targetx, targety, telemetry));
+                    .whileHeld(new AimByPoseCommand(drivetrain, targetx, targety, telemetry, operator));
 
             new GamepadButton(driver, GamepadKeys.Button.DPAD_LEFT)
                     .whileHeld(new ChaseArtifactCommand(drivetrain,husky,intake));
