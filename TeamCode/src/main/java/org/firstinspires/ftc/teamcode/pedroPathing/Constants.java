@@ -36,7 +36,6 @@ public class Constants {
             .translationalPIDFCoefficients(
                     new PIDFCoefficients(5, 0.01, 0.5, 0.3)
             )
-
             .headingPIDFCoefficients(
                     new PIDFCoefficients(1.4, 0.0, 0.5, 0.02   )
             )
@@ -59,24 +58,19 @@ public class Constants {
             .yVelocity(70.88718660609929)
             //.xVelocity(25)
             //.yVelocity(25)
-
             .useBrakeModeInTeleOp(true);
-
     public static PinpointConstants localizerConstants = new PinpointConstants()
             .forwardPodY(5.5)
             .strafePodX(1.5)
             .distanceUnit(DistanceUnit.INCH)
-
             .hardwareMapName(Drivetrain.PINPOINT_LOCALIZER)
             .yawScalar(1.00474)
-            .encoderResolution(
-                    GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_4_BAR_POD
-            )
+            .encoderResolution(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_4_BAR_POD)
             .forwardEncoderDirection(GoBildaPinpointDriver.EncoderDirection.REVERSED)
             .strafeEncoderDirection(GoBildaPinpointDriver.EncoderDirection.FORWARD);
 
     public static PathConstraints pathConstraints = new PathConstraints(
-            0.995,  // tValueConstraint (ok)
+            0.99,  // tValueConstraint (ok)
             2.0,   // ve locityConstraint (ANTES: 0.05) -> bem mais lento
             1.0,   // translationalConstraint (ANTES: 0.05)
             0.04,    // headingConstraint (ANTES: 2.0) -> gira bem mais devagar
@@ -94,9 +88,6 @@ public class Constants {
                 .pathConstraints(pathConstraints)
                 .build();
     }
-
-    public static double AUTONOMOUS_SPEED = 0.25;
-    public static double TIMEOUT_SLOW_COMMAND = 5000;
     public static double TIME_BETWEEN_LINES = 2000;
 
 }

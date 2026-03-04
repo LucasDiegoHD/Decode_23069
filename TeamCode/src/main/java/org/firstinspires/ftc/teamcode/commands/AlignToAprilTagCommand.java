@@ -73,7 +73,7 @@ public class AlignToAprilTagCommand extends CommandBase {
             double currentTx = vision.getTargetTx().orElse(0.0);
             double turnPower = turnController.calculate(currentTx);
 
-            turnPower = Math.max(-0.4, Math.min(0.4, turnPower));
+            turnPower = Math.max(-0.8, Math.min(0.8, turnPower));
 
 
             if (turnController.atSetPoint()) {

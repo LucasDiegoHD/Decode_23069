@@ -112,7 +112,7 @@ public class DrivetrainSubsystem extends SubsystemBase {
  * @version 1.1, 5/19/2025
  */
 class Drawing {
-    public static final double ROBOT_RADIUS = 9; // Robot radius in inches
+    public static final double ROBOT_RADIUS = 8; // Robot radius in inches
     private static final FieldManager panelsField = PanelsField.INSTANCE.getField();
 
     private static final Style robotLook = new Style(
