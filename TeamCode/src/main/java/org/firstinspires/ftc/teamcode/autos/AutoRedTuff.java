@@ -22,12 +22,13 @@ public class AutoRedTuff extends CommandOpMode {
 
     @IgnoreConfigurable
     static TelemetryManager telemetryM;
+    private RobotContainer robot;
 
     @Override
     public void initialize() {
         telemetryM = PanelsTelemetry.INSTANCE.getTelemetry();
 
-        RobotContainer robot = new RobotContainer(hardwareMap, telemetryM, null, null, AllianceEnum.Red);
+        robot = new RobotContainer(hardwareMap, telemetryM, null, null, AllianceEnum.Red);
         DataStorage.alliance = AllianceEnum.Red;
 
         Command autonomousCommand = robot.getAutonomousRedTuffCommand();
@@ -40,6 +41,9 @@ public class AutoRedTuff extends CommandOpMode {
 
     @Override
     public void run() {
+        if (robot != null) {
+            robot.clearBulkCache();
+        }
         CommandScheduler.getInstance().run();
         telemetryM.update();
 

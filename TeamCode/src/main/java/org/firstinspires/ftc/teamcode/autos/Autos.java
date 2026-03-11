@@ -31,6 +31,7 @@ public class Autos extends CommandOpMode {
 
     boolean xAnt = false, bAnt = false;
     boolean upAnt = false, downAnt = false, rightAnt = false, leftAnt = false;
+    private RobotContainer robot;
 
     @Override
     public void initialize() {
@@ -73,7 +74,7 @@ public class Autos extends CommandOpMode {
         telemetry.update();
 
         DataStorage.alliance = selectedAlliance;
-        RobotContainer robot = new RobotContainer(hardwareMap, telemetryM, null, null, selectedAlliance);
+        robot = new RobotContainer(hardwareMap, telemetryM, null, null, selectedAlliance);
         Command autonomousCommand = null;
 
         if (selectedAlliance == AllianceEnum.Red) {
@@ -115,6 +116,9 @@ public class Autos extends CommandOpMode {
 
     @Override
     public void run() {
+        if (robot != null) {
+            robot.clearBulkCache();
+        }
         CommandScheduler.getInstance().run();
         if (telemetryM != null) {
             telemetryM.update();

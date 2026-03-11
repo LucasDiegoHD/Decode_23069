@@ -21,13 +21,14 @@ public class AutoBlueFront extends CommandOpMode {
 
     @IgnoreConfigurable
     static TelemetryManager telemetryM;
+    private RobotContainer robot;
 
     @Override
     public void initialize() {
         telemetryM = PanelsTelemetry.INSTANCE.getTelemetry();
 
         // Inicializa o container
-        RobotContainer robot = new RobotContainer(hardwareMap, telemetryM, null, null, AllianceEnum.Blue);
+        robot = new RobotContainer(hardwareMap, telemetryM, null, null, AllianceEnum.Blue);
         DataStorage.alliance = AllianceEnum.Blue;
 
         // PEGA O COMANDO NOVO DO FRONT
@@ -42,6 +43,9 @@ public class AutoBlueFront extends CommandOpMode {
 
     @Override
     public void run() {
+        if (robot != null) {
+            robot.clearBulkCache();
+        }
         CommandScheduler.getInstance().run();
         telemetryM.update();
     }

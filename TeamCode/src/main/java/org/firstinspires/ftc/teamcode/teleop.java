@@ -17,6 +17,7 @@ public class teleop extends CommandOpMode {
 
     @IgnoreConfigurable
     static TelemetryManager telemetryM;
+    private RobotContainer robot;
 
     @Override
     public void initialize() {
@@ -26,13 +27,16 @@ public class teleop extends CommandOpMode {
         GamepadEx operatorGamepad = new GamepadEx(gamepad2);
 
         // Passa o hardwareMap, a telemetria e os gamepads para o RobotContainer
-        RobotContainer robot = new RobotContainer(hardwareMap, telemetryM, driverGamepad, operatorGamepad, DataStorage.alliance);
+        robot = new RobotContainer(hardwareMap, telemetryM, driverGamepad, operatorGamepad, DataStorage.alliance);
 
 
     }
 
     @Override
     public void run(){
+        if (robot != null) {
+            robot.clearBulkCache();
+        }
         CommandScheduler.getInstance().run();
         telemetryM.update();
     }

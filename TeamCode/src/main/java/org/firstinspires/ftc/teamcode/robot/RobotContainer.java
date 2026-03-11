@@ -8,6 +8,7 @@ import com.arcrobotics.ftclib.command.RepeatCommand;
 import com.arcrobotics.ftclib.command.SequentialCommandGroup;
 import com.arcrobotics.ftclib.command.WaitCommand;
 import com.arcrobotics.ftclib.command.button.GamepadButton;
+import com.arcrobotics.ftclib.command.button.Trigger;
 import com.arcrobotics.ftclib.gamepad.GamepadEx;
 import com.arcrobotics.ftclib.gamepad.GamepadKeys;
 import com.arcrobotics.ftclib.geometry.Translation2d;
@@ -15,6 +16,10 @@ import com.bylazar.telemetry.PanelsTelemetry;
 import com.bylazar.telemetry.TelemetryManager;
 import com.pedropathing.geometry.Pose;
 import com.qualcomm.robotcore.hardware.HardwareMap;
+
+import com.qualcomm.hardware.lynx.LynxModule;
+import java.util.List;
+
 import org.firstinspires.ftc.teamcode.autos.commands.AutonomousCommands;
 import org.firstinspires.ftc.teamcode.autos.commands.AutonomousFrontCommands;
 import org.firstinspires.ftc.teamcode.autos.commands.AutonomousTuffCommand;
@@ -44,9 +49,16 @@ public class RobotContainer {
     private final HuskySubsystem husky;
     private boolean isShooterAutoAdjustActive = true;
 
+    private List<LynxModule> allHubs;
+
 
     public RobotContainer(HardwareMap hardwareMap, TelemetryManager telemetry, GamepadEx driver, GamepadEx operator, AllianceEnum alliance) {
         // Subsystem Initialization
+        allHubs = hardwareMap.getAll(LynxModule.class);
+        for (LynxModule hub : allHubs) {
+            hub.setBulkCachingMode(LynxModule.BulkCachingMode.MANUAL);
+        }
+
         drivetrain = new DrivetrainSubsystem(hardwareMap, telemetry);
         intake = new IntakeSubsystem(hardwareMap,telemetry);
         shooter = new ShooterSubsystem(hardwareMap, telemetry);
@@ -142,7 +154,6 @@ public class RobotContainer {
             new GamepadButton(driver, GamepadKeys.Button.START)
                     .whenPressed(new InstantCommand(() -> {
                         double targetAngle = 90.0;
-
                         UpdatePoseLimelightCommand.forceHardReset(drivetrain, vision, targetAngle);
                     }));
 
@@ -153,7 +164,11 @@ public class RobotContainer {
 
                         UpdatePoseLimelightCommand.forceHardReset(drivetrain, vision, targetAngle);
                     }));
+
+            new Trigger(() -> driver.getTrigger(GamepadKeys.Trigger.LEFT_TRIGGER) > 0.3)
+                    .whileActiveContinuous(new KinematicAimDriveCommand(drivetrain, driver, goalX, goalY));
         }
+
 
         if (operator!= null) {
             configureTeleOpBindings(operator, alliance);
@@ -188,6 +203,13 @@ public class RobotContainer {
         new GamepadButton(operator, GamepadKeys.Button.DPAD_UP)
                 .whenPressed(new InstantCommand(() -> isShooterAutoAdjustActive = true));
 
+    }
+    public void clearBulkCache() {
+        if (allHubs != null) {
+            for (LynxModule hub : allHubs) {
+                hub.clearBulkCache();
+            }
+        }
     }
 
     public void updateRobotPose(AllianceEnum alliance, Pose robotPose) {
