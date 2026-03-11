@@ -101,7 +101,12 @@ public class AutonomousTuffCommand extends SequentialCommandGroup {
                 new GoToPoseCommand(drivetrain, true,
                         poses.get(PosesNames.GoToLine2.ordinal()),
                         poses.get(PosesNames.CatchLine2.ordinal())
-                ).withTimeout(2000)
+                ).withTimeout(2000),
+                new InstantCommand(intake::stop),
+                new GoToPoseCommand(drivetrain, poses.get(PosesNames.GoToShoot1.ordinal())),
+                new AlignAndAdjustAutoCommand(drivetrain, vision, shooter),
+                new WaitCommand(500),
+                new ShootCommandAutonomous(shooter, intake, indexer,3, ledSubsystem ).withTimeout(3000)
         );
         addRequirements(drivetrain, shooter, intake);
     }
