@@ -20,10 +20,10 @@ public class KinematicAimDriveCommand extends CommandBase {
 
     // --- VARIÁVEIS DE CALIBRAÇÃO (MIRA ANTI-DEFESA) ---
     // Velocidade teórica do artefato com sushi roller (ajuste na quadra se a bola errar pros lados)
-    private static final double ARTIFACT_VELOCITY_INCHES_PER_SEC = 160.0;
+    private static final double ARTIFACT_VELOCITY_INCHES_PER_SEC = 400.0;
 
     // Latência do servo (tempo entre o código mandar atirar e o artefato sair da roda)
-    private static final double SYSTEM_LATENCY_SECONDS = 0.15;
+    private static final double SYSTEM_LATENCY_SECONDS = 0.20;
 
     public KinematicAimDriveCommand(DrivetrainSubsystem drivetrain, GamepadEx driver, double targetX, double targetY) {
         this.follower = drivetrain.getFollower();
@@ -51,8 +51,8 @@ public class KinematicAimDriveCommand extends CommandBase {
     @Override
     public void execute() {
         // Lemos apenas o analógico esquerdo (Translação: Frente/Trás e Strafe)
-        double forward = -driver.getLeftY();
-        double strafe = -driver.getLeftX();
+        double forward = -driver.getLeftX();
+        double strafe = -driver.getLeftY();
 
         // Puxamos a odometria e a velocidade real do robô (super rápido graças ao Bulk Caching!)
         Pose pose = follower.getPose();

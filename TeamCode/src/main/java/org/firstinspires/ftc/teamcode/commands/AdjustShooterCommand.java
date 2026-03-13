@@ -23,7 +23,7 @@ public class AdjustShooterCommand extends CommandBase {
 
     // Calibração: Quantos RPM compensar para cada polegada/s de velocidade de aproximação.
     // Exemplo: Se o robô aproxima a 10 in/s, diminui 100 RPM. (Ajuste na quadra!)
-    private static final double RPM_PER_INCH_PER_SEC = 10.0;
+    private static final double RPM_PER_INCH_PER_SEC = 3.0;
 
     // LIMITES DE SEGURANÇA (Ajuste de acordo com o seu motor. Ex: goBILDA 1:1 é ~6000 RPM limite)
     private static final double MAX_SAFE_RPM = 4500;

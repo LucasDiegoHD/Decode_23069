@@ -112,6 +112,7 @@ public class RobotContainer {
                     )
             );
 
+
             CommandScheduler.getInstance().schedule(periodicUpdateLoop);
 
             Command AdjustHood = new RepeatCommand(
@@ -149,7 +150,7 @@ public class RobotContainer {
                     .whileHeld(new AimByPoseCommand(drivetrain, targetx, targety, telemetry, operator));
 
             new GamepadButton(driver, GamepadKeys.Button.DPAD_LEFT)
-                    .whileHeld(new ChaseArtifactCommand(drivetrain,husky,intake));
+                    .whileHeld(new ChaseArtifactCommand(drivetrain, husky, intake));
 
             new GamepadButton(driver, GamepadKeys.Button.START)
                     .whenPressed(new InstantCommand(() -> {
@@ -165,7 +166,7 @@ public class RobotContainer {
                         UpdatePoseLimelightCommand.forceHardReset(drivetrain, vision, targetAngle);
                     }));
 
-            new Trigger(() -> driver.getTrigger(GamepadKeys.Trigger.LEFT_TRIGGER) > 0.3)
+            new Trigger(() -> driver.getTrigger(GamepadKeys.Trigger.RIGHT_TRIGGER) > 0.3)
                     .whileActiveContinuous(new KinematicAimDriveCommand(drivetrain, driver, goalX, goalY));
         }
 
