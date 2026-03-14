@@ -48,9 +48,8 @@ public class RobotContainer {
     private final LEDSubsystem led;
     private final HuskySubsystem husky;
     private boolean isShooterAutoAdjustActive = true;
-
     private List<LynxModule> allHubs;
-
+    private long tempoDoUltimoLoop = 0;
 
     public RobotContainer(HardwareMap hardwareMap, TelemetryManager telemetry, GamepadEx driver, GamepadEx operator, AllianceEnum alliance) {
         // Subsystem Initialization
@@ -116,10 +115,7 @@ public class RobotContainer {
             CommandScheduler.getInstance().schedule(periodicUpdateLoop);
 
             Command AdjustHood = new RepeatCommand(
-                    new SequentialCommandGroup(
-                            new WaitCommand(100),
                             new AdjustHoodCommand(shooter, vision, drivetrain, goalX, goalY)
-                    )
             );
 
             CommandScheduler.getInstance().schedule(AdjustHood);
@@ -127,14 +123,11 @@ public class RobotContainer {
 
 
             Command AdjustShooter = new RepeatCommand(
-                    new SequentialCommandGroup(
-                            new WaitCommand(100),
                             new ConditionalCommand(
                                     new AdjustShooterCommand(shooter, vision, drivetrain, goalX, goalY),
                                     new InstantCommand(),
                                     () -> isShooterAutoAdjustActive
                             )
-                    )
             );
 
             CommandScheduler.getInstance().schedule(AdjustShooter);
@@ -211,6 +204,14 @@ public class RobotContainer {
                 hub.clearBulkCache();
             }
         }
+    }
+    public void printLoopTime() {
+        long tempoAtual = System.currentTimeMillis();
+        long tempoDoLoop = tempoAtual - tempoDoUltimoLoop;
+
+        PanelsTelemetry.INSTANCE.getTelemetry().addData("⚡ Loop Time (ms)", tempoDoLoop);
+
+        tempoDoUltimoLoop = tempoAtual;
     }
 
     public void updateRobotPose(AllianceEnum alliance, Pose robotPose) {

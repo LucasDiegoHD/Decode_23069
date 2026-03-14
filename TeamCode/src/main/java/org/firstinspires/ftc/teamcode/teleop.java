@@ -36,6 +36,7 @@ public class teleop extends CommandOpMode {
     public void run(){
         if (robot != null) {
             robot.clearBulkCache();
+            robot.printLoopTime();
         }
         CommandScheduler.getInstance().run();
         telemetryM.update();
