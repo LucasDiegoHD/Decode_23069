@@ -29,6 +29,9 @@ public class IndexerSubsystem extends SubsystemBase {
 
     private boolean isInitialized = false;
     private boolean isShooting = false;
+    // Fica lendo apenas a cada 50ms para não engasgar o Loop do robô
+    private long lastI2cReadTime = 0;
+    private static final long I2C_READ_INTERVAL_MS = 50;
 
     public IndexerSubsystem(HardwareMap hardwareMap, TelemetryManager telemetry) {
         this.telemetry = telemetry;
@@ -39,8 +42,13 @@ public class IndexerSubsystem extends SubsystemBase {
 
     @Override
     public void periodic() {
-        currentEntryDist = entrySensor.getDistance(DistanceUnit.CM);
-        currentExitDist = exitSensor.getDistance(DistanceUnit.CM);
+        // --- PROTEÇÃO ANTI-LAG DO I2C ---
+        long currentTime = System.currentTimeMillis();
+        if (currentTime - lastI2cReadTime >= I2C_READ_INTERVAL_MS) {
+            currentEntryDist = entrySensor.getDistance(DistanceUnit.CM);
+            currentExitDist = exitSensor.getDistance(DistanceUnit.CM);
+            lastI2cReadTime = currentTime;
+        }
 
         boolean currentEntryState = getEntrySensor();
         boolean currentExitState = getExitSensor();

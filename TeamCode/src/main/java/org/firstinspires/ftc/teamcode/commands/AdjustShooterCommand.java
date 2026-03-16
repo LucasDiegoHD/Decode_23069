@@ -21,7 +21,7 @@ public class AdjustShooterCommand extends CommandBase {
     // --- CALIBRAÇÃO ASSIMÉTRICA ---
     // Você notou que frente e trás precisam de forças diferentes.
     private static final double RPM_FORWARD_MULT = 3.0;  // Tira pouco RPM atacando
-    private static final double RPM_BACKWARD_MULT = 6.0; // Coloca mais RPM fugindo (Ajuste isso!)
+    private static final double RPM_BACKWARD_MULT = 15.0; // Coloca mais RPM fugindo (Ajuste isso!)
 
     private static final double MAX_SAFE_RPM = 4500;
     private static final double MIN_SAFE_RPM = 1000.0;

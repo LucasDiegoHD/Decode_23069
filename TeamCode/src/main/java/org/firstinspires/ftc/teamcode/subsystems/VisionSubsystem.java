@@ -71,7 +71,8 @@ public class VisionSubsystem extends SubsystemBase {
     }
 
     public Optional<Double> getDirectDistanceToTarget() {
-        if (!hasTarget()) return Optional.empty();
+        if (latestResult == null || !latestResult.isValid()) return Optional.empty();
+
         if(!latestResult.getFiducialResults().isEmpty()) {
             return Optional.of(Math.abs(latestResult.getFiducialResults().get(0).getTargetPoseCameraSpace().getPosition().z));
         }
@@ -87,12 +88,13 @@ public class VisionSubsystem extends SubsystemBase {
     }
 
     public Optional<Pose> getRobotPose() {
-        latestResult = limelight.getLatestResult();
+        // Remove isso: latestResult = limelight.getLatestResult();
+        // Usa apenas a memória:
+        if (latestResult == null || !latestResult.isValid()) return Optional.empty();
 
-        if (!hasTarget()) return Optional.empty();
         Pose3D robotPose = latestResult.getBotpose();
-
         if (robotPose == null) return Optional.empty();
+
         return Optional.of(convertToPedro(robotPose));
     }
 

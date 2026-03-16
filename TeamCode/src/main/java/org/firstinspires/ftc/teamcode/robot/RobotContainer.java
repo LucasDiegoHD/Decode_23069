@@ -152,17 +152,16 @@ public class RobotContainer {
                     }));
 
 
-            new GamepadButton(driver, GamepadKeys.Button.LEFT_BUMPER)
-                    .whenPressed(new InstantCommand(() -> {
-                        double targetAngle = 180.0;
-
-                        UpdatePoseLimelightCommand.forceHardReset(drivetrain, vision, targetAngle);
-                    }));
+            new GamepadButton(driver, GamepadKeys.Button. LEFT_BUMPER)
+                    .whileHeld(new InstantCommand(intake::run, intake))
+                    .whenReleased(new InstantCommand(intake::stop, intake));
 
             new Trigger(() -> driver.getTrigger(GamepadKeys.Trigger.RIGHT_TRIGGER) > 0.3)
                     .whileActiveContinuous(new KinematicAimDriveCommand(drivetrain, driver, goalX, goalY));
-        }
 
+                    new GamepadButton(driver, GamepadKeys.Button.RIGHT_BUMPER)
+                            .whileHeld(new AutoShootCommand(drivetrain, vision, shooter, intake, indexer, endPose, led));
+        }
 
         if (operator!= null) {
             configureTeleOpBindings(operator, alliance);

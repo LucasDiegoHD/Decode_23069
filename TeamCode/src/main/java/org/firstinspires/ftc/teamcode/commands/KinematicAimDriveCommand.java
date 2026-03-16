@@ -114,7 +114,7 @@ public class KinematicAimDriveCommand extends CommandBase {
 
         turnPower = Math.max(-1.0, Math.min(1.0, turnPower));
 
-        follower.setTeleOpDrive(forward, strafe, -turnPower, true);
+        follower.setTeleOpDrive(-strafe, forward, -turnPower, true);
     }
 
     @Override
