@@ -46,7 +46,7 @@ public class RobotContainer {
     private final VisionSubsystem vision;
     private final IndexerSubsystem indexer;
     private final LEDSubsystem led;
-    private final HuskySubsystem husky;
+    //private final HuskySubsystem husky;
     private boolean isShooterAutoAdjustActive = true;
     private List<LynxModule> allHubs;
     private long tempoDoUltimoLoop = 0;
@@ -64,7 +64,7 @@ public class RobotContainer {
         vision = new VisionSubsystem(hardwareMap, telemetry);
         indexer = new IndexerSubsystem(hardwareMap, telemetry);
         led = new LEDSubsystem(hardwareMap);
-        husky = new HuskySubsystem(hardwareMap,telemetry);
+        //husky = new HuskySubsystem(hardwareMap,telemetry);
 
         led.setDefaultCommand(new LedCommand(led, indexer));
 
@@ -142,8 +142,8 @@ public class RobotContainer {
             new GamepadButton(driver, GamepadKeys.Button.X)
                     .whileHeld(new AimByPoseCommand(drivetrain, targetx, targety, telemetry, operator));
 
-            new GamepadButton(driver, GamepadKeys.Button.DPAD_LEFT)
-                    .whileHeld(new ChaseArtifactCommand(drivetrain, husky, intake));
+            //new GamepadButton(driver, GamepadKeys.Button.DPAD_LEFT)
+              //      .whileHeld(new ChaseArtifactCommand(drivetrain, husky, intake));
 
             new GamepadButton(driver, GamepadKeys.Button.START)
                     .whenPressed(new InstantCommand(() -> {

@@ -12,6 +12,11 @@ public class HuskySubsystem extends SubsystemBase {
     private final TelemetryManager telemetry;
     private HuskyLens.Block lastValidBlock = null;
 
+    // --- PROTEÇÃO ANTI-LAG (Cache e Timer) ---
+    private HuskyLens.Block[] latestBlocks = new HuskyLens.Block[0];
+    private long lastHuskyReadTime = 0;
+    private static final long HUSKY_READ_INTERVAL_MS = 50; // Lê a câmera a cada 50ms (20 FPS)
+
     public HuskySubsystem(HardwareMap hardwareMap, TelemetryManager telemetry) {
         this.telemetry = telemetry;
         this.huskyLens = hardwareMap.get(HuskyLens.class, "husky");
@@ -26,9 +31,11 @@ public class HuskySubsystem extends SubsystemBase {
     /**
      * Retorna o Artifact mais relevante (mais próximo/maior área).
      * Retorna um Optional vazio se nada for encontrado.
+     * AGORA LÊ DA RAM, CUSTO DE PROCESSAMENTO: 0.001 ms!
      */
     public Optional<HuskyLens.Block> getClosestAnyArtifact() {
-        HuskyLens.Block[] blocks = huskyLens.blocks();
+        // SEGURANÇA: Lê a variável cacheada, NÃO CHAMA o hardware físico aqui!
+        HuskyLens.Block[] blocks = latestBlocks;
 
         // SEGURANÇA: Se a câmera falhar ou não ver nada, retorna vazio imediatamente
         if (blocks == null || blocks.length == 0) {
@@ -81,6 +88,14 @@ public class HuskySubsystem extends SubsystemBase {
 
     @Override
     public void periodic() {
+        // --- O CARTEIRO TRABALHANDO NO BACKGROUND ---
+        // Pega a imagem da câmera de forma espaçada para não travar o loop do robô
+        long currentTime = System.currentTimeMillis();
+        if (currentTime - lastHuskyReadTime >= HUSKY_READ_INTERVAL_MS) {
+            latestBlocks = huskyLens.blocks(); // A ÚNICA leitura física de I2C!
+            lastHuskyReadTime = currentTime;
+        }
+
         // Telemetria de debug
         if (lastValidBlock != null) {
             telemetry.addData("Husky ID", lastValidBlock.id);

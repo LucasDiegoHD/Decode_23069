@@ -18,6 +18,7 @@ public class teleop extends CommandOpMode {
     @IgnoreConfigurable
     static TelemetryManager telemetryM;
     private RobotContainer robot;
+    private long ultimoTempoTelemetria = 0;
 
     @Override
     public void initialize() {
@@ -33,12 +34,33 @@ public class teleop extends CommandOpMode {
     }
 
     @Override
-    public void run(){
+    public void run() {
+        // 1. INICIA O CRONÔMETRO ZERO
+        long tempoInicio = System.currentTimeMillis();
+
         if (robot != null) {
             robot.clearBulkCache();
-            robot.printLoopTime();
+            // Escondemos o print antigo para usar o dedo-duro
+            // robot.printLoopTime();
         }
+        long tempoCache = System.currentTimeMillis();
+
+        // 2. RODA A LÓGICA INTEIRA DO ROBÔ
         CommandScheduler.getInstance().run();
+        long tempoComandos = System.currentTimeMillis();
+
+        // 3. PREPARA O DEDO-DURO NA TELA
+        telemetryM.addData("--- RASTREADOR DE LAG ---", "");
+        telemetryM.addData("1. Tempo do Cache (ms)", tempoCache - tempoInicio);
+        telemetryM.addData("2. Tempo dos Comandos (ms)", tempoComandos - tempoCache);
+        telemetryM.addData("3. Tempo da Telemetria (ms)", ultimoTempoTelemetria);
+
+        long tempoTotal = (tempoComandos - tempoInicio) + ultimoTempoTelemetria;
+        telemetryM.addData("TOTAL LOOP TIME (ms)", tempoTotal);
+
+        // 4. MEDE O ENVIO DE DADOS (WI-FI)
+        long tempoAntesTelemetria = System.currentTimeMillis();
         telemetryM.update();
+        ultimoTempoTelemetria = System.currentTimeMillis() - tempoAntesTelemetria;
     }
 }

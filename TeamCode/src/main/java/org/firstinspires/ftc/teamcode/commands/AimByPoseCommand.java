@@ -81,11 +81,11 @@ public class AimByPoseCommand extends CommandBase {
         // Limita rotação igual ao AlignToAprilTag
         turnPower = Math.max(-1.0, Math.min(1.0, turnPower));
 
-        Log.d("AIMBYPOSE - Desired", String.valueOf(Math.toDegrees(desired)));
-        Log.d("AIMBYPOSE - Turn Power", String.valueOf(turnPower));
-        Log.d("AIMBYPOSE - At SetPoint", String.valueOf(turnController.atSetPoint()));
-        Log.d("AIMBYPOSE - Heading", String.valueOf(Math.toDegrees(heading)));
-        Log.d("AIMBYPOSE - Error", String.valueOf(Math.toDegrees(error)));
+        //Log.d("AIMBYPOSE - Desired", String.valueOf(Math.toDegrees(desired)));
+        //Log.d("AIMBYPOSE - Turn Power", String.valueOf(turnPower));
+        //Log.d("AIMBYPOSE - At SetPoint", String.valueOf(turnController.atSetPoint()));
+        //Log.d("AIMBYPOSE - Heading", String.valueOf(Math.toDegrees(heading)));
+        //Log.d("AIMBYPOSE - Error", String.valueOf(Math.toDegrees(error)));
 
         // Apenas rotaciona o robô
         follower.setTeleOpDrive(0, 0, -turnPower, true);

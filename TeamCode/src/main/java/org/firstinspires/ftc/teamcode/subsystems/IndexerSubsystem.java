@@ -24,31 +24,55 @@ public class IndexerSubsystem extends SubsystemBase {
 
     private static final long DEBOUNCE_DELAY_MS = 100;
 
-    private double currentEntryDist = 23069.0;
-    private double currentExitDist = 23069.0;
+    // O SEGREDO 1: 'volatile' obriga a memória a se atualizar instantaneamente entre os núcleos do processador
+    private volatile double currentEntryDist = 23069.0;
+    private volatile double currentExitDist = 23069.0;
 
     private boolean isInitialized = false;
     private boolean isShooting = false;
-    // Fica lendo apenas a cada 50ms para não engasgar o Loop do robô
-    private long lastI2cReadTime = 0;
-    private static final long I2C_READ_INTERVAL_MS = 50;
+
+    // O SEGREDO 2: A Thread Secundária
+    private Thread sensorThread;
 
     public IndexerSubsystem(HardwareMap hardwareMap, TelemetryManager telemetry) {
         this.telemetry = telemetry;
 
         exitSensor = hardwareMap.get(DistanceSensor.class, IndexerConstants.EXIT_SENSOR_NAME);
         entrySensor = hardwareMap.get(DistanceSensor.class, IndexerConstants.ENTRY_SENSOR_NAME);
+
+        // Dá a partida no processamento paralelo assim que o robô liga!
+        iniciarThreadDeSensores();
+    }
+
+    private void iniciarThreadDeSensores() {
+        sensorThread = new Thread(() -> {
+            while (!Thread.currentThread().isInterrupted()) {
+                try {
+                    // ISSO AGORA TRAVA O NÚCLEO SECUNDÁRIO, NÃO O ROBÔ!
+                    // O Pedro Pathing continua voando na Main Thread enquanto o sensor pensa.
+                    currentEntryDist = entrySensor.getDistance(DistanceUnit.CM);
+                    currentExitDist = exitSensor.getDistance(DistanceUnit.CM);
+
+                    // Pausa de 30ms para não congestionar os cabos I2C
+                    Thread.sleep(30);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt(); // Encerra limpo
+                } catch (Exception e) {
+                    // Ignora erros caso o cabo balance
+                }
+            }
+        });
+        // Daemon = Garante que essa thread morra instantaneamente quando você apertar o STOP no celular
+        sensorThread.setDaemon(true);
+        sensorThread.start();
     }
 
     @Override
     public void periodic() {
-        // --- PROTEÇÃO ANTI-LAG DO I2C ---
-        long currentTime = System.currentTimeMillis();
-        if (currentTime - lastI2cReadTime >= I2C_READ_INTERVAL_MS) {
-            currentEntryDist = entrySensor.getDistance(DistanceUnit.CM);
-            currentExitDist = exitSensor.getDistance(DistanceUnit.CM);
-            lastI2cReadTime = currentTime;
-        }
+        long tempoInicio = System.currentTimeMillis();
+
+        // A MÁGICA: Não tem mais 'getDistance()' bloqueando o loop!
+        // O código só lê o valor que a Thread já deixou pronto na memória. Custo real: 0.0 ms.
 
         boolean currentEntryState = getEntrySensor();
         boolean currentExitState = getExitSensor();
@@ -92,6 +116,9 @@ public class IndexerSubsystem extends SubsystemBase {
 
         telemetry.addData("Exit Dist (CM)", currentExitDist);
         telemetry.addData("Exit Triggered", currentExitState);
+
+        long tempoFim = System.currentTimeMillis();
+        telemetry.addData(">> Tempo Sensores Indexer (ms)", tempoFim - tempoInicio);
     }
 
     public void setShootingState(boolean state) {

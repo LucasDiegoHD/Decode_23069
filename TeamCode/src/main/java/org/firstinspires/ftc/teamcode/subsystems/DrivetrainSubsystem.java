@@ -96,11 +96,11 @@ public class DrivetrainSubsystem extends SubsystemBase {
         Drawing.drawDebug(follower);
         DataStorage.actualPose = follower.getPose();
 
-        Polygon2d triangleBig = new Polygon2d(new Translation2d(72, 72), new Translation2d(144, 144), new Translation2d(0, 144));
-        Polygon2d triangleSmall = new Polygon2d(new Translation2d(72, 30), new Translation2d(44, 0), new Translation2d(100, 0));
+        //Polygon2d triangleBig = new Polygon2d(new Translation2d(72, 72), new Translation2d(144, 144), new Translation2d(0, 144));
+        //Polygon2d triangleSmall = new Polygon2d(new Translation2d(72, 30), new Translation2d(44, 0), new Translation2d(100, 0));
 
-        telemetry.addData("Inside big triangle", triangleBig.containsPoint(new Translation2d(follower.getPose().getX(), follower.getPose().getY())));
-        telemetry.addData("Inside Small triangle", triangleSmall.containsPoint(new Translation2d(follower.getPose().getX(), follower.getPose().getY())));
+        //telemetry.addData("Inside big triangle", triangleBig.containsPoint(new Translation2d(follower.getPose().getX(), follower.getPose().getY())));
+        //telemetry.addData("Inside Small triangle", triangleSmall.containsPoint(new Translation2d(follower.getPose().getX(), follower.getPose().getY())));
 
     }
 }
