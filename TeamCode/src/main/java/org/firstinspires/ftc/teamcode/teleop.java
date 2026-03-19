@@ -22,6 +22,7 @@ public class teleop extends CommandOpMode {
 
     @Override
     public void initialize() {
+        CommandScheduler.getInstance().reset();
         telemetryM = PanelsTelemetry.INSTANCE.getTelemetry();
 
         GamepadEx driverGamepad = new GamepadEx(gamepad1);

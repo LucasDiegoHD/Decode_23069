@@ -35,6 +35,7 @@ public class Autos extends CommandOpMode {
 
     @Override
     public void initialize() {
+        CommandScheduler.getInstance().reset();
         telemetryM = PanelsTelemetry.INSTANCE.getTelemetry();
 
         while (!isStarted() && !isStopRequested() && !isConfigured) {
