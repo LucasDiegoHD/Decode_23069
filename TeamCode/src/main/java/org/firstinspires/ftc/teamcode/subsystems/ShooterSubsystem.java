@@ -143,6 +143,12 @@ public class ShooterSubsystem extends SubsystemBase {
         if (isLongShotMode && targetRPM > 2000 && rpmError > 0) {
             double offset = rpmError * ShooterConstants.K_HOOD_COMPENSATION;
             currentDynamicHoodPos = hoodPosition + offset;
+        } else if (!isLongShotMode && targetRPM > 2000 && rpmError < -100) {
+
+            double offset = Math.abs(rpmError) * ShooterConstants.K_ANTI_OVERSHOOT;
+
+            currentDynamicHoodPos = hoodPosition - offset;
+
         } else {
             currentDynamicHoodPos = hoodPosition;
         }

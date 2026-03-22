@@ -58,13 +58,10 @@ public class AdjustShooterCommand extends CommandBase {
             velTowardsGoal = (velocity.getXComponent() * dirX) + (velocity.getYComponent() * dirY);
         }
 
-        // --- A MÁGICA DA ASSIMETRIA ---
         double rpmAdjustment = 0;
         if (velTowardsGoal > 0) {
-            // Robô indo NA DIREÇÃO do cesto
             rpmAdjustment = velTowardsGoal * RPM_FORWARD_MULT;
         } else {
-            // Robô DANDO RÉ (fugindo do cesto)
             rpmAdjustment = velTowardsGoal * RPM_BACKWARD_MULT;
         }
 
