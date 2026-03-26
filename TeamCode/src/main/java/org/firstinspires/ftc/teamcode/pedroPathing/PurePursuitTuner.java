@@ -4,7 +4,6 @@ import com.arcrobotics.ftclib.controller.PIDController;
 import com.bylazar.telemetry.PanelsTelemetry;
 import com.bylazar.telemetry.TelemetryManager;
 import com.pedropathing.geometry.Pose;
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
@@ -15,7 +14,6 @@ import org.firstinspires.ftc.teamcode.utils.Waypoint;
 
 import java.util.ArrayList;
 
-@Disabled
 @TeleOp(name = "Pure Pursuit Tuner", group = "Tuning")
 public class PurePursuitTuner extends LinearOpMode {
 
@@ -54,7 +52,6 @@ public class PurePursuitTuner extends LinearOpMode {
         telemetry.update();
 
         // --- VARIÁVEIS DE ESTADO PARA OS BOTÕES (Rising Edge) ---
-        // Isso impede o "spam" de comandos enquanto o dedo estiver no botão
         boolean lastA = false;
         boolean lastB = false;
         boolean lastY = false;
@@ -70,10 +67,11 @@ public class PurePursuitTuner extends LinearOpMode {
             Pose currentPose = drivetrain.getFollower().getPose();
 
             // Se for nulo (Pedro Pathing ainda a inicializar), pulamos este ciclo
+            // AVISO: Não colocamos drivetrain.stop() aqui para não travar a biblioteca!
             if (currentPose == null) {
                 telemetryM.addData("Status", "A aguardar Odometria...");
                 telemetryM.update();
-                continue; // Volta para o início do while sem fazer contas
+                continue;
             }
             // -----------------------------------------
 
@@ -89,7 +87,6 @@ public class PurePursuitTuner extends LinearOpMode {
             boolean currentX = gamepad1.x;
 
             // 2. CONTROLE PELO GAMEPAD (Com proteção Rising Edge)
-            // Só executa se o botão está pressionado AGORA e não estava ANTES
             if (currentA && !lastA) {
                 ArrayList<Waypoint> p = new ArrayList<>();
                 p.add(new Waypoint(0, 0, 0));
@@ -121,11 +118,24 @@ public class PurePursuitTuner extends LinearOpMode {
             lastY = currentY;
             lastX = currentX;
 
-            // 3. EXECUÇÃO
+            // 3. EXECUÇÃO BLINDADA
             double x = currentPose.getX();
             double y = currentPose.getY();
-            double h = currentPose.getHeading();
+            double h = 0.0;
 
+            // Escudo de Ferro contra o bug de Auto-Unboxing do Pedro Pathing
+            try {
+                h = currentPose.getHeading();
+                // Se a biblioteca devolver um Not-a-Number, forçamos zero
+                if (Double.isNaN(h)) {
+                    h = 0.0;
+                }
+            } catch (NullPointerException e) {
+                // O Pedro Pathing tentou devolver um ângulo fantasma. Assumimos zero temporariamente!
+                h = 0.0;
+            }
+
+            // Usa a matemática do controlador
             double[] powers = controller.update(x, y, h);
 
             // Limite de segurança
