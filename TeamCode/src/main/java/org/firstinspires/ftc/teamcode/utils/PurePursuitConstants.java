@@ -32,4 +32,10 @@ public class PurePursuitConstants {
 
     // Velocidade máxima geral (0 a 1) para limitar o robô se necessário
     public static double MAX_SPEED = 1.0;
+    // --- LIMITADORES DE ACELERAÇÃO (Evitar Derrapagem) ---
+    // Valor 2.0 = O motor leva 0.5s para ir de 0 a potência máxima (1.0)
+    // Valor 1.0 = O motor leva 1.0s para ir de 0 a potência máxima (1.0)
+    public static double ACCEL_FWD = 2.5;
+    public static double ACCEL_STR = 2.0;
+    public static double ACCEL_TURN = 3.0;
 }

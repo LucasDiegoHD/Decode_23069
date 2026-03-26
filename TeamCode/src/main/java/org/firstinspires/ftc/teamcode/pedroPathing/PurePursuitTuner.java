@@ -14,6 +14,7 @@ import org.firstinspires.ftc.teamcode.utils.PurePursuitController;
 import org.firstinspires.ftc.teamcode.utils.Waypoint;
 
 import java.util.ArrayList;
+
 @Disabled
 @TeleOp(name = "Pure Pursuit Tuner", group = "Tuning")
 public class PurePursuitTuner extends LinearOpMode {
@@ -21,7 +22,6 @@ public class PurePursuitTuner extends LinearOpMode {
     private DrivetrainSubsystem drivetrain;
     private PurePursuitController controller;
     static TelemetryManager telemetryM;
-
 
     // PIDs
     private PIDController fwdPID, strPID, headPID;
@@ -31,7 +31,8 @@ public class PurePursuitTuner extends LinearOpMode {
         // Inicializa Dashboard
         telemetryM = PanelsTelemetry.INSTANCE.getTelemetry();
 
-        drivetrain = new DrivetrainSubsystem(hardwareMap, null);
+        // Passando telemetryM para evitar o NullPointerException!
+        drivetrain = new DrivetrainSubsystem(hardwareMap, telemetryM);
 
         // Inicializa PIDs
         fwdPID = new PIDController(PurePursuitConstants.FWD_P, PurePursuitConstants.FWD_I, PurePursuitConstants.FWD_D);
@@ -40,17 +41,24 @@ public class PurePursuitTuner extends LinearOpMode {
 
         controller = new PurePursuitController(fwdPID, strPID, headPID);
 
-        // Define um caminho inicial (vazio ou posição 0) para evitar erro de lista vazia
+        // Define um caminho inicial (posição 0) para evitar erro de lista vazia
         ArrayList<Waypoint> initialPath = new ArrayList<>();
         initialPath.add(new Waypoint(0, 0, 90));
         controller.setPath(initialPath);
 
-        // Força a pose inicial para garantir que não comece como null
-        drivetrain.getFollower().setPose(new Pose(0,0,0));
+        // Força a pose inicial para garantir que não comece como null/NaN
+        drivetrain.getFollower().setPose(new Pose(0, 0, 0));
         drivetrain.periodic();
 
         telemetry.addLine("Pronto para Tuning. Aperte Start.");
         telemetry.update();
+
+        // --- VARIÁVEIS DE ESTADO PARA OS BOTÕES (Rising Edge) ---
+        // Isso impede o "spam" de comandos enquanto o dedo estiver no botão
+        boolean lastA = false;
+        boolean lastB = false;
+        boolean lastY = false;
+        boolean lastX = false;
 
         waitForStart();
 
@@ -59,7 +67,6 @@ public class PurePursuitTuner extends LinearOpMode {
             drivetrain.periodic();
 
             // --- CORREÇÃO DO ERRO DE HEADING VAZIO ---
-            // Capturamos a pose numa variável local
             Pose currentPose = drivetrain.getFollower().getPose();
 
             // Se for nulo (Pedro Pathing ainda a inicializar), pulamos este ciclo
@@ -75,33 +82,46 @@ public class PurePursuitTuner extends LinearOpMode {
             strPID.setPID(PurePursuitConstants.STR_P, PurePursuitConstants.STR_I, PurePursuitConstants.STR_D);
             headPID.setPID(PurePursuitConstants.HEAD_P, PurePursuitConstants.HEAD_I, PurePursuitConstants.HEAD_D);
 
-            // 2. CONTROLE PELO GAMEPAD
-            if (gamepad1.a) {
+            // --- LENDO O ESTADO ATUAL DOS BOTÕES ---
+            boolean currentA = gamepad1.a;
+            boolean currentB = gamepad1.b;
+            boolean currentY = gamepad1.y;
+            boolean currentX = gamepad1.x;
+
+            // 2. CONTROLE PELO GAMEPAD (Com proteção Rising Edge)
+            // Só executa se o botão está pressionado AGORA e não estava ANTES
+            if (currentA && !lastA) {
                 ArrayList<Waypoint> p = new ArrayList<>();
                 p.add(new Waypoint(0, 0, 0));
                 p.add(new Waypoint(24, 0, 0));
                 p.add(new Waypoint(48, 0, 0));
                 controller.setPath(p);
             }
-            else if (gamepad1.b) {
+            else if (currentB && !lastB) {
                 ArrayList<Waypoint> p = new ArrayList<>();
                 p.add(new Waypoint(0, 0, 0));
                 p.add(new Waypoint(0, 24, 0));
                 controller.setPath(p);
             }
-            else if (gamepad1.y) {
+            else if (currentY && !lastY) {
                 ArrayList<Waypoint> p = new ArrayList<>();
                 p.add(new Waypoint(0, 0, 0));
                 p.add(new Waypoint(0, 0, Math.toRadians(90)));
                 controller.setPath(p);
             }
-            else if (gamepad1.x) {
+            else if (currentX && !lastX) {
                 ArrayList<Waypoint> p = new ArrayList<>();
                 p.add(new Waypoint(0, 0, 0)); // Reset
                 controller.setPath(p);
             }
 
-            // 3. EXECUÇÃO (Agora seguro pois currentPose não é null)
+            // --- ATUALIZA O ESTADO ANTIGO PARA O PRÓXIMO CICLO ---
+            lastA = currentA;
+            lastB = currentB;
+            lastY = currentY;
+            lastX = currentX;
+
+            // 3. EXECUÇÃO
             double x = currentPose.getX();
             double y = currentPose.getY();
             double h = currentPose.getHeading();
@@ -109,10 +129,11 @@ public class PurePursuitTuner extends LinearOpMode {
             double[] powers = controller.update(x, y, h);
 
             // Limite de segurança
-            for(int i=0; i<3; i++) {
+            for(int i = 0; i < 3; i++) {
                 powers[i] = Math.max(-PurePursuitConstants.MAX_SPEED, Math.min(PurePursuitConstants.MAX_SPEED, powers[i]));
             }
 
+            // Enviando as potências para o chassi
             drivetrain.driveRobotCentric(powers[1], powers[0], powers[2]);
 
             // 4. TELEMETRIA

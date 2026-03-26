@@ -6,6 +6,7 @@ import java.util.ArrayList;
 /**
  * Custom Pure Pursuit Controller implementation using 3 PIDs.
  * Controls Forward, Strafe, and Heading independently.
+ * Integrado em tempo real com PurePursuitConstants para tuning no Dashboard.
  */
 public class PurePursuitController {
 
@@ -13,22 +14,30 @@ public class PurePursuitController {
     private PIDController strafePID;
     private PIDController headingPID;
 
+    private SlewRateLimiter fwdLimiter;
+    private SlewRateLimiter strLimiter;
+    private SlewRateLimiter turnLimiter;
+
     private ArrayList<Waypoint> path = new ArrayList<>();
     private int lastFoundIndex = 0;
-
-    // Tuning Parameters
-    private double lookaheadDistance = 12.0; // inches
-    private double endTolerance = 1.0; // inches
 
     public PurePursuitController(PIDController fwd, PIDController str, PIDController head) {
         this.forwardPID = fwd;
         this.strafePID = str;
         this.headingPID = head;
+
+        this.fwdLimiter = new SlewRateLimiter(PurePursuitConstants.ACCEL_FWD);
+        this.strLimiter = new SlewRateLimiter(PurePursuitConstants.ACCEL_STR);
+        this.turnLimiter = new SlewRateLimiter(PurePursuitConstants.ACCEL_TURN);
     }
 
     public void setPath(ArrayList<Waypoint> newPath) {
         this.path = newPath;
         this.lastFoundIndex = 0;
+        // Zera os limitadores sempre que iniciar um caminho novo para não dar tranco
+        fwdLimiter.reset(0);
+        strLimiter.reset(0);
+        turnLimiter.reset(0);
     }
 
     /**
@@ -43,42 +52,45 @@ public class PurePursuitController {
         if (path == null || path.isEmpty()) {
             return new double[]{0, 0, 0};
         }
-        // ---------------------------------------------
 
         Waypoint targetPoint = getLookaheadPoint(robotX, robotY);
 
-        // If no lookahead point is found (end of path), aim for the very last waypoint
         if (targetPoint == null) {
             targetPoint = path.get(path.size() - 1);
         }
 
-        // Calculate Global Error
         double errorX = targetPoint.x - robotX;
         double errorY = targetPoint.y - robotY;
 
-        // Check if we are close to the end to stop
         double distToTarget = Math.hypot(errorX, errorY);
-        if (lastFoundIndex >= path.size() - 2 && distToTarget < endTolerance) {
+        if (lastFoundIndex >= path.size() - 2 && distToTarget < PurePursuitConstants.END_TOLERANCE) {
             return new double[]{0, 0, 0};
         }
 
-        // Rotate error to Robot Centric (Field Centric -> Robot Centric transformation)
         double sin = Math.sin(-robotHeading);
         double cos = Math.cos(-robotHeading);
 
-        double errorForward = errorX * cos - errorY * sin; // x*cos - y*sin (Standard rotation matrix)
-        double errorStrafe = errorX * sin + errorY * cos;  // x*sin + y*cos
-
-        // Calculate Heading Error
+        double errorForward = errorX * cos - errorY * sin;
+        double errorStrafe = errorX * sin + errorY * cos;
         double errorHeading = MathUtils.angleWrap(targetPoint.heading - robotHeading);
 
-        // Calculate PID Outputs
-        // We want error to be 0, so setpoint is 0 and measurement is -error
-        double powerForward = forwardPID.calculate(-errorForward, 0);
-        double powerStrafe = strafePID.calculate(-errorStrafe, 0);
-        double powerTurn = headingPID.calculate(-errorHeading, 0);
+        // Atualiza os limites de aceleração em tempo real (caso mude no Dashboard)
+        fwdLimiter.setRateLimit(PurePursuitConstants.ACCEL_FWD);
+        strLimiter.setRateLimit(PurePursuitConstants.ACCEL_STR);
+        turnLimiter.setRateLimit(PurePursuitConstants.ACCEL_TURN);
 
-        return new double[]{powerForward, powerStrafe, powerTurn};
+        // 1. Calcula o PID (Potência Bruta)
+        double rawForward = forwardPID.calculate(-errorForward, 0);
+        double rawStrafe = strafePID.calculate(-errorStrafe, 0);
+        double rawTurn = headingPID.calculate(-errorHeading, 0);
+
+        // 2. Passa a Potência Bruta pelo Limitador (Potência Suavizada)
+        double smoothForward = fwdLimiter.calculate(rawForward);
+        double smoothStrafe = strLimiter.calculate(rawStrafe);
+        double smoothTurn = turnLimiter.calculate(rawTurn);
+
+        // Retorna a potência que não vai fazer o robô derrapar
+        return new double[]{smoothForward, smoothStrafe, smoothTurn};
     }
 
     private Waypoint getLookaheadPoint(double robotX, double robotY) {
@@ -88,7 +100,11 @@ public class PurePursuitController {
             Waypoint start = path.get(i);
             Waypoint end = path.get(i + 1);
 
-            Waypoint intersection = MathUtils.getCircleLineIntersection(robotX, robotY, lookaheadDistance, start.x, start.y, end.x, end.y);
+            // Usa a constante do Dashboard em tempo real
+            Waypoint intersection = MathUtils.getCircleLineIntersection(
+                    robotX, robotY, PurePursuitConstants.LOOKAHEAD_DISTANCE,
+                    start.x, start.y, end.x, end.y
+            );
 
             if (intersection != null) {
                 // Linearly interpolate the heading based on distance
@@ -109,6 +125,8 @@ public class PurePursuitController {
     public boolean isFinished(double robotX, double robotY) {
         if (path.isEmpty()) return true;
         Waypoint last = path.get(path.size() - 1);
-        return Math.hypot(robotX - last.x, robotY - last.y) < endTolerance;
+
+        // Usa a constante do Dashboard para verificar se já chegou
+        return Math.hypot(robotX - last.x, robotY - last.y) < PurePursuitConstants.END_TOLERANCE;
     }
 }
