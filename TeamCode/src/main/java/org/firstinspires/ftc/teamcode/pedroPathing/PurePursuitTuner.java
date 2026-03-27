@@ -44,8 +44,13 @@ public class PurePursuitTuner extends LinearOpMode {
         initialPath.add(new Waypoint(0, 0, 90));
         controller.setPath(initialPath);
 
-        // Força a pose inicial para garantir que não comece como null/NaN
-        drivetrain.getFollower().setPose(new Pose(0, 0, 0));
+        // --- INICIALIZAÇÃO OBRIGATÓRIA DO PEDRO PATHING ---
+        // Força a pose inicial do Localizer para garantir que não comece como null/NaN
+        drivetrain.getFollower().setStartingPose(new Pose(0, 0, 0));
+
+        // Acorda o VectorCalculator interno do Pedro Pathing para evitar o NPE na linha 136
+        drivetrain.getFollower().startTeleopDrive();
+
         drivetrain.periodic();
 
         telemetry.addLine("Pronto para Tuning. Aperte Start.");
@@ -67,7 +72,6 @@ public class PurePursuitTuner extends LinearOpMode {
             Pose currentPose = drivetrain.getFollower().getPose();
 
             // Se for nulo (Pedro Pathing ainda a inicializar), pulamos este ciclo
-            // AVISO: Não colocamos drivetrain.stop() aqui para não travar a biblioteca!
             if (currentPose == null) {
                 telemetryM.addData("Status", "A aguardar Odometria...");
                 telemetryM.update();
@@ -144,8 +148,7 @@ public class PurePursuitTuner extends LinearOpMode {
             }
 
             // Enviando as potências para o chassi
-            drivetrain.driveRobotCentric(powers[1], powers[0], powers[2]);
-
+            drivetrain.driveRobotCentric(powers[0], powers[1], powers[2]);
             // 4. TELEMETRIA
             telemetryM.addData("X", x);
             telemetryM.addData("Y", y);

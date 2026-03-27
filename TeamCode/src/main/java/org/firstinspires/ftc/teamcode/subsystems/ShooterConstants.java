@@ -69,6 +69,7 @@ public class ShooterConstants {
     public static double TRIGGER_TIMER_TO_SHOOT = 800;
     public static double TRIGGER_TIMER_TRIGGERING = 800;
     public static double DELAY_BETWEEN_SHOTS_MS = 10;
+    public static double TRIGGER_FOLLOW_THROUGH_MS = 150;
 
 
     /**
@@ -100,7 +101,7 @@ public class ShooterConstants {
      * * Fit: Linear Approx
      * Formula: y = 434x + 2480
      */
-    public static double RPM_N0 = 2200.3;
+    public static double RPM_N0 = 2230.3;
     public static double RPM_N1 = -303.7;
     public static double RPM_N2 = 133.2;
     public static double ANGLE_KP = 0.8;

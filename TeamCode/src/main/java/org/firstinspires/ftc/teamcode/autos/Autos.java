@@ -120,7 +120,8 @@ public class Autos extends CommandOpMode {
         if (robot != null) {
             robot.clearBulkCache();
         }
-        CommandScheduler.getInstance().run();
+        super.run();
+
         if (telemetryM != null) {
             telemetryM.update();
         }

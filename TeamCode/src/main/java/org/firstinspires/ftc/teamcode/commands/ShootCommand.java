@@ -19,11 +19,12 @@ public class ShootCommand extends CommandBase {
     private final ElapsedTime timer = new ElapsedTime();
     private final ElapsedTime cooldownTimer = new ElapsedTime();
 
-
+    // Adicionamos apenas o FollowThrough aqui!
     private enum SHOOT_STATES {
         Conveyor,
         Acceleration,
         Shooting,
+        FollowThrough,
         Cooldown
     }
 
@@ -59,7 +60,6 @@ public class ShootCommand extends CommandBase {
 
         switch (state) {
             case Conveyor:
-
                 if (indexer.getExitSensor()) {
                     intake.stop();
                 } else {
@@ -67,11 +67,14 @@ public class ShootCommand extends CommandBase {
                 }
 
                 if (indexer.getExitSensor() || timer.milliseconds() > ShooterConstants.TRIGGER_TIMER_TO_SHOOT) {
-
                     if (shooter.getShooterAtTarget()) {
                         state = SHOOT_STATES.Shooting;
                         shooter.anticipateShot();
+
+                        // LIGA AQUI (Apenas 1 vez na transição!)
                         intake.runTrigger();
+                        intake.run();
+
                         timer.reset();
                     } else {
                         state = SHOOT_STATES.Acceleration;
@@ -89,7 +92,11 @@ public class ShootCommand extends CommandBase {
                 if (shooter.getShooterAtTarget()) {
                     state = SHOOT_STATES.Shooting;
                     shooter.anticipateShot();
+
+                    // LIGA AQUI (Apenas 1 vez na transição!)
                     intake.runTrigger();
+                    intake.run();
+
                     timer.reset();
                 }
                 break;
@@ -97,19 +104,38 @@ public class ShootCommand extends CommandBase {
             case Shooting:
                 boolean pieceHasLeft = !indexer.getExitSensor();
 
-                if (pieceHasLeft || timer.milliseconds() > ShooterConstants.TRIGGER_TIMER_TRIGGERING) {
+                // APAGAMOS OS COMANDOS DAQUI!
+                // O motor já está ligado, não precisamos ficar avisando o hardware todo loop.
 
+                if (pieceHasLeft || timer.milliseconds() > ShooterConstants.TRIGGER_TIMER_TRIGGERING) {
                     if (shooterCounter > 0) {
                         shooterCounter--;
                     }
 
+                    state = SHOOT_STATES.FollowThrough;
+                    timer.reset();
+                }
+                break;
+
+            case FollowThrough:
+                // APAGAMOS OS COMANDOS DAQUI TAMBÉM!
+                // O motor continua girando embalado perfeitamente.
+
+                if (timer.milliseconds() > ShooterConstants.TRIGGER_FOLLOW_THROUGH_MS) {
+
                     if (shooterCounter > 0) {
                         state = SHOOT_STATES.Cooldown;
+
+                        // DESLIGA AQUI (Apenas 1 vez!)
                         intake.stopTrigger();
                         intake.stop();
                         cooldownTimer.reset();
                     } else {
                         state = SHOOT_STATES.Conveyor;
+
+                        // DESLIGA AQUI (Apenas 1 vez!)
+                        intake.stopTrigger();
+                        intake.stop();
                     }
                 }
                 break;

@@ -64,7 +64,7 @@ public class AutonomousTuffCommand extends SequentialCommandGroup {
                 new UpdatePoseLimelightCommand(drivetrain, vision, poses.get(PosesNames.GoToShoot1.ordinal())),
                 new AlignAndAdjustAutoCommand(drivetrain, vision, shooter),
                 new WaitCommand(1500),
-                new ShootCommandAutonomous(shooter, intake, indexer,3, ledSubsystem ).withTimeout(3000),
+                new ShootCommandAutonomous(shooter, intake, indexer,3).withTimeout(3000),
                 new InstantCommand(intake::run),
                 new GoToPoseCommand(drivetrain, true,
                         poses.get(PosesNames.GoToLine1.ordinal()),
@@ -73,7 +73,7 @@ public class AutonomousTuffCommand extends SequentialCommandGroup {
                 new GoToPoseCommand(drivetrain, poses.get(PosesNames.GoToShoot1.ordinal())),
                 new AlignAndAdjustAutoCommand(drivetrain, vision, shooter),
                 new WaitCommand(500),
-                new ShootCommandAutonomous(shooter, intake, indexer,3, ledSubsystem ).withTimeout(3000),
+                new ShootCommandAutonomous(shooter, intake, indexer,3 ).withTimeout(3000),
                 new InstantCommand(intake::run),
                 new GoToPoseCommand(drivetrain, true,
                         poses.get(PosesNames.GoToLine2.ordinal()),
@@ -84,7 +84,7 @@ public class AutonomousTuffCommand extends SequentialCommandGroup {
                 new GoToPoseCommand(drivetrain, poses.get(PosesNames.GoToShoot2.ordinal())),
                 new AlignAndAdjustAutoCommand(drivetrain, vision, shooter),
                 new WaitCommand(500),
-                new ShootCommandAutonomous(shooter, intake, indexer,3, ledSubsystem).withTimeout(3000),
+                new ShootCommandAutonomous(shooter, intake, indexer,3).withTimeout(3000),
                 new WaitCommand(300),
                 new InstantCommand(intake::run),
                 new GoToPoseCommand(drivetrain, true,
@@ -96,7 +96,7 @@ public class AutonomousTuffCommand extends SequentialCommandGroup {
                 new GoToPoseCommand(drivetrain, poses.get(PosesNames.GoToShoot1.ordinal())),
                 new AlignAndAdjustAutoCommand(drivetrain, vision, shooter),
                 new WaitCommand(500),
-                new ShootCommandAutonomous(shooter, intake, indexer,3, ledSubsystem).withTimeout(3000),
+                new ShootCommandAutonomous(shooter, intake, indexer,3).withTimeout(3000),
                 new InstantCommand(intake::run),
                 new GoToPoseCommand(drivetrain, true,
                         poses.get(PosesNames.GoToLine2.ordinal()),
@@ -106,7 +106,7 @@ public class AutonomousTuffCommand extends SequentialCommandGroup {
                 new GoToPoseCommand(drivetrain, poses.get(PosesNames.GoToShoot1.ordinal())),
                 new AlignAndAdjustAutoCommand(drivetrain, vision, shooter),
                 new WaitCommand(500),
-                new ShootCommandAutonomous(shooter, intake, indexer,3, ledSubsystem ).withTimeout(3000)
+                new ShootCommandAutonomous(shooter, intake, indexer,3).withTimeout(3000)
         );
         addRequirements(drivetrain, shooter, intake);
     }

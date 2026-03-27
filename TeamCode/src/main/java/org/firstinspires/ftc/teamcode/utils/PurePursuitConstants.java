@@ -6,9 +6,9 @@ import com.bylazar.configurables.annotations.Configurable;
 public class PurePursuitConstants {
 
     // --- FORWARD PID (Controla distância frente/trás) ---
-    public static double FWD_P = 0.1;
-    public static double FWD_I = 0.0;
-    public static double FWD_D = 0.0;
+    public static double FWD_P = 0.005;
+    public static double FWD_I = 0.01;
+    public static double FWD_D = 0.01;
 
     // --- STRAFE PID (Controla erro lateral) ---
     public static double STR_P = 0.12;
@@ -25,7 +25,7 @@ public class PurePursuitConstants {
     // Distância do "Círculo de Lookahead".
     // Maior = Curvas mais suaves (corta caminho).
     // Menor = Segue a linha mais fielmente (pode oscilar).
-    public static double LOOKAHEAD_DISTANCE = 12.0;
+    public static double LOOKAHEAD_DISTANCE = 10.0;
 
     // O quão perto do ponto final o robô precisa estar para considerar "Terminado"
     public static double END_TOLERANCE = 1.0;
@@ -35,7 +35,7 @@ public class PurePursuitConstants {
     // --- LIMITADORES DE ACELERAÇÃO (Evitar Derrapagem) ---
     // Valor 2.0 = O motor leva 0.5s para ir de 0 a potência máxima (1.0)
     // Valor 1.0 = O motor leva 1.0s para ir de 0 a potência máxima (1.0)
-    public static double ACCEL_FWD = 2.5;
+    public static double ACCEL_FWD = 2.0;
     public static double ACCEL_STR = 2.0;
-    public static double ACCEL_TURN = 3.0;
+    public static double ACCEL_TURN = 2.0;
 }

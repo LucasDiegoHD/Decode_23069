@@ -47,6 +47,7 @@ public class RobotContainer {
     private final IndexerSubsystem indexer;
     private final LEDSubsystem led;
     //private final HuskySubsystem husky;
+    private final ClimberSubsystem climber;
     private boolean isShooterAutoAdjustActive = true;
     private List<LynxModule> allHubs;
     private long tempoDoUltimoLoop = 0;
@@ -65,6 +66,8 @@ public class RobotContainer {
         indexer = new IndexerSubsystem(hardwareMap, telemetry);
         led = new LEDSubsystem(hardwareMap);
         //husky = new HuskySubsystem(hardwareMap,telemetry);
+        climber = new ClimberSubsystem(hardwareMap);
+
 
         led.setDefaultCommand(new LedCommand(led, indexer));
 
@@ -161,6 +164,15 @@ public class RobotContainer {
 
                     new GamepadButton(driver, GamepadKeys.Button.RIGHT_BUMPER)
                             .whileHeld(new AutoShootCommand(drivetrain, vision, shooter, intake, indexer, endPose, led));
+
+            new GamepadButton(driver, GamepadKeys.Button. DPAD_UP)
+                    .whileHeld(new InstantCommand(climber::esticar, climber))
+                    .whenReleased(new InstantCommand(climber::stop, climber));
+
+            new GamepadButton(driver, GamepadKeys.Button. DPAD_DOWN)
+                    .whileHeld(new InstantCommand(climber::recolher, climber))
+                    .whenReleased(new InstantCommand(climber::stop, climber));
+
         }
 
         if (operator!= null) {
