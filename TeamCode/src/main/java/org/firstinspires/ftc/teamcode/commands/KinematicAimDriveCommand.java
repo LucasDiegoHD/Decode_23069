@@ -6,7 +6,6 @@ import com.arcrobotics.ftclib.gamepad.GamepadEx;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.Pose;
 import com.pedropathing.math.Vector;
-
 import org.firstinspires.ftc.teamcode.subsystems.DrivetrainSubsystem;
 import org.firstinspires.ftc.teamcode.subsystems.ShooterConstants;
 
@@ -24,7 +23,7 @@ public class KinematicAimDriveCommand extends CommandBase {
     // --- VARIÁVEIS DO FILTRO DE FLUIDEZ ---
     private double smoothedVelX = 0.0;
     private double smoothedVelY = 0.0;
-    private static final double VEL_ALPHA = 0.25; // Quanto menor, mais suave (mas demora mais pra reagir). 0.25 é o ponto doce.
+    private static final double VEL_ALPHA = 0.5; // Quanto menor, mais suave (mas demora mais pra reagir). 0.25 é o ponto doce.
 
     public KinematicAimDriveCommand(DrivetrainSubsystem drivetrain, GamepadEx driver, double targetX, double targetY) {
         this.follower = drivetrain.getFollower();
