@@ -6,8 +6,11 @@ import com.arcrobotics.ftclib.gamepad.GamepadEx;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.Pose;
 import com.pedropathing.math.Vector;
+
 import org.firstinspires.ftc.teamcode.subsystems.DrivetrainSubsystem;
 import org.firstinspires.ftc.teamcode.subsystems.ShooterConstants;
+import org.firstinspires.ftc.teamcode.utils.AllianceEnum;
+import org.firstinspires.ftc.teamcode.utils.DataStorage;
 
 public class KinematicAimDriveCommand extends CommandBase {
 
@@ -16,14 +19,15 @@ public class KinematicAimDriveCommand extends CommandBase {
     private final GamepadEx driver;
     private final double targetX;
     private final double targetY;
+    private boolean isAtTarget = false;
 
     private static final double ARTIFACT_VELOCITY_INCHES_PER_SEC = 400.0;
-    private static final double SYSTEM_LATENCY_SECONDS = 0.20;
+    private static final double SYSTEM_LATENCY_SECONDS = 0.30;
 
     // --- VARIÁVEIS DO FILTRO DE FLUIDEZ ---
     private double smoothedVelX = 0.0;
     private double smoothedVelY = 0.0;
-    private static final double VEL_ALPHA = 0.5; // Quanto menor, mais suave (mas demora mais pra reagir). 0.25 é o ponto doce.
+    private static final double VEL_ALPHA = 0.8;
 
     public KinematicAimDriveCommand(DrivetrainSubsystem drivetrain, GamepadEx driver, double targetX, double targetY) {
         this.follower = drivetrain.getFollower();
@@ -47,19 +51,16 @@ public class KinematicAimDriveCommand extends CommandBase {
         turnController.setSetPoint(0);
         turnController.setTolerance((Math.PI / 180.0) * ShooterConstants.ANGLE_TOLERANCE);
 
-        // Zera o filtro ao iniciar o comando
         smoothedVelX = follower.getVelocity().getXComponent();
         smoothedVelY = follower.getVelocity().getYComponent();
     }
 
     @Override
     public void execute() {
-        // Leitura do piloto (Mantive a sua inversão de X e Y)
         double forward = -driver.getLeftX();
         double strafe = -driver.getLeftY();
 
-        // --- INVERSÃO FIELD-ORIENTED (Lado Azul) ---
-        if (org.firstinspires.ftc.teamcode.utils.DataStorage.alliance == org.firstinspires.ftc.teamcode.utils.AllianceEnum.Blue) {
+        if (DataStorage.alliance == AllianceEnum.Blue) {
             forward = -forward;
             strafe = -strafe;
         }
@@ -67,10 +68,13 @@ public class KinematicAimDriveCommand extends CommandBase {
         Pose pose = follower.getPose();
         Vector velocity = follower.getVelocity();
 
-        // --- FILTRO PASSA-BAIXA (A "Manteiga") ---
-        // Pega a tremedeira do sensor e transforma num deslize perfeito
         smoothedVelX = (VEL_ALPHA * velocity.getXComponent()) + ((1 - VEL_ALPHA) * smoothedVelX);
         smoothedVelY = (VEL_ALPHA * velocity.getYComponent()) + ((1 - VEL_ALPHA) * smoothedVelY);
+
+        // --- A MÁGICA SEGURA: VELOCITY DEADBAND ---
+        // Ignora ruídos e micro-vibrações menores que 1.5 in/s nas rodas de odometria.
+        if (Math.abs(smoothedVelX) < 1.5) smoothedVelX = 0.0;
+        if (Math.abs(smoothedVelY) < 1.5) smoothedVelY = 0.0;
 
         double robotX = pose.getX();
         double robotY = pose.getY();
@@ -81,7 +85,6 @@ public class KinematicAimDriveCommand extends CommandBase {
         double distanceToTarget = Math.hypot(diffX, diffY);
         if (distanceToTarget < 1.0) distanceToTarget = 1.0;
 
-        // --- VELOCIDADE DINÂMICA DA BOLA (Doppler) ---
         double targetDirX = diffX / distanceToTarget;
         double targetDirY = diffY / distanceToTarget;
         double velTowardsGoal = (smoothedVelX * targetDirX) + (smoothedVelY * targetDirY);
@@ -92,7 +95,6 @@ public class KinematicAimDriveCommand extends CommandBase {
         double timeOfFlight = distanceToTarget / effectiveArtifactVelocity;
         double totalPredictionTime = timeOfFlight + SYSTEM_LATENCY_SECONDS;
 
-        // Usamos a velocidade FILTRADA para o alvo virtual!
         double virtualX = targetX - (smoothedVelX * totalPredictionTime);
         double virtualY = targetY - (smoothedVelY * totalPredictionTime);
 
@@ -102,10 +104,20 @@ public class KinematicAimDriveCommand extends CommandBase {
         turnController.setPIDF(ShooterConstants.ANGLE_KP, ShooterConstants.ANGLE_KI, ShooterConstants.ANGLE_KD, ShooterConstants.ANGLE_KF);
         double turnPower = turnController.calculate(error);
 
-        // --- PROTEÇÃO ANTI-VIBRAÇÃO DO kF ---
-        double toleranceRads = (Math.PI / 180.0) * ShooterConstants.ANGLE_TOLERANCE;
+        double innerTolerance = Math.toRadians(ShooterConstants.ANGLE_TOLERANCE);
+        double outerTolerance = innerTolerance + Math.toRadians(0.5);
 
-        if (Math.abs(error) > toleranceRads) {
+        if (isAtTarget) {
+            if (Math.abs(error) > outerTolerance) {
+                isAtTarget = false;
+            }
+        } else {
+            if (Math.abs(error) < innerTolerance) {
+                isAtTarget = true;
+            }
+        }
+
+        if (!isAtTarget) {
             turnPower += Math.copySign(ShooterConstants.ANGLE_KF, turnPower);
         } else {
             turnPower = 0.0;

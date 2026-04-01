@@ -69,7 +69,7 @@ public class ShooterConstants {
     public static double TRIGGER_TIMER_TO_SHOOT = 800;
     public static double TRIGGER_TIMER_TRIGGERING = 800;
     public static double DELAY_BETWEEN_SHOTS_MS = 10;
-    public static double TRIGGER_FOLLOW_THROUGH_MS = 150;
+    public static double TRIGGER_FOLLOW_THROUGH_MS = 200;
 
 
     /**
@@ -107,6 +107,6 @@ public class ShooterConstants {
     public static double ANGLE_KP = 0.8;
     public static double ANGLE_KI = 0.02;
     public static double ANGLE_KD = 0.1;
-    public static double ANGLE_KF = 0.14;
+    public static double ANGLE_KF = 0.12;
     public static double ANGLE_TOLERANCE = 0.1;
 }

@@ -139,7 +139,7 @@ public class RobotContainer {
             new GamepadButton(driver, GamepadKeys.Button.Y)
                     .whileHeld(new AlignToAprilTagCommand(drivetrain, vision, telemetry, operator));
 
-            double targetx = (alliance == AllianceEnum.Red)? 142 : 2;
+            double targetx = (alliance == AllianceEnum.Red)? 144 : 0;
             double targety = 144;
 
             new GamepadButton(driver, GamepadKeys.Button.X)
@@ -160,7 +160,7 @@ public class RobotContainer {
                     .whenReleased(new InstantCommand(intake::stop, intake));
 
             new Trigger(() -> driver.getTrigger(GamepadKeys.Trigger.RIGHT_TRIGGER) > 0.3)
-                    .whileActiveContinuous(new KinematicAimDriveCommand(drivetrain, driver, goalX, goalY));
+                    .whileActiveContinuous(new KinematicAimDriveCommand(drivetrain, driver, targetx, targety));
 
                     new GamepadButton(driver, GamepadKeys.Button.RIGHT_BUMPER)
                             .whileHeld(new AutoShootCommand(drivetrain, vision, shooter, intake, indexer, endPose, led));
