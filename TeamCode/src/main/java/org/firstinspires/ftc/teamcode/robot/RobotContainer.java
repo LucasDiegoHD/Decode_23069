@@ -208,6 +208,14 @@ public class RobotContainer {
         new GamepadButton(operator, GamepadKeys.Button.DPAD_UP)
                 .whenPressed(new InstantCommand(() -> isShooterAutoAdjustActive = true));
 
+        new GamepadButton(operator, GamepadKeys.Button.START)
+                .whenPressed(new InstantCommand(drivetrain::toggleAutoShoot));
+
+        Trigger autoShootTrigger = new Trigger(() ->
+                drivetrain.isAutoShootEnabled() && drivetrain.isInShootingZone() && drivetrain.isAimLocked()
+        );
+        autoShootTrigger.whenActive(new ShootCommand(shooter, intake, indexer, 3));
+
     }
     public void clearBulkCache() {
         if (allHubs != null) {

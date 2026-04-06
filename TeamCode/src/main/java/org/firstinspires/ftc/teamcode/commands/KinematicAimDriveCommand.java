@@ -15,6 +15,7 @@ import org.firstinspires.ftc.teamcode.utils.DataStorage;
 public class KinematicAimDriveCommand extends CommandBase {
 
     private final Follower follower;
+    private final DrivetrainSubsystem drivetrain;
     private final PIDFController turnController;
     private final GamepadEx driver;
     private final double targetX;
@@ -31,6 +32,7 @@ public class KinematicAimDriveCommand extends CommandBase {
 
     public KinematicAimDriveCommand(DrivetrainSubsystem drivetrain, GamepadEx driver, double targetX, double targetY) {
         this.follower = drivetrain.getFollower();
+        this.drivetrain = drivetrain;
         this.driver = driver;
         this.targetX = targetX;
         this.targetY = targetY;
@@ -116,11 +118,11 @@ public class KinematicAimDriveCommand extends CommandBase {
                 isAtTarget = true;
             }
         }
-
+        
         if (!isAtTarget) {
             turnPower += Math.copySign(ShooterConstants.ANGLE_KF, turnPower);
         }
-
+        drivetrain.setAimLocked(isAtTarget);
         turnPower = Math.max(-1.0, Math.min(1.0, turnPower));
 
         follower.setTeleOpDrive(-strafe, forward, -turnPower, true);
@@ -129,6 +131,7 @@ public class KinematicAimDriveCommand extends CommandBase {
     @Override
     public void end(boolean interrupted) {
         follower.setTeleOpDrive(0, 0, 0, true);
+        drivetrain.setAimLocked(false);
     }
 
     private double angleDifference(double target, double current) {
