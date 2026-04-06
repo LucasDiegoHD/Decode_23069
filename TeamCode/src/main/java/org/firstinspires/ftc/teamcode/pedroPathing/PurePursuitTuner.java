@@ -130,25 +130,28 @@ public class PurePursuitTuner extends LinearOpMode {
             // Escudo de Ferro contra o bug de Auto-Unboxing do Pedro Pathing
             try {
                 h = currentPose.getHeading();
-                // Se a biblioteca devolver um Not-a-Number, forçamos zero
                 if (Double.isNaN(h)) {
                     h = 0.0;
                 }
             } catch (NullPointerException e) {
-                // O Pedro Pathing tentou devolver um ângulo fantasma. Assumimos zero temporariamente!
                 h = 0.0;
             }
 
             // Usa a matemática do controlador
+            // A Vetorização retorna: [0] = Forward, [1] = Strafe, [2] = Turn
             double[] powers = controller.update(x, y, h);
 
-            // Limite de segurança
-            for(int i = 0; i < 3; i++) {
-                powers[i] = Math.max(-PurePursuitConstants.MAX_SPEED, Math.min(PurePursuitConstants.MAX_SPEED, powers[i]));
-            }
+            double forward = powers[0];
+            double strafe = powers[1];
+            double turn = powers[2];
 
-            // Enviando as potências para o chassi
-            drivetrain.driveRobotCentric(powers[0], powers[1], powers[2]);
+            // Limite de segurança (Clip)
+            forward = Math.max(-PurePursuitConstants.MAX_SPEED, Math.min(PurePursuitConstants.MAX_SPEED, forward));
+            strafe = Math.max(-PurePursuitConstants.MAX_SPEED, Math.min(PurePursuitConstants.MAX_SPEED, strafe));
+            turn = Math.max(-PurePursuitConstants.MAX_SPEED, Math.min(PurePursuitConstants.MAX_SPEED, turn));
+
+            drivetrain.driveRobotCentric(forward, strafe, turn);
+
             // 4. TELEMETRIA
             telemetryM.addData("X", x);
             telemetryM.addData("Y", y);

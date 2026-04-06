@@ -105,7 +105,7 @@ public class KinematicAimDriveCommand extends CommandBase {
         double turnPower = turnController.calculate(error);
 
         double innerTolerance = Math.toRadians(ShooterConstants.ANGLE_TOLERANCE);
-        double outerTolerance = innerTolerance + Math.toRadians(0.5);
+        double outerTolerance = innerTolerance + Math.toRadians(1.5);
 
         if (isAtTarget) {
             if (Math.abs(error) > outerTolerance) {
@@ -119,8 +119,6 @@ public class KinematicAimDriveCommand extends CommandBase {
 
         if (!isAtTarget) {
             turnPower += Math.copySign(ShooterConstants.ANGLE_KF, turnPower);
-        } else {
-            turnPower = 0.0;
         }
 
         turnPower = Math.max(-1.0, Math.min(1.0, turnPower));
