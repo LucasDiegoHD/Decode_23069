@@ -18,8 +18,6 @@ public class ShootCommand extends CommandBase {
 
     private final ElapsedTime timer = new ElapsedTime();
     private final ElapsedTime cooldownTimer = new ElapsedTime();
-
-    // Adicionamos apenas o FollowThrough aqui!
     private enum SHOOT_STATES {
         Conveyor,
         Acceleration,
@@ -70,8 +68,6 @@ public class ShootCommand extends CommandBase {
                     if (shooter.getShooterAtTarget()) {
                         state = SHOOT_STATES.Shooting;
                         shooter.anticipateShot();
-
-                        // LIGA AQUI (Apenas 1 vez na transição!)
                         intake.runTrigger();
                         intake.run();
 
@@ -92,8 +88,6 @@ public class ShootCommand extends CommandBase {
                 if (shooter.getShooterAtTarget()) {
                     state = SHOOT_STATES.Shooting;
                     shooter.anticipateShot();
-
-                    // LIGA AQUI (Apenas 1 vez na transição!)
                     intake.runTrigger();
                     intake.run();
 
@@ -103,9 +97,6 @@ public class ShootCommand extends CommandBase {
 
             case Shooting:
                 boolean pieceHasLeft = !indexer.getExitSensor();
-
-                // APAGAMOS OS COMANDOS DAQUI!
-                // O motor já está ligado, não precisamos ficar avisando o hardware todo loop.
 
                 if (pieceHasLeft || timer.milliseconds() > ShooterConstants.TRIGGER_TIMER_TRIGGERING) {
                     if (shooterCounter > 0) {
@@ -118,8 +109,6 @@ public class ShootCommand extends CommandBase {
                 break;
 
             case FollowThrough:
-                // APAGAMOS OS COMANDOS DAQUI TAMBÉM!
-                // O motor continua girando embalado perfeitamente.
 
                 if (timer.milliseconds() > ShooterConstants.TRIGGER_FOLLOW_THROUGH_MS) {
 
@@ -132,8 +121,6 @@ public class ShootCommand extends CommandBase {
                         cooldownTimer.reset();
                     } else {
                         state = SHOOT_STATES.Conveyor;
-
-                        // DESLIGA AQUI (Apenas 1 vez!)
                         intake.stopTrigger();
                         intake.stop();
                     }

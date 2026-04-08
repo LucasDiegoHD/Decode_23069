@@ -8,14 +8,19 @@ import com.bylazar.telemetry.TelemetryManager;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.robotcore.hardware.VoltageSensor;
 
 public class ElevatorSubsystem extends SubsystemBase {
 
     private final DcMotorEx leftLift, rightLift;
+    private final VoltageSensor voltageSensor;
+
     private final TelemetryManager telemetry;
     private final ProfiledPIDController controller;
-    private final ElevatorFeedforward feedforward;
+
     private double lastPower = 0;
+    private boolean hasGamePiece = false;
+
     public enum ElevatorState {
         RETRACTED(ElevatorConstants.POS_RETRACTED),
         LOW_BASKET(ElevatorConstants.POS_LOW_BASKET),
@@ -34,6 +39,8 @@ public class ElevatorSubsystem extends SubsystemBase {
 
         leftLift = hardwareMap.get(DcMotorEx.class, ElevatorConstants.LEFT_MOTOR_NAME);
         rightLift = hardwareMap.get(DcMotorEx.class, ElevatorConstants.RIGHT_MOTOR_NAME);
+
+        voltageSensor = hardwareMap.voltageSensor.iterator().next();
 
         leftLift.setDirection(DcMotor.Direction.REVERSE);
 
@@ -54,15 +61,14 @@ public class ElevatorSubsystem extends SubsystemBase {
         controller = new ProfiledPIDController(
                 ElevatorConstants.kP, ElevatorConstants.kI, ElevatorConstants.kD, constraints
         );
-
-        feedforward = new ElevatorFeedforward(
-                ElevatorConstants.kS, ElevatorConstants.kG, ElevatorConstants.kV, ElevatorConstants.kA
-        );
     }
 
     public void setTargetState(ElevatorState state) {
         this.currentState = state;
         controller.setGoal(state.targetPosition);
+    }
+    public void setHasGamePiece(boolean hasPiece) {
+        this.hasGamePiece = hasPiece;
     }
 
     public int getCurrentPosition() {
@@ -81,16 +87,29 @@ public class ElevatorSubsystem extends SubsystemBase {
 
         double pidOutput = controller.calculate(currentPos);
         TrapezoidProfile.State setpoint = controller.getSetpoint();
-        double ffOutput = feedforward.calculate(setpoint.velocity);
 
-        double power = pidOutput + ffOutput;
+        double dynamicKG = ElevatorConstants.kG;
+        if (hasGamePiece) {
+            dynamicKG += ElevatorConstants.kG_EXTRA_PAYLOAD;
+        }
+
+        double ffOutput = (ElevatorConstants.kS * Math.signum(setpoint.velocity))
+                + dynamicKG
+                + (ElevatorConstants.kV * setpoint.velocity);
+
+        double rawPower = pidOutput + ffOutput;
+
+        double voltage = voltageSensor.getVoltage();
+        double voltageMultiplier = 12.0 / voltage;
+        double power = rawPower * voltageMultiplier;
 
         if (currentPos <= ElevatorConstants.MIN_POSITION_TICKS && power < 0) {
             power = 0;
         } else if (currentPos >= ElevatorConstants.MAX_POSITION_TICKS && power > 0) {
-            power = ElevatorConstants.kG;
+            power = dynamicKG * voltageMultiplier;
         }
 
+        // Otimização I2C
         if (Math.abs(power - lastPower) > 0.0005) {
             leftLift.setPower(power);
             rightLift.setPower(power);
@@ -100,6 +119,7 @@ public class ElevatorSubsystem extends SubsystemBase {
         telemetry.addData("Elevator State", currentState.name());
         telemetry.addData("Elevator Pos", currentPos);
         telemetry.addData("Elevator Target", controller.getGoal().position);
-        telemetry.addData("Elevator Power Sent", lastPower);
+        telemetry.addData("Payload Active", hasGamePiece);
+        telemetry.addData("Voltage Multiplier", voltageMultiplier);
     }
 }

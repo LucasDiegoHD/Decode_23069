@@ -23,8 +23,6 @@ public class IndexerSubsystem extends SubsystemBase {
     private long lastExitCountTime = 0;
 
     private static final long DEBOUNCE_DELAY_MS = 100;
-
-    // O SEGREDO 1: 'volatile' obriga a memória a se atualizar instantaneamente entre os núcleos do processador
     private volatile double currentEntryDist = 23069.0;
     private volatile double currentExitDist = 23069.0;
 
@@ -40,7 +38,6 @@ public class IndexerSubsystem extends SubsystemBase {
         exitSensor = hardwareMap.get(DistanceSensor.class, IndexerConstants.EXIT_SENSOR_NAME);
         entrySensor = hardwareMap.get(DistanceSensor.class, IndexerConstants.ENTRY_SENSOR_NAME);
 
-        // Dá a partida no processamento paralelo assim que o robô liga!
         iniciarThreadDeSensores();
     }
 
@@ -48,21 +45,16 @@ public class IndexerSubsystem extends SubsystemBase {
         sensorThread = new Thread(() -> {
             while (!Thread.currentThread().isInterrupted()) {
                 try {
-                    // ISSO AGORA TRAVA O NÚCLEO SECUNDÁRIO, NÃO O ROBÔ!
-                    // O Pedro Pathing continua voando na Main Thread enquanto o sensor pensa.
                     currentEntryDist = entrySensor.getDistance(DistanceUnit.CM);
                     currentExitDist = exitSensor.getDistance(DistanceUnit.CM);
 
-                    // Pausa de 30ms para não congestionar os cabos I2C
-                    Thread.sleep(30);
+                    Thread.sleep(50);
                 } catch (InterruptedException e) {
-                    Thread.currentThread().interrupt(); // Encerra limpo
+                    Thread.currentThread().interrupt();
                 } catch (Exception e) {
-                    // Ignora erros caso o cabo balance
                 }
             }
         });
-        // Daemon = Garante que essa thread morra instantaneamente quando você apertar o STOP no celular
         sensorThread.setDaemon(true);
         sensorThread.start();
     }
@@ -70,9 +62,6 @@ public class IndexerSubsystem extends SubsystemBase {
     @Override
     public void periodic() {
         long tempoInicio = System.currentTimeMillis();
-
-        // A MÁGICA: Não tem mais 'getDistance()' bloqueando o loop!
-        // O código só lê o valor que a Thread já deixou pronto na memória. Custo real: 0.0 ms.
 
         boolean currentEntryState = getEntrySensor();
         boolean currentExitState = getExitSensor();

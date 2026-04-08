@@ -1,4 +1,3 @@
-// Ficheiro: teleop.java
 package org.firstinspires.ftc.teamcode;
 
 import com.arcrobotics.ftclib.command.CommandOpMode;
@@ -28,7 +27,6 @@ public class teleop extends CommandOpMode {
         GamepadEx driverGamepad = new GamepadEx(gamepad1);
         GamepadEx operatorGamepad = new GamepadEx(gamepad2);
 
-        // Passa o hardwareMap, a telemetria e os gamepads para o RobotContainer
         robot = new RobotContainer(hardwareMap, telemetryM, driverGamepad, operatorGamepad, DataStorage.alliance);
 
 
@@ -43,12 +41,10 @@ public class teleop extends CommandOpMode {
         }
         long tempoCache = System.currentTimeMillis();
 
-        // 2. DEIXA O FTCLIB RODAR O CÓDIGO (Só 1 vez!)
-        super.run(); // Isso chama o CommandScheduler.run() original com segurança
+        super.run();
 
         long tempoComandos = System.currentTimeMillis();
 
-        // 3. RASTREADOR DE LAG
         telemetryM.addData("--- RASTREADOR DE LAG ---", "");
         telemetryM.addData("1. Tempo do Cache (ms)", tempoCache - tempoInicio);
         telemetryM.addData("2. Tempo dos Comandos (ms)", tempoComandos - tempoCache);

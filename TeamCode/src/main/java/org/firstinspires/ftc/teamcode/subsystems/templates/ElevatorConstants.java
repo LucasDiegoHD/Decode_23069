@@ -29,7 +29,8 @@ public class ElevatorConstants {
     /** Power required to accelerate the mass. */
     public static double kA = 0.005;
 
-    // --- Motion Profile Limits (Smoothness and Speed) ---
+    public static double kG_EXTRA_PAYLOAD = 0.05;
+
     /** Maximum velocity in ticks per second. */
     public static double MAX_VELOCITY = 2000.0;
     /** Maximum acceleration in ticks per second squared. */
@@ -41,7 +42,6 @@ public class ElevatorConstants {
     /** Maximum safe position in ticks to prevent overextension. */
     public static int MAX_POSITION_TICKS = 3000;
 
-    // --- Target Positions (Setpoints) ---
     /** Target position for a fully retracted elevator. */
     public static int POS_RETRACTED = 0;
     /** Target position for scoring in the low basket. */
