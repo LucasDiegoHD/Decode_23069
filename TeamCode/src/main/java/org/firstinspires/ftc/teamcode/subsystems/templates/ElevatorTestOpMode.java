@@ -2,26 +2,31 @@ package org.firstinspires.ftc.teamcode.subsystems.templates;
 
 import com.arcrobotics.ftclib.command.CommandOpMode;
 import com.arcrobotics.ftclib.command.InstantCommand;
+import com.arcrobotics.ftclib.command.RunCommand;
 import com.arcrobotics.ftclib.gamepad.GamepadEx;
 import com.arcrobotics.ftclib.gamepad.GamepadKeys;
-import com.bylazar.telemetry.TelemetryManager;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
-@TeleOp(name = "Test: Advanced Elevator", group = "Templates 2026")
+@TeleOp(name = "Test: Simple Elevator Trigger", group = "Templates 2026")
 public class ElevatorTestOpMode extends CommandOpMode {
 
     private ElevatorSubsystem elevator;
     private GamepadEx driver;
-    private TelemetryManager telemetryManager;
-
     @Override
     public void initialize() {
-
-        elevator = new ElevatorSubsystem(hardwareMap, telemetryManager);
-
+        elevator = new ElevatorSubsystem(hardwareMap, telemetry);
         register(elevator);
 
         driver = new GamepadEx(gamepad1);
+
+        // Right Trigger sobe, Left Trigger desce.
+        elevator.setDefaultCommand(new RunCommand(
+                () -> elevator.manualControl(
+                        driver.getTrigger(GamepadKeys.Trigger.RIGHT_TRIGGER),
+                        driver.getTrigger(GamepadKeys.Trigger.LEFT_TRIGGER)
+                ),
+                elevator
+        ));
 
         driver.getGamepadButton(GamepadKeys.Button.A)
                 .whenPressed(new InstantCommand(() -> elevator.setTargetState(ElevatorSubsystem.ElevatorState.RETRACTED)));
@@ -31,5 +36,8 @@ public class ElevatorTestOpMode extends CommandOpMode {
 
         driver.getGamepadButton(GamepadKeys.Button.Y)
                 .whenPressed(new InstantCommand(() -> elevator.setTargetState(ElevatorSubsystem.ElevatorState.HIGH_BASKET)));
+
+        driver.getGamepadButton(GamepadKeys.Button.X)
+                .whenPressed(new InstantCommand(() -> elevator.resetEncoder()));
     }
 }

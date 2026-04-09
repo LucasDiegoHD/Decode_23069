@@ -2,50 +2,30 @@ package org.firstinspires.ftc.teamcode.subsystems.templates;
 
 import com.bylazar.configurables.annotations.Configurable;
 
-/**
- * Constants for the ElevatorSubsystem.
- */
 @Configurable
 public class ElevatorConstants {
 
-    // --- Hardware Map Names ---
-    /** The hardware map name for the left lift motor. */
+    // Nomes no Hardware Map
     public static String LEFT_MOTOR_NAME = "leftLift";
-    /** The hardware map name for the right lift motor. */
     public static String RIGHT_MOTOR_NAME = "rightLift";
 
-    // --- PID Constants (Error Correction) ---
-    public static double kP = 0.05;
+    // PID Simples (Comece com kP muito baixo, ex: 0.005, e suba aos poucos)
+    public static double kP = 0.01;
     public static double kI = 0.0;
-    public static double kD = 0.001;
+    public static double kD = 0.0001;
 
-    // --- Feedforward Constants (Physics: Gravity and Friction) ---
-    /** Minimum power required to overcome static friction. */
-    public static double kS = 0.01;
-    /** Constant power required to hold the elevator in the air against gravity. */
-    public static double kG = 0.1;
-    /** Power required to maintain a constant velocity. */
-    public static double kV = 0.02;
-    /** Power required to accelerate the mass. */
-    public static double kA = 0.005;
+    // kF (Feedforward Simples): A potência mínima apenas para a gravidade não puxar a gaveta para baixo.
+    // Para Viper Slides com Yellow Jackets, esse valor costuma ser bem baixo (ex: 0.05 a 0.1).
+    public static double kF = 0.1;
 
-    public static double kG_EXTRA_PAYLOAD = 0.05;
-
-    /** Maximum velocity in ticks per second. */
-    public static double MAX_VELOCITY = 2000.0;
-    /** Maximum acceleration in ticks per second squared. */
-    public static double MAX_ACCELERATION = 1500.0;
-
-    // --- Soft Limits (Safety Constraints) ---
-    /** Minimum safe position in ticks to prevent bottoming out. */
+    // Soft Limits
     public static int MIN_POSITION_TICKS = 0;
-    /** Maximum safe position in ticks to prevent overextension. */
+    // Ajuste este valor limite de acordo com o limite físico do seu Viper Slide de 4 estágios.
     public static int MAX_POSITION_TICKS = 3000;
 
-    /** Target position for a fully retracted elevator. */
+    // Posições Alvo
     public static int POS_RETRACTED = 0;
-    /** Target position for scoring in the low basket. */
     public static int POS_LOW_BASKET = 1000;
-    /** Target position for scoring in the high basket. */
     public static int POS_HIGH_BASKET = 2500;
+    public static int MANUAL_SPEED_TICKS = 50;
 }
