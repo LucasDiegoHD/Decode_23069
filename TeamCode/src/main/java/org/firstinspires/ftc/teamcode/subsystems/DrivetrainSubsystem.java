@@ -82,41 +82,6 @@ public class DrivetrainSubsystem extends SubsystemBase {
         follower.setTeleOpDrive(0, 0, 0, true);
     }
 
-    // 1. Cria as zonas UMA VEZ na memória para otimização máxima
-    private final Polygon2d triangleBig = new Polygon2d(new Translation2d(72, 72), new Translation2d(144, 144), new Translation2d(0, 144));
-    private final Polygon2d triangleSmall = new Polygon2d(new Translation2d(72, 30), new Translation2d(44, 0), new Translation2d(100, 0));
-
-    // 2. A trava de segurança do piloto (Começa desligada)
-    private boolean autoShootEnabled = false;
-
-    // Método para o piloto apertar um botão e ligar/desligar o modo
-    public void toggleAutoShoot() {
-        autoShootEnabled = !autoShootEnabled;
-    }
-
-    public boolean isAutoShootEnabled() {
-        return autoShootEnabled;
-    }
-
-    // 3. O "Radar" que diz se estamos na área de tiro
-    public boolean isInShootingZone() {
-        Translation2d currentPos = new Translation2d(follower.getPose().getX(), follower.getPose().getY());
-        return triangleBig.containsPoint(currentPos) || triangleSmall.containsPoint(currentPos);
-    }
-
-    // Variável para guardar se o chassi está travado no alvo
-    private boolean isAimLocked = false;
-
-    // O Comando vai usar isso para avisar o chassi
-    public void setAimLocked(boolean locked) {
-        this.isAimLocked = locked;
-    }
-
-    // O Trigger vai usar isso para ler o status
-    public boolean isAimLocked() {
-        return this.isAimLocked;
-    }
-
     /**
      * This method is called periodically to update the subsystem's state, including the follower,
      * telemetry, and dashboard visualizations.

@@ -38,7 +38,7 @@ public class ElevatorSubsystem extends SubsystemBase {
         leftLift = hardwareMap.get(DcMotorEx.class, ElevatorConstants.LEFT_MOTOR_NAME);
         rightLift = hardwareMap.get(DcMotorEx.class, ElevatorConstants.RIGHT_MOTOR_NAME);
 
-        leftLift.setDirection(DcMotor.Direction.REVERSE);
+        rightLift.setDirection(DcMotor.Direction.REVERSE);
         resetEncoder();
 
         leftLift.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
@@ -53,6 +53,14 @@ public class ElevatorSubsystem extends SubsystemBase {
     public void setTargetState(ElevatorState state) {
         this.currentState = state;
         this.targetPosition = state.targetPosition;
+    }
+    public void setUp () {
+        leftLift.setPower(1);
+        rightLift.setPower(1);
+    }
+    public void setDown () {
+        leftLift.setPower(-1);
+        rightLift.setPower(-1);
     }
 
     public void manualControl(double upTrigger, double downTrigger) {

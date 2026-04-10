@@ -159,7 +159,7 @@ public class RobotContainer {
                     .whileHeld(new InstantCommand(intake::run, intake))
                     .whenReleased(new InstantCommand(intake::stop, intake));
 
-            new Trigger(() -> driver.getTrigger(GamepadKeys.Trigger.RIGHT_TRIGGER) > 0.3)
+            new Trigger(() -> driver.getTrigger(GamepadKeys.Trigger.LEFT_TRIGGER) > 0.3)
                     .whileActiveContinuous(new KinematicAimDriveCommand(drivetrain, driver, targetx, targety));
 
                     new GamepadButton(driver, GamepadKeys.Button.RIGHT_BUMPER)
@@ -207,14 +207,6 @@ public class RobotContainer {
 
         new GamepadButton(operator, GamepadKeys.Button.DPAD_UP)
                 .whenPressed(new InstantCommand(() -> isShooterAutoAdjustActive = true));
-
-        new GamepadButton(operator, GamepadKeys.Button.START)
-                .whenPressed(new InstantCommand(drivetrain::toggleAutoShoot));
-
-        Trigger autoShootTrigger = new Trigger(() ->
-                drivetrain.isAutoShootEnabled() && drivetrain.isInShootingZone() && drivetrain.isAimLocked()
-        );
-        autoShootTrigger.whenActive(new ShootCommand(shooter, intake, indexer, 3));
 
     }
     public void clearBulkCache() {

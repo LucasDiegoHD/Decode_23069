@@ -39,5 +39,13 @@ public class ElevatorTestOpMode extends CommandOpMode {
 
         driver.getGamepadButton(GamepadKeys.Button.X)
                 .whenPressed(new InstantCommand(() -> elevator.resetEncoder()));
+
+        if (gamepad1.left_bumper){
+            elevator.setUp();
+        }
+
+        if (gamepad1.right_bumper){
+            elevator.setDown();
+        }
     }
 }

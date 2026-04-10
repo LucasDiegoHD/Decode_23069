@@ -73,10 +73,8 @@ public class KinematicAimDriveCommand extends CommandBase {
         smoothedVelX = (VEL_ALPHA * velocity.getXComponent()) + ((1 - VEL_ALPHA) * smoothedVelX);
         smoothedVelY = (VEL_ALPHA * velocity.getYComponent()) + ((1 - VEL_ALPHA) * smoothedVelY);
 
-        // --- A MÁGICA SEGURA: VELOCITY DEADBAND ---
-        // Ignora ruídos e micro-vibrações menores que 1.5 in/s nas rodas de odometria.
-        if (Math.abs(smoothedVelX) < 1.5) smoothedVelX = 0.0;
-        if (Math.abs(smoothedVelY) < 1.5) smoothedVelY = 0.0;
+        if (Math.abs(smoothedVelX) < 2.0) smoothedVelX = 0.0;
+        if (Math.abs(smoothedVelY) < 2.0) smoothedVelY = 0.0;
 
         double robotX = pose.getX();
         double robotY = pose.getY();
@@ -107,7 +105,7 @@ public class KinematicAimDriveCommand extends CommandBase {
         double turnPower = turnController.calculate(error);
 
         double innerTolerance = Math.toRadians(ShooterConstants.ANGLE_TOLERANCE);
-        double outerTolerance = innerTolerance + Math.toRadians(1.5);
+        double outerTolerance = innerTolerance + Math.toRadians(0.5);
 
         if (isAtTarget) {
             if (Math.abs(error) > outerTolerance) {
@@ -122,7 +120,6 @@ public class KinematicAimDriveCommand extends CommandBase {
         if (!isAtTarget) {
             turnPower += Math.copySign(ShooterConstants.ANGLE_KF, turnPower);
         }
-        drivetrain.setAimLocked(isAtTarget);
         turnPower = Math.max(-1.0, Math.min(1.0, turnPower));
 
         follower.setTeleOpDrive(-strafe, forward, -turnPower, true);
@@ -131,7 +128,6 @@ public class KinematicAimDriveCommand extends CommandBase {
     @Override
     public void end(boolean interrupted) {
         follower.setTeleOpDrive(0, 0, 0, true);
-        drivetrain.setAimLocked(false);
     }
 
     private double angleDifference(double target, double current) {
