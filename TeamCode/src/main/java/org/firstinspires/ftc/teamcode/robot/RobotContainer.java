@@ -117,7 +117,7 @@ public class RobotContainer {
 
             CommandScheduler.getInstance().schedule(periodicUpdateLoop);
 
-            Command AdjustHood = new RepeatCommand(
+           /*Command AdjustHood = new RepeatCommand(
                             new AdjustHoodCommand(shooter, vision, drivetrain, goalX, goalY)
             );
 
@@ -125,7 +125,7 @@ public class RobotContainer {
 
 
 
-            Command AdjustShooter = new RepeatCommand(
+            /*Command AdjustShooter = new RepeatCommand(
                             new ConditionalCommand(
                                     new AdjustShooterCommand(shooter, vision, drivetrain, goalX, goalY),
                                     new InstantCommand(),
@@ -133,7 +133,13 @@ public class RobotContainer {
                             )
             );
 
-            CommandScheduler.getInstance().schedule(AdjustShooter);
+            CommandScheduler.getInstance().schedule(AdjustShooter);*/
+
+            shooter.setDefaultCommand(
+                    new ActiveAimCommand(shooter, vision, drivetrain, goalX, goalY,
+                            () -> isShooterAutoAdjustActive
+                    )
+            );
 
 
             new GamepadButton(driver, GamepadKeys.Button.Y)

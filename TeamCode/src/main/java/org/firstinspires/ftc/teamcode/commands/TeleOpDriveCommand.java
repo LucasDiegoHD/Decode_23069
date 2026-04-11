@@ -20,8 +20,7 @@ public class TeleOpDriveCommand extends CommandBase {
     private final AllianceEnum alliance;
 
     // --- CONTROLE DE TRAÇÃO (Slew Rate Limiter) ---
-    private static final double ACCELERATION_TIME_SECONDS = 0.25;
-
+    private static final double ACCELERATION_TIME_SECONDS = 0.05;
     // Variáveis de memória para a rampa
     private double currentY = 0.0;
     private double currentX = 0.0;
@@ -63,11 +62,9 @@ public class TeleOpDriveCommand extends CommandBase {
         double rawX = driverGamepad.getLeftY(); // Strafe left/right
         double rawTurn = -driverGamepad.getRightX();
 
-        // Se o piloto mexer só um pouquinho (0.2), vira 0.008 (super devagar).
-        // Se empurrar tudo (1.0), vira 1.0 (força total).
-        double targetY = Math.pow(rawY, 3);
-        double targetX = Math.pow(rawX, 3);
-        double targetTurn = rawTurn;
+        double targetY = rawY * Math.abs(rawY);
+        double targetX = rawX * Math.abs(rawX);
+        double targetTurn = rawTurn * Math.abs(rawTurn);
 
         long currentTime = System.currentTimeMillis();
         double dt = (currentTime - lastTime) / 1000.0;
