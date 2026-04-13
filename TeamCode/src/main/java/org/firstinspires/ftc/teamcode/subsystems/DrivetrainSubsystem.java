@@ -18,12 +18,10 @@ import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 import org.firstinspires.ftc.teamcode.utils.DataStorage;
 import org.firstinspires.ftc.teamcode.utils.Polygon2d;
 
-
 /**
  * The DrivetrainSubsystem is responsible for the robot's movement and path following.
  * It uses the Pedro Pathing library to control the robot's motion and provides telemetry and visualization.
  */
-//@AutoLog
 public class DrivetrainSubsystem extends SubsystemBase {
     private final Follower follower;
     private final TelemetryManager telemetry;
@@ -40,9 +38,7 @@ public class DrivetrainSubsystem extends SubsystemBase {
         Drawing.init();
         Drawing.drawRobot(follower.getPose());
         Drawing.sendPacket();
-
     }
-
 
     /**
      * Gets the Follower instance used for path following.
@@ -54,23 +50,20 @@ public class DrivetrainSubsystem extends SubsystemBase {
 
     /**
      * Drives the robot using Pedro Pathing's internal vector system.
-     * This is the cleanest way to do manual control without declaring motors.
      *
      * @param strafe Speed in x direction (sideways)
      * @param forward Speed in y direction (forward)
      * @param turn Speed of rotation
      */
     public void driveRobotCentric(double strafe, double forward, double turn) {
-
         follower.setTeleOpDrive(forward, strafe, turn, true);
-
-        follower.update();
+        // CORRIGIDO: follower.update() removido daqui.
+        // Ele já roda no periodic() — chamá-lo aqui causava double update todo loop.
     }
 
     public boolean isRobotStopped() {
         double linearVelocity = follower.getVelocity().getMagnitude();
         double angularVelocity = Math.toDegrees(Math.abs(follower.getAngularVelocity()));
-
         return linearVelocity < 2.0 && angularVelocity < 3.0;
     }
 
@@ -83,25 +76,18 @@ public class DrivetrainSubsystem extends SubsystemBase {
     }
 
     /**
-     * This method is called periodically to update the subsystem's state, including the follower,
-     * telemetry, and dashboard visualizations.
+     * Called periodically to update the subsystem's state.
      */
     @Override
     public void periodic() {
-
         follower.update();
-        telemetry.addData("Robot pose",follower.getPose());
-        Drawing.drawRobot(follower.getPose());
-        Drawing.sendPacket();
-        Drawing.drawDebug(follower);
         DataStorage.actualPose = follower.getPose();
+        telemetry.addData("Robot pose", follower.getPose());
 
-        //Polygon2d triangleBig = new Polygon2d(new Translation2d(72, 72), new Translation2d(144, 144), new Translation2d(0, 144));
-        //Polygon2d triangleSmall = new Polygon2d(new Translation2d(72, 30), new Translation2d(44, 0), new Translation2d(100, 0));
-
-        //telemetry.addData("Inside big triangle", triangleBig.containsPoint(new Translation2d(follower.getPose().getX(), follower.getPose().getY())));
-        //telemetry.addData("Inside Small triangle", triangleSmall.containsPoint(new Translation2d(follower.getPose().getX(), follower.getPose().getY())));
-
+        // CORRIGIDO: drawRobot() + sendPacket() explícitos removidos daqui.
+        // drawDebug() já desenha o robô e chama sendPacket() internamente,
+        // então antes o pacote do dashboard era enviado 2-3x por loop.
+        Drawing.drawDebug(follower);
     }
 }
 
@@ -112,15 +98,11 @@ public class DrivetrainSubsystem extends SubsystemBase {
  * @version 1.1, 5/19/2025
  */
 class Drawing {
-    public static final double ROBOT_RADIUS = 8; // Robot radius in inches
+    public static final double ROBOT_RADIUS = 8;
     private static final FieldManager panelsField = PanelsField.INSTANCE.getField();
 
-    private static final Style robotLook = new Style(
-            "#008000", "#3F51B5", 0.0
-    );
-    private static final Style historyLook = new Style(
-            "", "#4CAF50", 0.0
-    );
+    private static final Style robotLook = new Style("#008000", "#3F51B5", 0.0);
+    private static final Style historyLook = new Style("", "#4CAF50", 0.0);
 
     /**
      * Initializes the Panels Field with default FTC offsets.
@@ -138,17 +120,19 @@ class Drawing {
         if (follower.getCurrentPath() != null) {
             drawPath(follower.getCurrentPath(), robotLook);
             Pose closestPoint = follower.getPointFromPath(follower.getCurrentPath().getClosestPointTValue());
-            drawRobot(new Pose(closestPoint.getX(), closestPoint.getY(), follower.getCurrentPath().getHeadingGoal(follower.getCurrentPath().getClosestPointTValue())), robotLook);
+            drawRobot(new Pose(
+                    closestPoint.getX(),
+                    closestPoint.getY(),
+                    follower.getCurrentPath().getHeadingGoal(follower.getCurrentPath().getClosestPointTValue())
+            ), robotLook);
         }
         drawPoseHistory(follower.getPoseHistory(), historyLook);
         drawRobot(follower.getPose(), historyLook);
-
-        sendPacket();
+        sendPacket(); // único sendPacket() por loop
     }
 
     /**
      * Draws a representation of the robot at a specified Pose with a given style.
-     * The robot's heading is indicated by a line.
      *
      * @param pose  The Pose to draw the robot at.
      * @param style The style parameters for drawing.
@@ -226,7 +210,6 @@ class Drawing {
 
         int size = poseTracker.getXPositionsArray().length;
         for (int i = 0; i < size - 1; i++) {
-
             panelsField.moveCursor(poseTracker.getXPositionsArray()[i], poseTracker.getYPositionsArray()[i]);
             panelsField.line(poseTracker.getXPositionsArray()[i + 1], poseTracker.getYPositionsArray()[i + 1]);
         }

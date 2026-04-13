@@ -29,7 +29,6 @@ public class IndexerSubsystem extends SubsystemBase {
     private boolean isInitialized = false;
     private boolean isShooting = false;
 
-    // O SEGREDO 2: A Thread Secundária
     private Thread sensorThread;
 
     public IndexerSubsystem(HardwareMap hardwareMap, TelemetryManager telemetry) {
@@ -47,16 +46,27 @@ public class IndexerSubsystem extends SubsystemBase {
                 try {
                     currentEntryDist = entrySensor.getDistance(DistanceUnit.CM);
                     currentExitDist = exitSensor.getDistance(DistanceUnit.CM);
-
                     Thread.sleep(50);
                 } catch (InterruptedException e) {
                     Thread.currentThread().interrupt();
                 } catch (Exception e) {
+                    // Sensor falhou — mantém último valor conhecido
                 }
             }
         });
         sensorThread.setDaemon(true);
         sensorThread.start();
+    }
+
+    /**
+     * Para a thread de leitura dos sensores.
+     * Deve ser chamado no end() do OpMode para evitar duas threads rodando
+     * simultaneamente se o OpMode for reiniciado sem matar o processo.
+     */
+    public void stopSensorThread() {
+        if (sensorThread != null && sensorThread.isAlive()) {
+            sensorThread.interrupt();
+        }
     }
 
     @Override
@@ -67,13 +77,14 @@ public class IndexerSubsystem extends SubsystemBase {
         boolean currentExitState = getExitSensor();
 
         if (!isInitialized) {
+            // CORRIGIDO: era if/if/else, o que fazia o segundo if sobrescrever
+            // o primeiro quando ambos os sensores estavam ativos.
+            // Agora é if/else if/else — cada caso é exclusivo.
             if (currentExitState && currentEntryState) {
                 pieceCount = IndexerConstants.MAX_PIECE_CAPACITY;
-            }
-            if (currentExitState ||  currentEntryState) {
+            } else if (currentExitState || currentEntryState) {
                 pieceCount = 1;
-            }
-            else {
+            } else {
                 pieceCount = 0;
             }
             previousEntryState = currentEntryState;
@@ -81,13 +92,16 @@ public class IndexerSubsystem extends SubsystemBase {
             isInitialized = true;
         }
 
-        if (currentEntryState && !previousEntryState && (System.currentTimeMillis() - lastEntryCountTime > DEBOUNCE_DELAY_MS)) {
+        if (currentEntryState && !previousEntryState
+                && (System.currentTimeMillis() - lastEntryCountTime > DEBOUNCE_DELAY_MS)) {
             if (pieceCount < IndexerConstants.MAX_PIECE_CAPACITY) {
                 pieceCount++;
             }
             lastEntryCountTime = System.currentTimeMillis();
         }
-        if (!currentExitState && previousExitState && isShooting && (System.currentTimeMillis() - lastExitCountTime > DEBOUNCE_DELAY_MS)) {
+
+        if (!currentExitState && previousExitState && isShooting
+                && (System.currentTimeMillis() - lastExitCountTime > DEBOUNCE_DELAY_MS)) {
             if (pieceCount > 0) {
                 pieceCount--;
             }
@@ -99,10 +113,8 @@ public class IndexerSubsystem extends SubsystemBase {
 
         telemetry.addData("Indexer Pieces", pieceCount);
         telemetry.addData("Is Shooting?", isShooting);
-
         telemetry.addData("Entry Dist (CM)", currentEntryDist);
         telemetry.addData("Entry Triggered", currentEntryState);
-
         telemetry.addData("Exit Dist (CM)", currentExitDist);
         telemetry.addData("Exit Triggered", currentExitState);
 

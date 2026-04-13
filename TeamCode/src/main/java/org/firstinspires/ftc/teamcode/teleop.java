@@ -8,7 +8,6 @@ import com.bylazar.telemetry.PanelsTelemetry;
 import com.bylazar.telemetry.TelemetryManager;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import org.firstinspires.ftc.teamcode.robot.RobotContainer;
-import org.firstinspires.ftc.teamcode.utils.AllianceEnum;
 import org.firstinspires.ftc.teamcode.utils.DataStorage;
 
 @TeleOp
@@ -28,8 +27,6 @@ public class teleop extends CommandOpMode {
         GamepadEx operatorGamepad = new GamepadEx(gamepad2);
 
         robot = new RobotContainer(hardwareMap, telemetryM, driverGamepad, operatorGamepad, DataStorage.alliance);
-
-
     }
 
     @Override
@@ -56,5 +53,10 @@ public class teleop extends CommandOpMode {
         long tempoAntesTelemetria = System.currentTimeMillis();
         telemetryM.update();
         ultimoTempoTelemetria = System.currentTimeMillis() - tempoAntesTelemetria;
+
+
+        if (isStopRequested() && robot != null) {
+            robot.stopIndexerThread();
+        }
     }
 }

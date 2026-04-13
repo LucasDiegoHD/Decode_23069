@@ -9,17 +9,15 @@ import org.firstinspires.ftc.teamcode.subsystems.VisionConstants;
 import org.firstinspires.ftc.teamcode.subsystems.VisionSubsystem;
 import java.util.Optional;
 
-/**
- * Competitive Pose Update - MT2 ONLY Edition.
- * Corrige apenas X e Y, confiando cegamente no ângulo da Odometria/IMU.
- * Isso impede que erros de ângulo da câmera estraguem a navegação "overtime".
- */
 public class UpdatePoseLimelightCommand extends CommandBase {
 
     private final DrivetrainSubsystem drivetrain;
     private final VisionSubsystem vision;
     private final Pose fallbackPose;
-    private static boolean hasInitialized = false;
+
+    // CORRIGIDO: era static, persistia entre OpModes causando bug de inicialização.
+    // Agora é de instância — cada nova instância do comando começa do zero.
+    private boolean hasInitialized = false;
 
     public UpdatePoseLimelightCommand(DrivetrainSubsystem drivetrain, VisionSubsystem vision, Pose fallbackPose) {
         this.drivetrain = drivetrain;
@@ -28,10 +26,6 @@ public class UpdatePoseLimelightCommand extends CommandBase {
         addRequirements(vision);
     }
 
-    /**
-     * Hard Reset: Usa força bruta para setar ângulo e posição (se disponível).
-     * Usado pelo botão de reset do piloto.
-     */
     public static void forceHardReset(DrivetrainSubsystem drive, VisionSubsystem vis, double targetHeadingDegrees) {
         double targetHeadingRad = Math.toRadians(targetHeadingDegrees);
         Pose currentPose = drive.getFollower().getPose();
@@ -42,17 +36,15 @@ public class UpdatePoseLimelightCommand extends CommandBase {
             drive.getFollower().setPose(new Pose(
                     mt2Pose.getX(),
                     mt2Pose.getY(),
-                    targetHeadingRad // Mantém o ângulo travado
+                    targetHeadingRad
             ));
-            Log.i("Vision", "HARD RESET: Posição atualizada 100% via Limelight");
+            Log.i("Vision", "HARD RESET: Posição atualizada via Limelight");
         });
     }
 
     @Override
     public void initialize() {
         if (!hasInitialized) {
-
-
             Optional<Pose> initPoseMT2 = vision.getRobotPoseMT2(fallbackPose.getHeading());
 
             if (initPoseMT2.isPresent()) {
@@ -70,8 +62,10 @@ public class UpdatePoseLimelightCommand extends CommandBase {
         Pose currentPose = drivetrain.getFollower().getPose();
 
         vision.getRobotPoseMT2(currentPose.getHeading()).ifPresent(llPoseMT2 -> {
-
-            double distInches = Math.hypot(llPoseMT2.getX() - currentPose.getX(), llPoseMT2.getY() - currentPose.getY());
+            double distInches = Math.hypot(
+                    llPoseMT2.getX() - currentPose.getX(),
+                    llPoseMT2.getY() - currentPose.getY()
+            );
             double maxDeltaInches = VisionConstants.MAX_DELTA_METERS * VisionConstants.METERS_TO_INCHES;
 
             if (distInches < maxDeltaInches) {
@@ -100,7 +94,7 @@ public class UpdatePoseLimelightCommand extends CommandBase {
         return true;
     }
 
-    public static void resetLocalizationStatus() {
-        hasInitialized = false;
-    }
+    // Mantido para não quebrar código que chame esse método,
+    // mas não faz mais nada — criar nova instância já reseta tudo.
+    public static void resetLocalizationStatus() {}
 }

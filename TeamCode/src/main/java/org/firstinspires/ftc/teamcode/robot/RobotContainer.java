@@ -266,4 +266,7 @@ public class RobotContainer {
         Command current = drivetrain.getCurrentCommand();
         return current instanceof AlignToAprilTagCommand;
     }
+    public void stopIndexerThread() {
+        indexer.stopSensorThread();
+    }
 }

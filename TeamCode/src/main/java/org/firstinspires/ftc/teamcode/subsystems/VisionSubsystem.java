@@ -10,12 +10,7 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
 import java.util.Optional;
 
-/**
- * VisionSubsystem de Alta Performance.
- * Implementa Seeding (MegaTag1) e Tracking Estabilizado (MegaTag2). [1]
- */
 public class VisionSubsystem extends SubsystemBase {
-
     private final Limelight3A limelight;
     private LLResult latestResult;
     private final TelemetryManager telemetry;
@@ -28,37 +23,36 @@ public class VisionSubsystem extends SubsystemBase {
         limelight.pipelineSwitch(0);
     }
 
-    public Optional<Pose> getRobotPoseMT1() {
+    @Override
+    public void periodic() {
+        // Ponto único de leitura da Limelight por loop.
+        // Todos os métodos usam this.latestResult — zero chamadas extras ao hardware.
         latestResult = limelight.getLatestResult();
-        if (!hasTarget()) return Optional.empty();
 
+        if (latestResult != null) {
+            getDirectDistanceToTarget().ifPresent(
+                    distance -> telemetry.addData("Visão - Distância (M)", distance)
+            );
+        } else {
+            telemetry.addLine("Limelight: Sem sinal");
+        }
+    }
+
+    public Optional<Pose> getRobotPoseMT1() {
+        if (!hasTarget()) return Optional.empty();
         Pose3D botPose = latestResult.getBotpose();
         if (botPose == null) return Optional.empty();
-
         return Optional.of(convertToPedro(botPose));
     }
 
     public Optional<Pose> getRobotPoseMT2(double yawRadians) {
-        // Offset de +90 para alinhar o sistema da Limelight com o campo da FTC
+        // updateRobotOrientation envia o yaw para o próximo frame da Limelight.
+        // Como ela é assíncrona, o comportamento é equivalente ao original.
         limelight.updateRobotOrientation(Math.toDegrees(yawRadians) + 90);
-        latestResult = limelight.getLatestResult();
-
         if (!hasTarget()) return Optional.empty();
-
         Pose3D botPose = latestResult.getBotpose_MT2();
         if (botPose == null) return Optional.empty();
-
         return Optional.of(convertToPedro(botPose));
-    }
-
-    /** Helper para conversão de sistema de coordenadas  */
-    private Pose convertToPedro(Pose3D pose3d) {
-        Pose rawPose = new Pose(
-                pose3d.getPosition().x * INCHES_IN_METER,
-                pose3d.getPosition().y * INCHES_IN_METER,
-                Math.toRadians(pose3d.getOrientation().getYaw())
-        );
-        return FTCCoordinates.INSTANCE.convertToPedro(rawPose);
     }
 
     public Optional<Double> getTargetTx() {
@@ -67,19 +61,23 @@ public class VisionSubsystem extends SubsystemBase {
     }
 
     public boolean hasTarget() {
-        return latestResult!= null && latestResult.isValid();
+        return latestResult != null && latestResult.isValid();
     }
 
     public Optional<Double> getDirectDistanceToTarget() {
-        if (latestResult == null || !latestResult.isValid()) return Optional.empty();
-
-        if(!latestResult.getFiducialResults().isEmpty()) {
-            return Optional.of(Math.abs(latestResult.getFiducialResults().get(0).getTargetPoseCameraSpace().getPosition().z));
+        if (!hasTarget()) return Optional.empty();
+        if (!latestResult.getFiducialResults().isEmpty()) {
+            return Optional.of(
+                    Math.abs(
+                            latestResult.getFiducialResults().get(0)
+                                    .getTargetPoseCameraSpace().getPosition().z
+                    )
+            );
         }
         return Optional.empty();
     }
 
-    public void updateLimelightYaw(double yaw){
+    public void updateLimelightYaw(double yaw) {
         limelight.updateRobotOrientation(Math.toDegrees(yaw));
     }
 
@@ -88,23 +86,18 @@ public class VisionSubsystem extends SubsystemBase {
     }
 
     public Optional<Pose> getRobotPose() {
-        // Remove isso: latestResult = limelight.getLatestResult();
-        // Usa apenas a memória:
-        if (latestResult == null || !latestResult.isValid()) return Optional.empty();
-
+        if (!hasTarget()) return Optional.empty();
         Pose3D robotPose = latestResult.getBotpose();
         if (robotPose == null) return Optional.empty();
-
         return Optional.of(convertToPedro(robotPose));
     }
 
-    @Override
-    public void periodic() {
-        latestResult = limelight.getLatestResult();
-        if (latestResult!= null) {
-            getDirectDistanceToTarget().ifPresent(distance -> telemetry.addData("Visão - Distância (M)", distance));
-        } else {
-            telemetry.addLine("Limelight: Sem sinal");
-        }
+    private Pose convertToPedro(Pose3D pose3d) {
+        Pose rawPose = new Pose(
+                pose3d.getPosition().x * INCHES_IN_METER,
+                pose3d.getPosition().y * INCHES_IN_METER,
+                Math.toRadians(pose3d.getOrientation().getYaw())
+        );
+        return FTCCoordinates.INSTANCE.convertToPedro(rawPose);
     }
 }

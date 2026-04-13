@@ -25,10 +25,10 @@ public class KinematicAimDriveCommand extends CommandBase {
     private static final double ARTIFACT_VELOCITY_INCHES_PER_SEC = 400.0;
     private static final double SYSTEM_LATENCY_SECONDS = 0.30;
 
-    // --- VARIÁVEIS DO FILTRO DE FLUIDEZ ---
     private double smoothedVelX = 0.0;
     private double smoothedVelY = 0.0;
     private static final double VEL_ALPHA = 0.8;
+    private static final double FEEDFORWARD_DEAD_ZONE = Math.toRadians(2.0);
 
     public KinematicAimDriveCommand(DrivetrainSubsystem drivetrain, GamepadEx driver, double targetX, double targetY) {
         this.follower = drivetrain.getFollower();
@@ -55,6 +55,7 @@ public class KinematicAimDriveCommand extends CommandBase {
 
         smoothedVelX = follower.getVelocity().getXComponent();
         smoothedVelY = follower.getVelocity().getYComponent();
+        isAtTarget = false;
     }
 
     @Override
@@ -101,7 +102,6 @@ public class KinematicAimDriveCommand extends CommandBase {
         double desiredAngle = Math.atan2(virtualY - robotY, virtualX - robotX);
         double error = angleDifference(desiredAngle, heading);
 
-        turnController.setPIDF(ShooterConstants.ANGLE_KP, ShooterConstants.ANGLE_KI, ShooterConstants.ANGLE_KD, ShooterConstants.ANGLE_KF);
         double turnPower = turnController.calculate(error);
 
         double innerTolerance = Math.toRadians(ShooterConstants.ANGLE_TOLERANCE);
@@ -116,10 +116,11 @@ public class KinematicAimDriveCommand extends CommandBase {
                 isAtTarget = true;
             }
         }
-        
-        if (!isAtTarget) {
+
+        if (!isAtTarget && Math.abs(error) > FEEDFORWARD_DEAD_ZONE) {
             turnPower += Math.copySign(ShooterConstants.ANGLE_KF, turnPower);
         }
+
         turnPower = Math.max(-1.0, Math.min(1.0, turnPower));
 
         follower.setTeleOpDrive(-strafe, forward, -turnPower, true);
