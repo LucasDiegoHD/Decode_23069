@@ -33,6 +33,7 @@ public class ActiveAimCommand extends CommandBase {
         this.targetX = targetX;
         this.targetY = targetY;
         this.isReadyToSpin = isReadyToSpin;
+        addRequirements(shooter);
     }
 
     @Override
@@ -48,7 +49,7 @@ public class ActiveAimCommand extends CommandBase {
         double dy = virtualY - pose.getY();
         double groundDistance = Math.hypot(dx, dy);
 
-        double deltaZ = 28.75;
+        double deltaZ = 38.75;
         double virtualDistanceInches = Math.hypot(groundDistance, deltaZ);
         double virtualDistanceMeters = virtualDistanceInches / 39.3701;
 

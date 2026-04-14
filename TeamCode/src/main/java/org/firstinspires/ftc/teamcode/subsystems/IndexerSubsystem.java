@@ -77,9 +77,6 @@ public class IndexerSubsystem extends SubsystemBase {
         boolean currentExitState = getExitSensor();
 
         if (!isInitialized) {
-            // CORRIGIDO: era if/if/else, o que fazia o segundo if sobrescrever
-            // o primeiro quando ambos os sensores estavam ativos.
-            // Agora é if/else if/else — cada caso é exclusivo.
             if (currentExitState && currentEntryState) {
                 pieceCount = IndexerConstants.MAX_PIECE_CAPACITY;
             } else if (currentExitState || currentEntryState) {

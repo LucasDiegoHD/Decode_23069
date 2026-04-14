@@ -69,7 +69,7 @@ public class ShooterConstants {
     public static double TRIGGER_TIMER_TO_SHOOT = 800;
     public static double TRIGGER_TIMER_TRIGGERING = 800;
     public static double DELAY_BETWEEN_SHOTS_MS = 10;
-    public static double TRIGGER_FOLLOW_THROUGH_MS = 200;
+    public static double TRIGGER_FOLLOW_THROUGH_MS = 300;
 
 
     /**
@@ -84,7 +84,7 @@ public class ShooterConstants {
      * * Fit: Quadratic (Grau 2) - Muito preciso para esses pontos.
      * Formula: y = 0.12x^2 - 0.53x + 1.08
      */
-    public static double HOOD_N0 = 0.84;
+    public static double HOOD_N0 = 0.88;
     public static double HOOD_N1 = 0.0;
     public static double HOOD_N2 = 0.0;
     public static double HOOD_N3 = 0.0;

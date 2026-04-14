@@ -159,9 +159,9 @@ public class ShooterSubsystem extends SubsystemBase {
         updateHoodServos();
 
         telemetry.addData("Shooter RPM Real", currentRPM);
-        telemetry.addData("Shooter Target", targetRPM);
-        telemetry.addData("Shooter Power Sent", lastPower);
-        telemetry.addData("Voltage", voltageSensor.getVoltage());
+        //telemetry.addData("Shooter Target", targetRPM);
+        //telemetry.addData("Shooter Power Sent", lastPower);
+        //telemetry.addData("Voltage", voltageSensor.getVoltage());
         telemetry.addData("Hood Position", hoodPosition);
     }
 }

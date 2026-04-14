@@ -37,7 +37,6 @@ public class IntakeSubsystem extends SubsystemBase {
 
     @Override
     public void periodic() {
-        telemetry.addData("Corrente Motor Intake", intakeMotor.getCurrent(CurrentUnit.AMPS));
     }
 
     /**
