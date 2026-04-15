@@ -148,8 +148,11 @@ public class RobotContainer {
             double targetx = (alliance == AllianceEnum.Red)? 144 : 0;
             double targety = 144;
 
+            // new GamepadButton(driver, GamepadKeys.Button.X)
+            //.whileHeld(new AimByPoseCommand(drivetrain, targetx, targety, telemetry, operator));
+
             new GamepadButton(driver, GamepadKeys.Button.X)
-                    .whileHeld(new AimByPoseCommand(drivetrain, targetx, targety, telemetry, operator));
+                    .whileHeld(new KinematicAimDriveCommand(drivetrain, driver, targetx, targety));
 
             //new GamepadButton(driver, GamepadKeys.Button.DPAD_LEFT)
               //      .whileHeld(new ChaseArtifactCommand(drivetrain, husky, intake));
@@ -165,8 +168,8 @@ public class RobotContainer {
                     .whileHeld(new InstantCommand(intake::run, intake))
                     .whenReleased(new InstantCommand(intake::stop, intake));
 
-            new Trigger(() -> driver.getTrigger(GamepadKeys.Trigger.LEFT_TRIGGER) > 0.3)
-                    .whileActiveContinuous(new KinematicAimDriveCommand(drivetrain, driver, targetx, targety));
+            //new Trigger(() -> driver.getTrigger(GamepadKeys.Trigger.LEFT_TRIGGER) > 0.3)
+            // .whileActiveContinuous(new KinematicAimDriveCommand(drivetrain, driver, targetx, targety));
 
                     new GamepadButton(driver, GamepadKeys.Button.RIGHT_BUMPER)
                             .whileHeld(new AutoShootCommand(drivetrain, vision, shooter, intake, indexer, endPose, led));
