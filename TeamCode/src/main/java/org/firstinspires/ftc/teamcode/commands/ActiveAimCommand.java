@@ -25,8 +25,6 @@ public class ActiveAimCommand extends CommandBase {
     private static final double MAX_SAFE_RPM = 4500.0;
     private static final double MIN_SAFE_RPM = 1000.0;
     private static final double TIME_OF_FLIGHT = 0.35;
-
-    // Constante da Curva Suave (Claude)
     private static final double BLEND_HALF_WIDTH = 0.30;
 
     public ActiveAimCommand(ShooterSubsystem shooter, VisionSubsystem vision, DrivetrainSubsystem drivetrain, double targetX, double targetY, BooleanSupplier isReadyToSpin) {
@@ -71,8 +69,14 @@ public class ActiveAimCommand extends CommandBase {
                 + ShooterConstants.RPM_N1 * distance
                 + ShooterConstants.RPM_N2 * Math.pow(distance, 2);
 
-        double blendX = (distance - VisionConstants.LONGEST_DISTANCE) / BLEND_HALF_WIDTH;
-        double blendFactor = 1.0 / (1.0 + Math.exp(-blendX));
+        double blendFactor = 0.0;
+        double TRANSITION_START = VisionConstants.LONGEST_DISTANCE - 0.30;
+
+        if (distance >= VisionConstants.LONGEST_DISTANCE) {
+            blendFactor = 1.0;
+        } else if (distance > TRANSITION_START) {
+            blendFactor = (distance - TRANSITION_START) / 0.30;
+        }
 
         finalRpm = finalRpm + blendFactor * (VisionConstants.LONGEST_RPM - finalRpm);
         hood = hood + blendFactor * (VisionConstants.LONGEST_HOOD - hood);
