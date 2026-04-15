@@ -82,8 +82,8 @@ public class RobotContainer {
         );
 
         if (driver!= null) {
-            if (DataStorage.actualPose!= null) {
-                drivetrain.getFollower().setPose(DataStorage.actualPose);
+            if (DataStorage.actualPose != null) {
+                drivetrain.restorePoseFromStorage();
             } else {
                 Pose startPose = (alliance == AllianceEnum.Red)?
                         RedRearPoses.getPose(PosesNames.StartPose) : BlueRearPoses.getPose(PosesNames.StartPose);

@@ -74,6 +74,25 @@ public class DrivetrainSubsystem extends SubsystemBase {
         follower.breakFollowing();
         follower.setTeleOpDrive(0, 0, 0, true);
     }
+    /**
+     * Reseta o Pinpoint com o yaw da pose salva no DataStorage.
+     * Deve ser chamado no início do TeleOp antes do primeiro update()
+     * para garantir que o MegaTag2 receba o yaw correto desde o início.
+     */
+    public void restorePoseFromStorage() {
+        if (DataStorage.actualPose != null) {
+            follower.update();
+
+            double autoX = DataStorage.actualPose.getX();
+            double autoY = DataStorage.actualPose.getY();
+
+            double hardwareYaw = follower.getPose().getHeading();
+
+            Pose safePose = new Pose(autoX, autoY, hardwareYaw);
+
+            follower.setPose(safePose);
+        }
+    }
 
     /**
      * Called periodically to update the subsystem's state.
