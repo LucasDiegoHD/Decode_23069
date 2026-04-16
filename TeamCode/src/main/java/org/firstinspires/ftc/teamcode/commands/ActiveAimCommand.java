@@ -20,12 +20,11 @@ public class ActiveAimCommand extends CommandBase {
     private final double targetX;
     private final double targetY;
     private final BooleanSupplier isReadyToSpin;
+
     private static final double RPM_FORWARD_MULT = -5.0;
     private static final double RPM_BACKWARD_MULT = 120.0;
-    private static final double MAX_SAFE_RPM = 4500.0;
+    private static final double MAX_SAFE_RPM = 4500;
     private static final double MIN_SAFE_RPM = 1000.0;
-    private static final double TIME_OF_FLIGHT = 0.35;
-    private static final double BLEND_HALF_WIDTH = 0.30;
 
     public ActiveAimCommand(ShooterSubsystem shooter, VisionSubsystem vision, DrivetrainSubsystem drivetrain, double targetX, double targetY, BooleanSupplier isReadyToSpin) {
         this.shooter = shooter;
@@ -41,6 +40,7 @@ public class ActiveAimCommand extends CommandBase {
     public void execute() {
         Pose pose = drivetrain.getFollower().getPose();
         Vector velocity = drivetrain.getFollower().getVelocity();
+        double TIME_OF_FLIGHT = 0.4;
 
         double virtualX = targetX - (velocity.getXComponent() * TIME_OF_FLIGHT);
         double virtualY = targetY - (velocity.getYComponent() * TIME_OF_FLIGHT);
@@ -53,49 +53,25 @@ public class ActiveAimCommand extends CommandBase {
         double virtualDistanceInches = Math.hypot(groundDistance, deltaZ);
         double virtualDistanceMeters = virtualDistanceInches / 39.3701;
 
-        double distance;
+        double distanceToUse;
         if (drivetrain.isRobotStopped()) {
-            distance = vision.getDirectDistanceToTarget().orElse(virtualDistanceMeters);
+            distanceToUse = vision.getDirectDistanceToTarget().orElse(virtualDistanceMeters);
         } else {
-            distance = virtualDistanceMeters;
+            distanceToUse = virtualDistanceMeters;
+        }
+        double hood = ShooterConstants.HOOD_N0 + ShooterConstants.HOOD_N1 * distanceToUse
+                + ShooterConstants.HOOD_N2 * Math.pow(distanceToUse, 2) + ShooterConstants.HOOD_N3 * Math.pow(distanceToUse, 3);
+
+        double finalRpm = ShooterConstants.RPM_N0 + ShooterConstants.RPM_N1 * distanceToUse
+                + ShooterConstants.RPM_N2 * Math.pow(distanceToUse, 2);
+
+        if (distanceToUse > VisionConstants.LONGEST_DISTANCE) {
+            hood = VisionConstants.LONGEST_HOOD;
+            finalRpm = VisionConstants.LONGEST_RPM;
         }
 
-        double hood = ShooterConstants.HOOD_N0
-                + ShooterConstants.HOOD_N1 * distance
-                + ShooterConstants.HOOD_N2 * Math.pow(distance, 2)
-                + ShooterConstants.HOOD_N3 * Math.pow(distance, 3);
-
-        double finalRpm = ShooterConstants.RPM_N0
-                + ShooterConstants.RPM_N1 * distance
-                + ShooterConstants.RPM_N2 * Math.pow(distance, 2);
-
-        double blendFactor = 0.0;
-        double TRANSITION_START = VisionConstants.LONGEST_DISTANCE - 0.30;
-
-        if (distance >= VisionConstants.LONGEST_DISTANCE) {
-            blendFactor = 1.0;
-        } else if (distance > TRANSITION_START) {
-            blendFactor = (distance - TRANSITION_START) / 0.30;
-        }
-
-        finalRpm = finalRpm + blendFactor * (VisionConstants.LONGEST_RPM - finalRpm);
-        hood = hood + blendFactor * (VisionConstants.LONGEST_HOOD - hood);
-
-        shooter.setLongShotMode(blendFactor > 0.5);
+        shooter.setLongShotMode(distanceToUse > VisionConstants.LONGEST_DISTANCE);
         shooter.setHoodPosition(hood);
-
-        if (!drivetrain.isRobotStopped() && groundDistance > 1e-6) {
-            double unitX = dx / groundDistance;
-            double unitY = dy / groundDistance;
-
-            double speedDot = velocity.getXComponent() * unitX + velocity.getYComponent() * unitY;
-
-            if (speedDot > 0) {
-                finalRpm += speedDot * RPM_BACKWARD_MULT;
-            } else {
-                finalRpm += Math.abs(speedDot) * RPM_FORWARD_MULT;
-            }
-        }
 
         finalRpm = Math.max(MIN_SAFE_RPM, Math.min(finalRpm, MAX_SAFE_RPM));
 
