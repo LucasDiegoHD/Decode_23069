@@ -31,7 +31,6 @@ public class IntakeSubsystem extends SubsystemBase {
         triggerMotor = hardwareMap.get(DcMotor.class, "triggerMotor");
         intakeMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         triggerMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        triggerMotor.setDirection(DcMotorSimple.Direction.REVERSE);
         this.telemetry = telemetry;
     }
 
