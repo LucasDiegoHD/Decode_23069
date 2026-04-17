@@ -123,8 +123,13 @@ public class ShooterSubsystem extends SubsystemBase {
                 }
             }
 
-            double feedback = controller.calculate(currentRPM, targetRPM);
-
+            double feedback;
+            if (rpmError < -150) {
+                controller.reset();
+                feedback = 0;
+            } else {
+                feedback = controller.calculate(currentRPM, targetRPM);
+            }
             double power = Math.max(0, Math.min(1.0, feedforward + feedback + shotBoost));
 
             /*if (rpmError > (targetRPM * (1 - ShooterConstants.STABILITY_WINDOW_PERCENT))) {

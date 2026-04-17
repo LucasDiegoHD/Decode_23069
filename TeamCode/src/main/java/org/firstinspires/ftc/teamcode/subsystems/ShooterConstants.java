@@ -66,7 +66,7 @@ public class ShooterConstants {
 
     // --- TIMINGS ---
     /** The time in milliseconds to wait after triggering before shooting. */
-    public static double TRIGGER_TIMER_TO_SHOOT = 800;
+    public static double TRIGGER_TIMER_TO_SHOOT = 600;
     public static double TRIGGER_TIMER_TRIGGERING = 800;
     public static double DELAY_BETWEEN_SHOTS_MS = 10;
     public static double TRIGGER_FOLLOW_THROUGH_MS = 300;
