@@ -20,9 +20,9 @@ public class ActiveAimCommand extends CommandBase {
     private final double targetX;
     private final double targetY;
     private final BooleanSupplier isReadyToSpin;
-    private static final double RPM_FORWARD_MULT = -3.0;
-    private static final double RPM_BACKWARD_MULT = 4.0;
-    private static final double MAX_SAFE_RPM = 4500;
+    private static final double RPM_FORWARD_MULT = -2.0;
+    private static final double RPM_BACKWARD_MULT = 3.0;
+    private static final double MAX_SAFE_RPM = 3800;
     private static final double MIN_SAFE_RPM = 1000.0;
     private static final double TIME_OF_FLIGHT = 0.4;
 
@@ -73,7 +73,7 @@ public class ActiveAimCommand extends CommandBase {
         shooter.setLongShotMode(distanceToUse > VisionConstants.LONGEST_DISTANCE);
         shooter.setHoodPosition(hood);
 
-        if (!drivetrain.isRobotStopped() && groundDistance > 1e-6) {
+        if (!drivetrain.isRobotStopped() && groundDistance > 1e-6 && distanceToUse < VisionConstants.LONGEST_DISTANCE) {
             double unitX = dx / groundDistance;
             double unitY = dy / groundDistance;
 

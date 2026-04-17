@@ -17,12 +17,15 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 import org.firstinspires.ftc.teamcode.utils.DataStorage;
 import org.firstinspires.ftc.teamcode.utils.Polygon2d;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * The DrivetrainSubsystem is responsible for the robot's movement and path following.
  * It uses the Pedro Pathing library to control the robot's motion and provides telemetry and visualization.
  */
 public class DrivetrainSubsystem extends SubsystemBase {
+    private static final Logger log = LoggerFactory.getLogger(DrivetrainSubsystem.class);
     private final Follower follower;
     private final TelemetryManager telemetry;
 
@@ -103,9 +106,8 @@ public class DrivetrainSubsystem extends SubsystemBase {
         DataStorage.actualPose = follower.getPose();
         telemetry.addData("Robot pose", follower.getPose());
 
-        // CORRIGIDO: drawRobot() + sendPacket() explícitos removidos daqui.
-        // drawDebug() já desenha o robô e chama sendPacket() internamente,
-        // então antes o pacote do dashboard era enviado 2-3x por loop.
+        Drawing.drawRobot(follower.getPose());
+        Drawing.sendPacket();
         Drawing.drawDebug(follower);
     }
 }

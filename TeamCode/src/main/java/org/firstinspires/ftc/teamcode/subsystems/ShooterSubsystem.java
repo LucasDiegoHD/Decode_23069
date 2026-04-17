@@ -116,25 +116,20 @@ public class ShooterSubsystem extends SubsystemBase {
             double shotBoost = 0.0;
             if (isBoostActive) {
                 if (shotBoostTimer.milliseconds() < ShooterConstants.SHOT_BOOST_DURATION) {
-
                     shotBoost = ShooterConstants.kF_SHOT_BOOST * voltageComp;
                 } else {
                     isBoostActive = false;
                 }
             }
 
-            double feedback;
+            double power;
             if (rpmError < -150) {
                 controller.reset();
-                feedback = 0;
+                power = 0.0;
             } else {
-                feedback = controller.calculate(currentRPM, targetRPM);
+                double feedback = controller.calculate(currentRPM, targetRPM);
+                power = Math.max(0, Math.min(1.0, feedforward + feedback + shotBoost));
             }
-            double power = Math.max(0, Math.min(1.0, feedforward + feedback + shotBoost));
-
-            /*if (rpmError > (targetRPM * (1 - ShooterConstants.STABILITY_WINDOW_PERCENT))) {
-                power = 1.0;
-            }*/
 
             if (Math.abs(power - lastPower) > 0.0005) {
                 rShooterMotor.setPower(power);
@@ -157,7 +152,6 @@ public class ShooterSubsystem extends SubsystemBase {
         } else {
             currentDynamicHoodPos = hoodPosition;
         }
-
 
         currentDynamicHoodPos = Math.max(ShooterConstants.MINIMUM_HOOD,
                 Math.min(ShooterConstants.MAXIMUM_HOOD, currentDynamicHoodPos));
