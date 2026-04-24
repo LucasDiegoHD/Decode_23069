@@ -38,14 +38,10 @@ public class teleop extends CommandOpMode {
         }
         long tempoCache = System.currentTimeMillis();
 
-        // Roda o agendador de comandos (PIDs, Máquinas de Estado, Pedro Pathing)
         super.run();
 
         long tempoComandos = System.currentTimeMillis();
 
-        // ====================================================
-        // PROFILER: RASTREADOR DE LAG
-        // ====================================================
         telemetryM.addData("--- RASTREADOR DE LAG ---", "");
         telemetryM.addData("1. Tempo do Cache (ms)", tempoCache - tempoInicio);
         telemetryM.addData("2. Tempo dos Comandos (ms)", tempoComandos - tempoCache);

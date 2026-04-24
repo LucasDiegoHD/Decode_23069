@@ -272,4 +272,9 @@ public class RobotContainer {
     public void stopIndexerThread() {
         indexer.stopSensorThread();
     }
+
+    public void setAutoStartPose(Pose startPose) {
+        drivetrain.getFollower().setStartingPose(startPose);
+        drivetrain.getFollower().setPose(startPose);         
+    }
 }

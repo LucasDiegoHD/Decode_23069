@@ -6,6 +6,7 @@ import com.arcrobotics.ftclib.command.CommandScheduler;
 import com.bylazar.configurables.annotations.IgnoreConfigurable;
 import com.bylazar.telemetry.PanelsTelemetry;
 import com.bylazar.telemetry.TelemetryManager;
+import com.pedropathing.geometry.Pose;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 
 import org.firstinspires.ftc.teamcode.autos.paths.BlueFrontPoses;
@@ -76,37 +77,41 @@ public class Autos extends CommandOpMode {
 
         DataStorage.alliance = selectedAlliance;
         robot = new RobotContainer(hardwareMap, telemetryM, null, null, selectedAlliance);
+
         Command autonomousCommand = null;
+        Pose startPose = null;
 
         if (selectedAlliance == AllianceEnum.Red) {
             if (selectedStrategy == Strategy.FRONT) {
                 autonomousCommand = robot.getAutonomousRedFrontCommand();
+                startPose = RedFrontPoses.getPose(PosesNames.StartPose);
             } else if (selectedStrategy == Strategy.REAR_NORMAL) {
                 autonomousCommand = robot.getAutonomousRedRearCommand();
+                startPose = RedRearPoses.getPose(PosesNames.StartPose);
             } else if (selectedStrategy == Strategy.REAR_NO_GATE) {
                 autonomousCommand = robot.getAutonomousRedTuffCommand();
+                startPose = RedRearPoses.getPose(PosesNames.StartPose);
             }
         } else {
             if (selectedStrategy == Strategy.FRONT) {
                 autonomousCommand = robot.getAutonomousBlueFrontCommand();
+                startPose = BlueFrontPoses.getPose(PosesNames.StartPose);
             } else if (selectedStrategy == Strategy.REAR_NORMAL) {
                 autonomousCommand = robot.getAutonomousBlueRearCommand();
+                startPose = BlueRearPoses.getPose(PosesNames.StartPose);
             } else if (selectedStrategy == Strategy.REAR_NO_GATE) {
                 autonomousCommand = robot.getAutonomousBlueTuffCommand();
+                startPose = BlueRearPoses.getPose(PosesNames.StartPose);
             }
         }
 
+        if (startPose != null) {
+            robot.setAutoStartPose(startPose);
+        }
         while (!isStarted() && !isStopRequested()) {
+            CommandScheduler.getInstance().run();
 
-            if (selectedAlliance == AllianceEnum.Red) {
-                if (selectedStrategy == Strategy.FRONT) robot.updateRobotPose(AllianceEnum.Red, RedFrontPoses.getPose(PosesNames.StartPose));
-                else robot.updateRobotPose(AllianceEnum.Red, RedRearPoses.getPose(PosesNames.StartPose));
-            } else {
-                if (selectedStrategy == Strategy.FRONT) robot.updateRobotPose(AllianceEnum.Blue, BlueFrontPoses.getPose(PosesNames.StartPose));
-                else robot.updateRobotPose(AllianceEnum.Blue, BlueRearPoses.getPose(PosesNames.StartPose));
-            }
-
-            telemetry.addData("Status", "✅ PRONTO! PODE DAR O PLAY ▶️");
+            telemetry.addData("Status", "✅ Pinpoint Rastreando! PRONTO! PODE DAR O PLAY ▶️");
             telemetry.update();
         }
 

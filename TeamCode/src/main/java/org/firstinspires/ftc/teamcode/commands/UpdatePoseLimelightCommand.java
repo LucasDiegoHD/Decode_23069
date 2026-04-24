@@ -7,7 +7,6 @@ import com.pedropathing.geometry.Pose;
 import org.firstinspires.ftc.teamcode.subsystems.DrivetrainSubsystem;
 import org.firstinspires.ftc.teamcode.subsystems.VisionConstants;
 import org.firstinspires.ftc.teamcode.subsystems.VisionSubsystem;
-import java.util.Optional;
 
 public class UpdatePoseLimelightCommand extends CommandBase {
 
@@ -15,15 +14,11 @@ public class UpdatePoseLimelightCommand extends CommandBase {
     private final VisionSubsystem vision;
     private final Pose fallbackPose;
 
-    // CORRIGIDO: era static, persistia entre OpModes causando bug de inicialização.
-    // Agora é de instância — cada nova instância do comando começa do zero.
-    private boolean hasInitialized = false;
-
     public UpdatePoseLimelightCommand(DrivetrainSubsystem drivetrain, VisionSubsystem vision, Pose fallbackPose) {
         this.drivetrain = drivetrain;
         this.vision = vision;
         this.fallbackPose = fallbackPose;
-        addRequirements(vision);
+        // addRequirements(vision); <-- Removido para não travar outros comandos de visão sem querer
     }
 
     public static void forceHardReset(DrivetrainSubsystem drive, VisionSubsystem vis, double targetHeadingDegrees) {
@@ -44,35 +39,30 @@ public class UpdatePoseLimelightCommand extends CommandBase {
 
     @Override
     public void initialize() {
-        if (!hasInitialized) {
-            Optional<Pose> initPoseMT2 = vision.getRobotPoseMT2(fallbackPose.getHeading());
-
-            if (initPoseMT2.isPresent()) {
-                Pose p = initPoseMT2.get();
-                drivetrain.getFollower().setPose(new Pose(p.getX(), p.getY(), fallbackPose.getHeading()));
-                Log.d("Vision", "Inicializado via MT2 + Fallback Heading");
-            } else {
-                drivetrain.getFollower().setPose(fallbackPose);
-                Log.w("Vision", "Câmera cega no init. Usando Fallback Pose.");
-            }
-            hasInitialized = true;
-            return;
-        }
-
         Pose currentPose = drivetrain.getFollower().getPose();
 
         vision.getRobotPoseMT2(currentPose.getHeading()).ifPresent(llPoseMT2 -> {
+
             double distInches = Math.hypot(
                     llPoseMT2.getX() - currentPose.getX(),
                     llPoseMT2.getY() - currentPose.getY()
             );
             double maxDeltaInches = VisionConstants.MAX_DELTA_METERS * VisionConstants.METERS_TO_INCHES;
 
-            if (distInches < maxDeltaInches) {
+            // CASO 1: O robô acabou de ligar (Está literalmente no 0,0)
+            if (Math.abs(currentPose.getX()) < 0.1 && Math.abs(currentPose.getY()) < 0.1) {
+                drivetrain.getFollower().setPose(new Pose(llPoseMT2.getX(), llPoseMT2.getY(), fallbackPose.getHeading()));
+                Log.i("Vision", "Primeira inicialização via Limelight (Ignorando limite de pulo)");
+            }
+            // CASO 2: O robô já está andando. Só atualiza se o pulo for pequeno!
+            else if (distInches < maxDeltaInches) {
                 Pose fusedPose = getFusedPose(currentPose, llPoseMT2);
                 drivetrain.getFollower().setPose(fusedPose);
-            } else {
-                Log.w("Vision", "MT2 Ignorada: Pulo muito grande (" + distInches + " in)");
+                Log.d("Vision", "Pose atualizada via Fusão Limelight");
+            }
+            // CASO 3: A Limelight mentiu (Pulo gigante)
+            else {
+                Log.w("Vision", "MT2 Ignorada: Pulo gigante evitado (" + distInches + " in)");
             }
         });
     }
@@ -83,6 +73,7 @@ public class UpdatePoseLimelightCommand extends CommandBase {
         double wLL = VisionConstants.LIMELIGHT_WEIGHT;
         double total = wOdo + wLL;
 
+        // FUSÃO PURA: Só altera o X e o Y. NUNCA toca no Heading (Giroscópio) do Pinpoint!
         double fusedX = (currentPose.getX() * wOdo + llPose.getX() * wLL) / total;
         double fusedY = (currentPose.getY() * wOdo + llPose.getY() * wLL) / total;
 
@@ -94,7 +85,5 @@ public class UpdatePoseLimelightCommand extends CommandBase {
         return true;
     }
 
-    // Mantido para não quebrar código que chame esse método,
-    // mas não faz mais nada — criar nova instância já reseta tudo.
     public static void resetLocalizationStatus() {}
 }

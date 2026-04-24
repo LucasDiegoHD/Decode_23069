@@ -9,13 +9,13 @@ import java.util.List;
 public class RedRearPoses {
 
     public static final Pose[] POSES = {
-            new Pose(85.35, 8.399, Math.toRadians(90)),
-            new Pose(85.35, 14.547, Math.toRadians(66)),
+            new Pose(83.35, 12.399, Math.toRadians(90)),
+            new Pose(81.35, 16.547, Math.toRadians(66)),
 
-            new Pose(96.134, 34.169, Math.toRadians(180)),
-            new Pose(126.276, 34.169, Math.toRadians(180)),
+            new Pose(96.134, 36.169, Math.toRadians(180)),
+            new Pose(126.276, 36.169, Math.toRadians(180)),
 
-            new Pose(85.35, 14.547, Math.toRadians(69)),
+            new Pose(83.35, 16.547, Math.toRadians(69)),
 
 
             new Pose(103.35, 20.547, Math.toRadians(180)),

@@ -29,12 +29,10 @@ public class VisionSubsystem extends SubsystemBase {
         // Todos os métodos usam this.latestResult — zero chamadas extras ao hardware.
         latestResult = limelight.getLatestResult();
 
-        if (latestResult != null) {
-            getDirectDistanceToTarget().ifPresent(
-                    distance -> telemetry.addData("Visão - Distância (M)", distance)
-            );
+        if (latestResult != null && latestResult.isValid()) {
+            telemetry.addData("Limelight", "👀 Vendo Alvo");
         } else {
-            telemetry.addLine("Limelight: Sem sinal");
+            telemetry.addData("Limelight", "❌ Cega");
         }
     }
 
