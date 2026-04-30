@@ -34,8 +34,8 @@ public class ClimberSubsystem extends SubsystemBase {
     public void esticar() {
         leftServol.setPower(-ClimberConstants.POWER_UP);
         rightServol.setPower(-ClimberConstants.POWER_UP);
-        leftServor.setPower(ClimberConstants.POWER_UP);
-        rightServor.setPower(ClimberConstants.POWER_UP);
+        leftServor.setPower(-ClimberConstants.POWER_UP);
+        rightServor.setPower(-ClimberConstants.POWER_UP);
     }
 
     /**
@@ -44,8 +44,8 @@ public class ClimberSubsystem extends SubsystemBase {
     public void recolher() {
         leftServol.setPower(-ClimberConstants.POWER_DOWN);
         rightServol.setPower(-ClimberConstants.POWER_DOWN);
-        leftServor.setPower(ClimberConstants.POWER_DOWN);
-        rightServor.setPower(ClimberConstants.POWER_DOWN);
+        leftServor.setPower(-ClimberConstants.POWER_DOWN);
+        rightServor.setPower(-ClimberConstants.POWER_DOWN);
     }
 
     public void stop(){
