@@ -1,4 +1,4 @@
-    package org.firstinspires.ftc.teamcode.pedroPathing;
+package org.firstinspires.ftc.teamcode.pedroPathing;
 
 import com.bylazar.configurables.annotations.Configurable;
 import com.pedropathing.control.FilteredPIDFCoefficients;
@@ -19,12 +19,13 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 @Configurable
 public class Constants {
     public static class Drivetrain {
-            public static String LEFT_FRONT_MOTOR = "leftFront";
-            public static String RIGHT_FRONT_MOTOR = "rightFront";
-            public static String LEFT_REAR_MOTOR = "leftRear";
-            public static String RIGHT_REAR_MOTOR = "rightRear";
-            public static String PINPOINT_LOCALIZER = "pinpoint";
-        }
+        public static String LEFT_FRONT_MOTOR = "leftFront";
+        public static String RIGHT_FRONT_MOTOR = "rightFront";
+        public static String LEFT_REAR_MOTOR = "leftRear";
+        public static String RIGHT_REAR_MOTOR = "rightRear";
+        public static String PINPOINT_LOCALIZER = "pinpoint";
+    }
+
     public static FollowerConstants followerConstants = new FollowerConstants()
             .mass(8)
             .forwardZeroPowerAcceleration(-73.315092662612045)
@@ -37,9 +38,8 @@ public class Constants {
                     new PIDFCoefficients(5, 0.01, 0.5, 0.3)
             )
             .headingPIDFCoefficients(
-                    new PIDFCoefficients(1.4, 0.0, 0.5, 0.02   )
+                    new PIDFCoefficients(1.4, 0.0, 0.5, 0.02)
             )
-
             .drivePIDFCoefficients(
                     new FilteredPIDFCoefficients(0.65, 0.001, 0.11, 0.5, 0.02)
             );
@@ -56,9 +56,8 @@ public class Constants {
             .rightRearMotorDirection(DcMotorSimple.Direction.FORWARD)
             .xVelocity(77.11611423342248)
             .yVelocity(70.88718660609929)
-            //.xVelocity(25)
-            //.yVelocity(25)
             .useBrakeModeInTeleOp(true);
+
     public static PinpointConstants localizerConstants = new PinpointConstants()
             .forwardPodY(5.5)
             .strafePodX(1.5)
@@ -69,17 +68,43 @@ public class Constants {
             .forwardEncoderDirection(GoBildaPinpointDriver.EncoderDirection.REVERSED)
             .strafeEncoderDirection(GoBildaPinpointDriver.EncoderDirection.FORWARD);
 
+    // Constraints padrão — usados no TeleOp e como base
     public static PathConstraints pathConstraints = new PathConstraints(
-            0.99,  // tValueConstraint (ok)
-            2.0,   // ve locityConstraint (ANTES: 0.05) -> bem mais lento
-            1.0,   // translationalConstraint (ANTES: 0.05)
-            0.04,    // headingConstraint (ANTES: 2.0) -> gira bem mais devagar
-            250,    // timeoutConstraint
-            1.5,    // brakingStrength (ANTES: 1.5) -> freia menos "bruscamente"
-            10,     // bezier limit
-            0.4     // brakingStart (ok)
+            0.99,  // tValue
+            2.0,   // velocity (in/s)
+            1.0,   // translational (inches)
+            0.04,  // heading (rad)
+            250,   // timeout (ms)
+            1.5,   // brakingStrength
+            10,    // bezier limit
+            0.4    // brakingStart
     );
 
+    // Constraints para movimentos de TRAVESSIA no autônomo.
+    // O robô não precisa parar com precisão — só precisa chegar perto
+    // e continuar. Muito mais rápido pois não espera desacelerar.
+    public static PathConstraints autoTransitConstraints = new PathConstraints(
+            0.95,  // tValue — termina aos 95% do caminho, não espera o fim
+            8.0,   // velocity — pode ainda estar rápido ao "terminar"
+            3.0,   // translational — aceita até 3 inches de erro
+            0.1,   // heading — aceita até ~5.7° de erro
+            100,   // timeout — só 100ms de correção, não 250
+            1.5,
+            10,
+            0.4
+    );
+
+    // Constraints para poses de TIRO — precisa parar com precisão
+    public static PathConstraints autoShootConstraints = new PathConstraints(
+            0.99,  // tValue — percorre quase tudo
+            3.0,   // velocity — pode estar um pouco mais rápido que antes
+            1.5,   // translational — 1.5 inches de tolerância
+            0.05,  // heading — ~2.9°
+            150,   // timeout — 150ms é suficiente
+            1.5,
+            10,
+            0.4
+    );
 
     public static Follower createFollower(HardwareMap hardwareMap) {
         return new FollowerBuilder(followerConstants, hardwareMap)
@@ -88,6 +113,6 @@ public class Constants {
                 .pathConstraints(pathConstraints)
                 .build();
     }
-    public static double TIME_BETWEEN_LINES = 2000;
 
+    public static double TIME_BETWEEN_LINES = 2000;
 }

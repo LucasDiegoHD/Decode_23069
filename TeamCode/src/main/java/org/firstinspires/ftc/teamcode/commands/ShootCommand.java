@@ -41,7 +41,7 @@ public class ShootCommand extends CommandBase {
     }
 
     public ShootCommand(ShooterSubsystem shooter, IntakeSubsystem intake, IndexerSubsystem indexer) {
-        this(shooter, intake, indexer, 200);
+        this(shooter, intake, indexer, 500);
     }
 
     @Override

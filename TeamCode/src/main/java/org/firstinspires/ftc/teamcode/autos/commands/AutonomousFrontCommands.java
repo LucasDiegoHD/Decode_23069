@@ -5,6 +5,7 @@ import androidx.annotation.NonNull;
 import com.arcrobotics.ftclib.command.InstantCommand;
 import com.arcrobotics.ftclib.command.SequentialCommandGroup;
 import com.arcrobotics.ftclib.command.WaitCommand;
+import com.arcrobotics.ftclib.command.WaitUntilCommand;
 import com.bylazar.telemetry.TelemetryManager;
 import com.pedropathing.geometry.Pose;
 import org.firstinspires.ftc.teamcode.autos.paths.PosesNames;
@@ -28,7 +29,7 @@ public class AutonomousFrontCommands extends SequentialCommandGroup {
                 new UpdatePoseLimelightCommand(drivetrain, vision, poses.get(PosesNames.StartPose.ordinal())),
                 new SpinShooterCommand(shooter, SpinShooterCommand.Action.SHORT_SHOOT),
                 new GoToPoseCommand(drivetrain, poses.get(PosesNames.GoToShoot1.ordinal())).withTimeout(1500),
-                new WaitCommand(800),
+                new WaitUntilCommand(shooter::isReady).withTimeout(800),
                 new AlignAndAdjustAutoCommand(drivetrain, vision, shooter),
                 new ShootCommandAutonomous(shooter, intake, indexer,3).withTimeout(3000),
                 new SpinShooterCommand(shooter, SpinShooterCommand.Action.SHORT_SHOOT),

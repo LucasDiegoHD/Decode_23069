@@ -5,6 +5,7 @@ import androidx.annotation.NonNull;
 import com.arcrobotics.ftclib.command.InstantCommand;
 import com.arcrobotics.ftclib.command.SequentialCommandGroup;
 import com.arcrobotics.ftclib.command.WaitCommand;
+import com.arcrobotics.ftclib.command.WaitUntilCommand;
 import com.pedropathing.geometry.Pose;
 import org.firstinspires.ftc.teamcode.autos.paths.PosesNames;
 import org.firstinspires.ftc.teamcode.commands.SpinShooterCommand;
@@ -63,7 +64,7 @@ public class AutonomousTuffCommand extends SequentialCommandGroup {
                 new GoToPoseCommand(drivetrain, poses.get(PosesNames.GoToShoot1.ordinal())),
                 new UpdatePoseLimelightCommand(drivetrain, vision, poses.get(PosesNames.GoToShoot1.ordinal())),
                 new AlignAndAdjustAutoCommand(drivetrain, vision, shooter),
-                new WaitCommand(1500),
+                new WaitUntilCommand(shooter::isReady).withTimeout(1500),
                 new ShootCommandAutonomous(shooter, intake, indexer,3).withTimeout(3000),
                 new InstantCommand(intake::run),
                 new GoToPoseCommand(drivetrain, true,

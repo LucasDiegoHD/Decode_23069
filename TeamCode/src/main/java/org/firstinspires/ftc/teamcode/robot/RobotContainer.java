@@ -277,4 +277,34 @@ public class RobotContainer {
         drivetrain.getFollower().setStartingPose(startPose);
         drivetrain.getFollower().setPose(startPose);         
     }
+    /**
+     * Tenta relocalizar via Limelight e aplica se válido.
+     * Chamado no loop de espera antes do play para garantir
+     * pose inicial correta independente do Pinpoint.
+     */
+    public void tryRelocalizeLimelight() {
+        Pose currentPose = drivetrain.getFollower().getPose();
+        double heading = currentPose.getHeading();
+
+        vision.getRobotPoseMT2(heading).ifPresent(llPose -> {
+            // Só aplica se a pose da Limelight está próxima da pose esperada
+            // (evita aceitar leituras ruins de tags distantes)
+            double dist = Math.hypot(
+                    llPose.getX() - currentPose.getX(),
+                    llPose.getY() - currentPose.getY()
+            );
+            if (dist < 24.0) { // aceita até 24 inches de diferença
+                drivetrain.getFollower().setPose(
+                        new Pose(llPose.getX(), llPose.getY(), heading)
+                );
+            }
+        });
+    }
+
+    /**
+     * Retorna true se a Limelight está vendo uma tag e tem fix de pose.
+     */
+    public boolean hasLimelightFix() {
+        return vision.hasTarget();
+    }
 }

@@ -15,12 +15,9 @@ public class ShootCommandAutonomous extends CommandBase {
 
     private final ShooterSubsystem shooter;
     private final IntakeSubsystem intake;
-    private final IndexerSubsystem indexer;
-    private final TelemetryManager telemetryM;
+
     private final ElapsedTime timer = new ElapsedTime();
     private final ElapsedTime cooldownTimer = new ElapsedTime();
-
-    // A máquina de estados nova aplicada no Autônomo!
     private enum SHOOT_STATES {
         Conveyor,
         Acceleration,
@@ -31,18 +28,20 @@ public class ShootCommandAutonomous extends CommandBase {
 
     private SHOOT_STATES state;
     private int shooterCounter;
+    private final TelemetryManager telemetryM;
+    private final IndexerSubsystem indexer;
 
     public ShootCommandAutonomous(ShooterSubsystem shooter, IntakeSubsystem intake, IndexerSubsystem indexer, int shoots) {
         telemetryM = PanelsTelemetry.INSTANCE.getTelemetry();
-        this.shooter = shooter;
-        this.intake = intake;
         this.indexer = indexer;
         this.shooterCounter = shoots;
+        this.shooter = shooter;
+        this.intake = intake;
         addRequirements(shooter, indexer);
     }
 
-    public ShootCommandAutonomous(ShooterSubsystem shooter, IntakeSubsystem intake, IndexerSubsystem indexer, LEDSubsystem led) {
-        this(shooter, intake, indexer, 99); // Padrão do Auto: atirar tudo que tem na agulha
+    public ShootCommandAutonomous(ShooterSubsystem shooter, IntakeSubsystem intake, IndexerSubsystem indexer) {
+        this(shooter, intake, indexer, 500);
     }
 
     @Override
@@ -66,13 +65,9 @@ public class ShootCommandAutonomous extends CommandBase {
                 }
 
                 if (indexer.getExitSensor() || timer.milliseconds() > ShooterConstants.TRIGGER_TIMER_TO_SHOOT) {
-
-                    // Mantido o isReady() do seu Auto para atirar mais rápido!
-                    if (shooter.isReady()) {
+                    if (shooter.getShooterAtTarget()) {
                         state = SHOOT_STATES.Shooting;
                         shooter.anticipateShot();
-
-                        // LIGA AQUI (Apenas 1 vez na transição!)
                         intake.runTrigger();
                         intake.run();
 
@@ -90,11 +85,9 @@ public class ShootCommandAutonomous extends CommandBase {
                     intake.run();
                 }
 
-                if (shooter.isReady()) {
+                if (shooter.getShooterAtTarget()) {
                     state = SHOOT_STATES.Shooting;
                     shooter.anticipateShot();
-
-                    // LIGA AQUI (Apenas 1 vez na transição!)
                     intake.runTrigger();
                     intake.run();
 
@@ -105,8 +98,7 @@ public class ShootCommandAutonomous extends CommandBase {
             case Shooting:
                 boolean pieceHasLeft = !indexer.getExitSensor();
 
-                // Mantido o seu timeout de segurança de 1200ms do Autônomo
-                if (pieceHasLeft || timer.milliseconds() > 1200) {
+                if (pieceHasLeft || timer.milliseconds() > ShooterConstants.TRIGGER_TIMER_TRIGGERING) {
                     if (shooterCounter > 0) {
                         shooterCounter--;
                     }
@@ -117,7 +109,6 @@ public class ShootCommandAutonomous extends CommandBase {
                 break;
 
             case FollowThrough:
-                // O motor das rodas Compliant continua ligado na força máxima empurrando a argola.
 
                 if (timer.milliseconds() > ShooterConstants.TRIGGER_FOLLOW_THROUGH_MS) {
 
@@ -130,8 +121,6 @@ public class ShootCommandAutonomous extends CommandBase {
                         cooldownTimer.reset();
                     } else {
                         state = SHOOT_STATES.Conveyor;
-
-                        // DESLIGA AQUI (Apenas 1 vez!)
                         intake.stopTrigger();
                         intake.stop();
                     }
@@ -141,8 +130,7 @@ public class ShootCommandAutonomous extends CommandBase {
             case Cooldown:
                 double time = cooldownTimer.milliseconds();
 
-                // Mantido o seu cooldown fixo de 300ms do Autônomo
-                if (time > 300) {
+                if (time > ShooterConstants.DELAY_BETWEEN_SHOTS_MS) {
                     state = SHOOT_STATES.Conveyor;
 
                     if (indexer.getExitSensor()) intake.stop();
@@ -151,8 +139,8 @@ public class ShootCommandAutonomous extends CommandBase {
                 break;
         }
 
-        telemetryM.addData("Shoot State (Auto)", state);
-        telemetryM.addData("Shots Left (Auto)", shooterCounter);
+        telemetryM.addData("Shoot State", state);
+        telemetryM.addData("Shots Left", shooterCounter);
     }
 
     @Override
@@ -165,6 +153,5 @@ public class ShootCommandAutonomous extends CommandBase {
         intake.stopTrigger();
         intake.stop();
         indexer.setShootingState(false);
-        telemetryM.addData("Shoot State (Auto)", "Finish");
     }
 }
