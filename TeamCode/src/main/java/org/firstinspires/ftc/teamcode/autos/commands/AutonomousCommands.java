@@ -27,12 +27,11 @@ public class AutonomousCommands extends SequentialCommandGroup {
                 new AlignAndAdjustAutoCommand(drivetrain, vision, shooter),
 
                 // === TIRO 1 ===
-                new WaitUntilCommand(shooter::isReady).withTimeout(1700),
                 new GoToPoseCommand(drivetrain, poses.get(PosesNames.GoToShoot1.ordinal()))
                         .setConstraints(Constants.autoShootConstraints),
                 new UpdatePoseLimelightCommand(drivetrain, vision, poses.get(PosesNames.GoToShoot1.ordinal())),
                 new AlignAndAdjustAutoCommand(drivetrain, vision, shooter),
-                new WaitCommand(1700), // ← me confirma se esse wait é necessário
+                new WaitUntilCommand(shooter::isReady).withTimeout(1700),
                 new ShootCommandAutonomous(shooter, intake, indexer, 3).withTimeout(3000),
 
                 // === BUSCA LINHA 1 ===
