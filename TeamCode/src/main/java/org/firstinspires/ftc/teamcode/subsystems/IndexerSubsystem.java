@@ -10,33 +10,37 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 public class IndexerSubsystem extends SubsystemBase {
 
     private final TelemetryManager telemetry;
-
     private final DistanceSensor exitSensor;
     private final DistanceSensor entrySensor;
 
     private int pieceCount = 0;
 
     private boolean previousEntryState = false;
-    private long lastEntryCountTime = 0;
-
     private boolean previousExitState = false;
-    private long lastExitCountTime = 0;
+
+    private long lastEntryEventTime = 0;
+    private long lastExitEventTime = 0;
 
     private static final long DEBOUNCE_DELAY_MS = 100;
+
     private volatile double currentEntryDist = 23069.0;
     private volatile double currentExitDist = 23069.0;
 
     private boolean isInitialized = false;
+    private long startTime = 0;
+    private static final long INIT_DELAY_MS = 150;
+
     private boolean isShooting = false;
+    private long shootingEndTime = 0;
+    private static final long POST_SHOOT_PROTECTION_MS = 500;
 
     private Thread sensorThread;
 
     public IndexerSubsystem(HardwareMap hardwareMap, TelemetryManager telemetry) {
         this.telemetry = telemetry;
-
         exitSensor = hardwareMap.get(DistanceSensor.class, IndexerConstants.EXIT_SENSOR_NAME);
         entrySensor = hardwareMap.get(DistanceSensor.class, IndexerConstants.ENTRY_SENSOR_NAME);
-
+        startTime = System.currentTimeMillis();
         iniciarThreadDeSensores();
     }
 
@@ -50,7 +54,6 @@ public class IndexerSubsystem extends SubsystemBase {
                 } catch (InterruptedException e) {
                     Thread.currentThread().interrupt();
                 } catch (Exception e) {
-                    // Sensor falhou — mantém último valor conhecido
                 }
             }
         });
@@ -58,11 +61,6 @@ public class IndexerSubsystem extends SubsystemBase {
         sensorThread.start();
     }
 
-    /**
-     * Para a thread de leitura dos sensores.
-     * Deve ser chamado no end() do OpMode para evitar duas threads rodando
-     * simultaneamente se o OpMode for reiniciado sem matar o processo.
-     */
     public void stopSensorThread() {
         if (sensorThread != null && sensorThread.isAlive()) {
             sensorThread.interrupt();
@@ -73,53 +71,76 @@ public class IndexerSubsystem extends SubsystemBase {
     public void periodic() {
         long tempoInicio = System.currentTimeMillis();
 
-        boolean currentEntryState = getEntrySensor();
-        boolean currentExitState = getExitSensor();
+        boolean entryActive = getEntrySensor();
+        boolean exitActive = getExitSensor();
 
         if (!isInitialized) {
-            if (currentExitState && currentEntryState) {
+            if (System.currentTimeMillis() - startTime < INIT_DELAY_MS) {
+                return;
+            }
+            if (exitActive && entryActive) {
                 pieceCount = IndexerConstants.MAX_PIECE_CAPACITY;
-            } else if (currentExitState || currentEntryState) {
+            } else if (exitActive || entryActive) {
                 pieceCount = 1;
             } else {
                 pieceCount = 0;
             }
-            previousEntryState = currentEntryState;
-            previousExitState = currentExitState;
+            previousEntryState = entryActive;
+            previousExitState = exitActive;
             isInitialized = true;
         }
 
-        if (currentEntryState && !previousEntryState
-                && (System.currentTimeMillis() - lastEntryCountTime > DEBOUNCE_DELAY_MS)) {
+        boolean recentlyShooting = System.currentTimeMillis() - shootingEndTime < POST_SHOOT_PROTECTION_MS;
+
+        if (exitActive && entryActive && !isShooting) {
+            pieceCount = IndexerConstants.MAX_PIECE_CAPACITY;
+        }
+        else if (exitActive && !entryActive && pieceCount < 1) {
+            pieceCount = 1;
+        }
+        else if (entryActive && !exitActive && pieceCount < 1) {
+            pieceCount = 1;
+        }
+
+        else if (!exitActive && !entryActive && !isShooting && !recentlyShooting) {
+            pieceCount = 0;
+        }
+
+
+        if (entryActive && !previousEntryState
+                && System.currentTimeMillis() - lastEntryEventTime > DEBOUNCE_DELAY_MS) {
             if (pieceCount < IndexerConstants.MAX_PIECE_CAPACITY) {
                 pieceCount++;
             }
-            lastEntryCountTime = System.currentTimeMillis();
+            lastEntryEventTime = System.currentTimeMillis();
         }
 
-        if (!currentExitState && previousExitState && isShooting
-                && (System.currentTimeMillis() - lastExitCountTime > DEBOUNCE_DELAY_MS)) {
+        if (!exitActive && previousExitState && isShooting
+                && System.currentTimeMillis() - lastExitEventTime > DEBOUNCE_DELAY_MS) {
             if (pieceCount > 0) {
                 pieceCount--;
             }
-            lastExitCountTime = System.currentTimeMillis();
+            lastExitEventTime = System.currentTimeMillis();
         }
 
-        previousEntryState = currentEntryState;
-        previousExitState = currentExitState;
+        previousEntryState = entryActive;
+        previousExitState = exitActive;
 
         telemetry.addData("Indexer Pieces", pieceCount);
         telemetry.addData("Is Shooting?", isShooting);
         telemetry.addData("Entry Dist (CM)", currentEntryDist);
-        telemetry.addData("Entry Triggered", currentEntryState);
+        telemetry.addData("Entry Triggered", entryActive);
         telemetry.addData("Exit Dist (CM)", currentExitDist);
-        telemetry.addData("Exit Triggered", currentExitState);
+        telemetry.addData("Exit Triggered", exitActive);
 
         long tempoFim = System.currentTimeMillis();
         telemetry.addData(">> Tempo Sensores Indexer (ms)", tempoFim - tempoInicio);
     }
 
     public void setShootingState(boolean state) {
+        if (!state && isShooting) {
+            shootingEndTime = System.currentTimeMillis();
+        }
         this.isShooting = state;
     }
 
