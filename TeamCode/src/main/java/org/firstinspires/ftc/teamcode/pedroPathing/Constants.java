@@ -72,7 +72,7 @@ public class Constants {
     public static PathConstraints pathConstraints = new PathConstraints(
             0.99,  // tValue
             2.0,   // velocity (in/s)
-            1.0,   // translational (inches)
+            1.5,   // translational (inches)
             0.04,  // heading (rad)
             250,   // timeout (ms)
             1.5,   // brakingStrength
@@ -90,7 +90,7 @@ public class Constants {
             0.1,   // heading — aceita até ~5.7° de erro
             100,   // timeout — só 100ms de correção, não 250
             1.5,
-            10,
+            5,
             0.4
     );
 

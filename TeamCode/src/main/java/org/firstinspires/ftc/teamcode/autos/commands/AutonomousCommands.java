@@ -59,7 +59,7 @@ public class AutonomousCommands extends SequentialCommandGroup {
                 // === GATE ===
                 new InstantCommand(intake::stop),
                 new GoToPoseCommand(drivetrain, poses.get(PosesNames.GatePose.ordinal()))
-                        .setConstraints(Constants.autoTransitConstraints).withTimeout(1000),
+                        .setConstraints(Constants.pathConstraints).withTimeout(1000),
 
                 // === TIRO 3 ===
                 new GoToPoseCommand(drivetrain, poses.get(PosesNames.GoToShoot1.ordinal()))

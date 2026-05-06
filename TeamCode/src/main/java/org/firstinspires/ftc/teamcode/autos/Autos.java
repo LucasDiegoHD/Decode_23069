@@ -108,27 +108,15 @@ public class Autos extends CommandOpMode {
         if (startPose != null) {
             robot.setAutoStartPose(startPose);
         }
-
-        long startWaitTime = System.currentTimeMillis();
-        long MINIMUM_WAIT_MS = 12000;
-
         while (!isStarted() && !isStopRequested()) {
-            robot.clearBulkCache(); // garante leituras frescas dos sensores
             CommandScheduler.getInstance().run();
-            robot.tryRelocalizeLimelight();
 
-            long elapsed = System.currentTimeMillis() - startWaitTime;
-            boolean pinpointReady = elapsed >= MINIMUM_WAIT_MS;
-            boolean limelightReady = robot.hasLimelightFix();
-
-            if (pinpointReady || limelightReady) {
-                telemetry.addData("Status", "✅ PRONTO! PODE DAR O PLAY ▶️");
-                telemetry.addData("Fonte da pose", limelightReady ? "Limelight ✅" : "Pinpoint ⏳");
-            } else {
-                telemetry.addData("Status", "⏳ Calibrando... " +
-                        String.format("%.1f", (MINIMUM_WAIT_MS - elapsed) / 1000.0) + "s");
-            }
+            telemetry.addData("Status", "✅ Pinpoint Rastreando! PRONTO! PODE DAR O PLAY ▶️");
             telemetry.update();
+        }
+
+        if (autonomousCommand != null) {
+            schedule(autonomousCommand);
         }
     }
 
