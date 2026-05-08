@@ -18,10 +18,12 @@ public class IndexerConstants {
     public static String ENTRY_SENSOR_NAME = "sensorEntry";
     /** The hardware map name for the exit sensor (e.g., a color/distance sensor). */
     public static String EXIT_SENSOR_NAME = "sensor_color_distance";
+    public static final String MIDDLE_SENSOR_NAME = "middleSensor";
 
     /** The maximum number of game pieces the robot can hold. */
     public static int MAX_PIECE_CAPACITY = 3;
     /** The distance threshold in centimeters for the exit sensor to be considered triggered. */
     public static double EXIT_DISTANCE_CM = 10.0;
     public static double ENTRY_DISTANCE_CM = 10.0;
+    public static final double MIDDLE_DISTANCE_CM = 12.0;
 }
