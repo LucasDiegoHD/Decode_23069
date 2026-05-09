@@ -39,7 +39,7 @@ public class AutonomousCommands extends SequentialCommandGroup {
                 new GoToPoseCommand(drivetrain, true,
                         poses.get(PosesNames.GoToLine1.ordinal()),
                         poses.get(PosesNames.CatchLine1.ordinal())
-                ).setConstraints(Constants.autoTransitConstraints).withTimeout(4000),
+                ).setConstraints(Constants.autoTransitConstraints).withNoDeceleration().withTimeout(4000),
 
                 // === TIRO 2 ===
                 new GoToPoseCommand(drivetrain, poses.get(PosesNames.GoToShoot1.ordinal()))
@@ -54,12 +54,12 @@ public class AutonomousCommands extends SequentialCommandGroup {
                 new GoToPoseCommand(drivetrain, true,
                         poses.get(PosesNames.GoToLine3.ordinal()),
                         poses.get(PosesNames.CatchLine3.ordinal())
-                ).setConstraints(Constants.autoTransitConstraints).withTimeout(4000),
+                ).setConstraints(Constants.autoTransitConstraints).withNoDeceleration().withTimeout(4000),
 
                 // === GATE ===
                 new InstantCommand(intake::stop),
                 new GoToPoseCommand(drivetrain, poses.get(PosesNames.GatePose.ordinal()))
-                        .setConstraints(Constants.pathConstraints).withTimeout(1000),
+                        .setConstraints(Constants.autoShootConstraints).withTimeout(1000),
 
                 // === TIRO 3 ===
                 new GoToPoseCommand(drivetrain, poses.get(PosesNames.GoToShoot1.ordinal()))
@@ -74,7 +74,7 @@ public class AutonomousCommands extends SequentialCommandGroup {
                 new GoToPoseCommand(drivetrain, true,
                         poses.get(PosesNames.GoToLine2.ordinal()),
                         poses.get(PosesNames.CatchLine2.ordinal())
-                ).setConstraints(Constants.autoTransitConstraints).withTimeout(2000),
+                ).setConstraints(Constants.autoTransitConstraints).withNoDeceleration().withTimeout(2000),
                 new WaitCommand(700),
 
                 // === TIRO 4 ===

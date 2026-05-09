@@ -18,6 +18,12 @@ public class GoToPoseCommand extends CommandBase {
     private final boolean holdEnd;
     private PathConstraints constraints;
 
+    // Modos de desaceleração
+    private enum DecelerationMode { DEFAULT, GLOBAL, NONE }
+    private DecelerationMode decelerationMode = DecelerationMode.DEFAULT;
+    private double globalBrakingStrength = 1.5;
+    private double globalBrakingStart = 0.4;
+
     public GoToPoseCommand(DrivetrainSubsystem drivetrain, Pose targetPose) {
         this(drivetrain, true, targetPose);
     }
@@ -39,6 +45,17 @@ public class GoToPoseCommand extends CommandBase {
         return this;
     }
 
+    public GoToPoseCommand withNoDeceleration() {
+        this.decelerationMode = DecelerationMode.NONE;
+        return this;
+    }
+
+    public GoToPoseCommand withGlobalDeceleration(double brakingStrength) {
+        this.decelerationMode = DecelerationMode.GLOBAL;
+        this.globalBrakingStrength = brakingStrength;
+        return this;
+    }
+
     @Override
     public void initialize() {
         if (waypoints.isEmpty()) return;
@@ -53,13 +70,25 @@ public class GoToPoseCommand extends CommandBase {
         for (int i = 1; i < waypoints.size(); i++) {
             Pose previous = waypoints.get(i - 1);
             Pose current = waypoints.get(i);
-
             builder.addPath(new BezierLine(previous, current));
             builder.setLinearHeadingInterpolation(previous.getHeading(), current.getHeading());
             applyConstraints(builder);
         }
 
         PathChain chain = builder.build();
+
+        // Aplica o modo de desaceleração na PathChain
+        switch (decelerationMode) {
+            case NONE:
+                chain.setDecelerationType(PathChain.DecelerationType.NONE);
+                break;
+            case GLOBAL:
+                chain.setDecelerationType(PathChain.DecelerationType.GLOBAL);
+                break;
+            case DEFAULT:
+            default:
+                break;
+        }
 
         drivetrain.getFollower().followPath(chain, holdEnd);
     }
