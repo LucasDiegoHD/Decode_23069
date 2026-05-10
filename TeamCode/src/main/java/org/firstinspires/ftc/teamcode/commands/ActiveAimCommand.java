@@ -88,6 +88,8 @@ public class ActiveAimCommand extends CommandBase {
 
         finalRpm = Math.max(MIN_SAFE_RPM, Math.min(finalRpm, MAX_SAFE_RPM));
 
+        shooter.setCurrentDistance(distanceToUse);
+
         if (isReadyToSpin.getAsBoolean()) {
             shooter.setTargetVelocity(finalRpm);
         } else {

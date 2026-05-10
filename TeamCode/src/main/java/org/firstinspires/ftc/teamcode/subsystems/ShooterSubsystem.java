@@ -77,9 +77,27 @@ public class ShooterSubsystem extends SubsystemBase {
 
     public void setLongShotMode(boolean active) { this.isLongShotMode = active; }
 
+    private double currentDistance = 99.0;
+
+    public void setCurrentDistance(double distanceMeters) {
+        this.currentDistance = distanceMeters;
+    }
     public boolean getShooterAtTarget() {
         if (targetRPM <= 50) return false;
-        return getCurrentRPM() > (targetRPM * ShooterConstants.CADENCE_TOLERANCE_PERCENT);
+        double tolerance = calcularTolerancia(currentDistance);
+        return getCurrentRPM() > (targetRPM * tolerance);
+    }
+
+    private double calcularTolerancia(double distanceMeters) {
+        double minTolerance = 0.85;
+        double maxTolerance = ShooterConstants.CADENCE_TOLERANCE_PERCENT;
+
+        if (distanceMeters >= VisionConstants.LONGEST_DISTANCE) return maxTolerance;
+        if (distanceMeters <= VisionConstants.LONGEST_DISTANCE * 0.7) return minTolerance;
+
+        double t = (distanceMeters - VisionConstants.LONGEST_DISTANCE * 0.7) /
+                (VisionConstants.LONGEST_DISTANCE * 0.3);
+        return minTolerance + t * (maxTolerance - minTolerance);
     }
 
     public boolean isReady() {
