@@ -89,7 +89,7 @@ public class ShooterSubsystem extends SubsystemBase {
     }
 
     private double calcularTolerancia(double distanceMeters) {
-        double minTolerance = 0.85;
+        double minTolerance = 0.80;
         double maxTolerance = ShooterConstants.CADENCE_TOLERANCE_PERCENT;
 
         if (distanceMeters >= VisionConstants.LONGEST_DISTANCE) return maxTolerance;

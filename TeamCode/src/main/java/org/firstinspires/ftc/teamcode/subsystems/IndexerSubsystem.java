@@ -19,7 +19,7 @@ public class IndexerSubsystem extends SubsystemBase {
     private boolean isShooting = false;
     private long shootingEndTime = 0;
     private static final long POST_SHOOT_PROTECTION_MS = 500;
-    private static final long RISE_DEBOUNCE_MS = 100;
+    private static final long RISE_DEBOUNCE_MS = 200;
 
     private volatile double currentEntryDist = 23069.0;
     private volatile double currentExitDist = 23069.0;
@@ -52,7 +52,7 @@ public class IndexerSubsystem extends SubsystemBase {
                     currentEntryDist = entrySensor.getDistance(DistanceUnit.CM);
                     currentExitDist = exitSensor.getDistance(DistanceUnit.CM);
                     currentMiddleDist = middleSensor.getDistance(DistanceUnit.CM);
-                    Thread.sleep(50);
+                    Thread.sleep(30);
                 } catch (InterruptedException e) {
                     Thread.currentThread().interrupt();
                 } catch (Exception e) {
