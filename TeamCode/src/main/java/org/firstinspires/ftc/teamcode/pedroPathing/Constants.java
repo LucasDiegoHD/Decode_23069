@@ -89,9 +89,9 @@ public class Constants {
             3.0,   // translational — aceita até 3 inches de erro
             0.1,   // heading — aceita até ~5.7° de erro
             100,   // timeout — só 100ms de correção, não 250
-            1.5,
+            2.0,
             5,
-            0.4
+            0.1
     );
 
     // Constraints para poses de TIRO — precisa parar com precisão
@@ -100,10 +100,10 @@ public class Constants {
             3.0,   // velocity — pode estar um pouco mais rápido que antes
             1.5,   // translational — 1.5 inches de tolerância
             0.05,  // heading — ~2.9°
-            150,   // timeout — 150ms é suficiente
-            1.5,
+            300,   // timeout — 150ms é suficiente
+            2.5,
             10,
-            0.4
+            0.3
     );
 
     public static Follower createFollower(HardwareMap hardwareMap) {

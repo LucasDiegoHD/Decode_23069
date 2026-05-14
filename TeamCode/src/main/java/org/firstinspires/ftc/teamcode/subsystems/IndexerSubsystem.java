@@ -52,7 +52,7 @@ public class IndexerSubsystem extends SubsystemBase {
                     currentEntryDist = entrySensor.getDistance(DistanceUnit.CM);
                     currentExitDist = exitSensor.getDistance(DistanceUnit.CM);
                     currentMiddleDist = middleSensor.getDistance(DistanceUnit.CM);
-                    Thread.sleep(30);
+                    Thread.sleep(40);
                 } catch (InterruptedException e) {
                     Thread.currentThread().interrupt();
                 } catch (Exception e) {

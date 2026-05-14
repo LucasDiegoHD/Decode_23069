@@ -12,6 +12,8 @@ public enum PosesNames {
     GoToLine3,
     CatchLine3,
     GatePose,
-    CatchLine4,
+    GoToLine4,
     CatchLine5,
+    GotoLine6,
+    CatchLine6,
 }

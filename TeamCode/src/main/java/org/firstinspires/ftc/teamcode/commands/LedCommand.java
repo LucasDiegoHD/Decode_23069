@@ -23,10 +23,10 @@ public class LedCommand extends CommandBase {
             ledSubsystem.setPattern(LEDSubsystem.OFF);
         }
         else if (bolas == 1) {
-            ledSubsystem.setPattern(LEDSubsystem.RED);
+            ledSubsystem.setPattern(LEDSubsystem.BLUE);
         }
         else if (bolas == 2) {
-            ledSubsystem.setPattern(LEDSubsystem.YELLOW);
+            ledSubsystem.setPattern(LEDSubsystem.ORANGE);
         }
         else if (bolas >= 3) {
             ledSubsystem.setPattern(LEDSubsystem.GREEN);

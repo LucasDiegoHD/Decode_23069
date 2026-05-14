@@ -49,6 +49,7 @@ public class KinematicAimDriveCommand extends CommandBase {
 
     @Override
     public void initialize() {
+        follower.startTeleopDrive();
         turnController.reset();
         turnController.setSetPoint(0);
         turnController.setTolerance((Math.PI / 180.0) * ShooterConstants.ANGLE_TOLERANCE);
@@ -60,17 +61,26 @@ public class KinematicAimDriveCommand extends CommandBase {
 
     @Override
     public void execute() {
-        double forward = -driver.getLeftX();
-        double strafe = -driver.getLeftY();
-
-        if (DataStorage.alliance == AllianceEnum.Blue) {
-            forward = -forward;
-            strafe = -strafe;
-        }
-
         Pose pose = follower.getPose();
         Vector velocity = follower.getVelocity();
+        double heading = pose.getHeading();
 
+        // === MOVIMENTO FIELD-CENTRIC (igual ao TeleOpDriveCommand sem slew rate) ===
+        double rawY = driver.getLeftX();
+        double rawX = driver.getLeftY();
+
+        double targetY_input = rawY * Math.abs(rawY);
+        double targetX_input = rawX * Math.abs(rawX);
+
+        double xField = targetX_input * Math.cos(heading) - targetY_input * Math.sin(heading);
+        double yField = targetX_input * Math.sin(heading) + targetY_input * Math.cos(heading);
+
+        if (DataStorage.alliance == AllianceEnum.Blue) {
+            xField = -xField;
+            yField = -yField;
+        }
+
+        // === MIRA CINEMÁTICA (igual ao original) ===
         smoothedVelX = (VEL_ALPHA * velocity.getXComponent()) + ((1 - VEL_ALPHA) * smoothedVelX);
         smoothedVelY = (VEL_ALPHA * velocity.getYComponent()) + ((1 - VEL_ALPHA) * smoothedVelY);
 
@@ -79,7 +89,6 @@ public class KinematicAimDriveCommand extends CommandBase {
 
         double robotX = pose.getX();
         double robotY = pose.getY();
-        double heading = pose.getHeading();
 
         double diffX = targetX - robotX;
         double diffY = targetY - robotY;
@@ -108,13 +117,9 @@ public class KinematicAimDriveCommand extends CommandBase {
         double outerTolerance = innerTolerance + Math.toRadians(0.5);
 
         if (isAtTarget) {
-            if (Math.abs(error) > outerTolerance) {
-                isAtTarget = false;
-            }
+            if (Math.abs(error) > outerTolerance) isAtTarget = false;
         } else {
-            if (Math.abs(error) < innerTolerance) {
-                isAtTarget = true;
-            }
+            if (Math.abs(error) < innerTolerance) isAtTarget = true;
         }
 
         if (!isAtTarget && Math.abs(error) > FEEDFORWARD_DEAD_ZONE) {
@@ -123,7 +128,15 @@ public class KinematicAimDriveCommand extends CommandBase {
 
         turnPower = Math.max(-1.0, Math.min(1.0, turnPower));
 
-        follower.setTeleOpDrive(-strafe, forward, -turnPower, true);
+        // Movimento field-centric + rotação controlada pelo PID de mira
+        // true = robot centric, mas os vetores xField/yField já estão
+        // rotacionados para field, igual ao TeleOpDriveCommand
+        follower.setTeleOpDrive(
+                xField,
+                -yField,
+                -turnPower,
+                true
+        );
     }
 
     @Override

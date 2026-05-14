@@ -10,6 +10,7 @@ import com.pedropathing.geometry.Pose;
 import org.firstinspires.ftc.teamcode.autos.paths.PosesNames;
 import org.firstinspires.ftc.teamcode.commands.SpinShooterCommand;
 import org.firstinspires.ftc.teamcode.commands.UpdatePoseLimelightCommand;
+import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 import org.firstinspires.ftc.teamcode.subsystems.DrivetrainSubsystem;
 import org.firstinspires.ftc.teamcode.subsystems.IndexerSubsystem;
 import org.firstinspires.ftc.teamcode.subsystems.IntakeSubsystem;
@@ -61,7 +62,8 @@ public class AutonomousTuffCommand extends SequentialCommandGroup {
         addCommands(
                 new UpdatePoseLimelightCommand(drivetrain, vision, poses.get(PosesNames.StartPose.ordinal())),
                 new AlignAndAdjustAutoCommand(drivetrain, vision, shooter),
-                new GoToPoseCommand(drivetrain, poses.get(PosesNames.GoToShoot1.ordinal())),
+                new GoToPoseCommand(drivetrain, poses.get(PosesNames.GoToShoot1.ordinal()))
+                        .setConstraints(Constants.autoShootConstraints),
                 new UpdatePoseLimelightCommand(drivetrain, vision, poses.get(PosesNames.GoToShoot1.ordinal())),
                 new AlignAndAdjustAutoCommand(drivetrain, vision, shooter),
                 new WaitUntilCommand(shooter::isReady).withTimeout(1500),
@@ -70,44 +72,47 @@ public class AutonomousTuffCommand extends SequentialCommandGroup {
                 new GoToPoseCommand(drivetrain, true,
                         poses.get(PosesNames.GoToLine1.ordinal()),
                         poses.get(PosesNames.CatchLine1.ordinal())
-                ).withTimeout(4000),
-                new GoToPoseCommand(drivetrain, poses.get(PosesNames.GoToShoot1.ordinal())),
+                ).setConstraints(Constants.autoTransitConstraints).withNoDeceleration().withTimeout(4000),
+                new GoToPoseCommand(drivetrain, poses.get(PosesNames.GoToShoot1.ordinal()))
+                        .setConstraints(Constants.autoShootConstraints),
                 new AlignAndAdjustAutoCommand(drivetrain, vision, shooter),
-                new WaitCommand(500),
+                new WaitCommand(300),
                 new ShootCommandAutonomous(shooter, intake, indexer,3 ).withTimeout(3000),
                 new InstantCommand(intake::run),
                 new GoToPoseCommand(drivetrain, true,
                         poses.get(PosesNames.GoToLine2.ordinal()),
                         poses.get(PosesNames.CatchLine5.ordinal())
-                ).withTimeout(2000),
+                ).setConstraints(Constants.autoTransitConstraints).withNoDeceleration().withTimeout(1500),
                 new GoToPoseCommand(drivetrain, poses.get(PosesNames.CatchLine2.ordinal())).withTimeout(800),
                 new WaitCommand(300),
-                new GoToPoseCommand(drivetrain, poses.get(PosesNames.GoToShoot2.ordinal())),
+                new GoToPoseCommand(drivetrain, poses.get(PosesNames.GoToShoot1.ordinal()))
+                        .setConstraints(Constants.autoShootConstraints),
                 new AlignAndAdjustAutoCommand(drivetrain, vision, shooter),
-                new WaitCommand(500),
+                new WaitCommand(300),
                 new ShootCommandAutonomous(shooter, intake, indexer,3).withTimeout(3000),
                 new WaitCommand(300),
                 new InstantCommand(intake::run),
                 new GoToPoseCommand(drivetrain, true,
                         poses.get(PosesNames.GoToLine2.ordinal()),
                         poses.get(PosesNames.CatchLine5.ordinal())
-                ).withTimeout(2000),
+                ).setConstraints(Constants.autoTransitConstraints).withNoDeceleration().withTimeout(1500),
                 new GoToPoseCommand(drivetrain, poses.get(PosesNames.CatchLine2.ordinal())).withTimeout(800),
                 new WaitCommand(900),
-                new GoToPoseCommand(drivetrain, poses.get(PosesNames.GoToShoot1.ordinal())),
+                new GoToPoseCommand(drivetrain, poses.get(PosesNames.GoToShoot2.ordinal()))
+                        .setConstraints(Constants.autoShootConstraints),
                 new AlignAndAdjustAutoCommand(drivetrain, vision, shooter),
-                new WaitCommand(500),
+                new WaitCommand(300),
                 new ShootCommandAutonomous(shooter, intake, indexer,3).withTimeout(3000),
                 new InstantCommand(intake::run),
                 new GoToPoseCommand(drivetrain, true,
                         poses.get(PosesNames.GoToLine2.ordinal()),
                         poses.get(PosesNames.CatchLine2.ordinal())
                 ).withTimeout(2000),
-                new InstantCommand(intake::stop),
-                new GoToPoseCommand(drivetrain, poses.get(PosesNames.GoToShoot1.ordinal())),
+                new GoToPoseCommand(drivetrain, poses.get(PosesNames.GoToShoot2.ordinal()))
+                        .setConstraints(Constants.autoShootConstraints),
                 new AlignAndAdjustAutoCommand(drivetrain, vision, shooter),
-                new WaitCommand(500),
-                new ShootCommandAutonomous(shooter, intake, indexer,3).withTimeout(3000)
+                new ShootCommandAutonomous(shooter, intake, indexer,3).withTimeout(3000),
+                new GoToPoseCommand(drivetrain, poses.get(PosesNames.EndPose.ordinal()))
         );
         addRequirements(drivetrain, shooter, intake);
     }
