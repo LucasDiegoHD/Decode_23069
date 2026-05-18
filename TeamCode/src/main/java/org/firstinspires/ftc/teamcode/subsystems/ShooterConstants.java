@@ -84,7 +84,7 @@ public class ShooterConstants {
      * * Fit: Quadratic (Grau 2) - Muito preciso para esses pontos.
      * Formula: y = 0.12x^2 - 0.53x + 1.08
      */
-    public static double HOOD_N0 = 0.86;
+    public static double HOOD_N0 = 0.84;
     public static double HOOD_N1 = 0.0;
     public static double HOOD_N2 = 0.0;
     public static double HOOD_N3 = 0.0;
@@ -101,7 +101,7 @@ public class ShooterConstants {
      * * Fit: Linear Approx
      * Formula: y = 434x + 2480
      */
-    public static double RPM_N0 = 2420.3;
+    public static double RPM_N0 = 2390.3;
     public static double RPM_N1 = -303.7;
     public static double RPM_N2 = 133.2;
     public static double ANGLE_KP = 0.8;

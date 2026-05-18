@@ -20,6 +20,7 @@ public class IndexerSubsystem extends SubsystemBase {
     private long shootingEndTime = 0;
     private static final long POST_SHOOT_PROTECTION_MS = 500;
     private static final long RISE_DEBOUNCE_MS = 200;
+    private static final long FALL_DEBOUNCE_MS = 80;
 
     private volatile double currentEntryDist = 23069.0;
     private volatile double currentExitDist = 23069.0;
@@ -27,10 +28,15 @@ public class IndexerSubsystem extends SubsystemBase {
 
     private boolean isInitialized = false;
     private long startTime = 0;
-    private static final long INIT_DELAY_MS = 150;
+    private static final long INIT_DELAY_MS = 200;
 
     private int lastInferred = 0;
     private long lastRiseTime = 0;
+    private long lastFallTime = 0;
+    private int lastFallInferred = -1;
+    private boolean previousExitActive = false;
+    private long lastExitFallTime = 0;
+    private static final long EXIT_FALL_DEBOUNCE_MS = 100;
 
     private Thread sensorThread;
 
@@ -84,20 +90,36 @@ public class IndexerSubsystem extends SubsystemBase {
         if (!isInitialized) {
             pieceCount = inferPieceCount(exitActive, middleActive, entryActive);
             lastInferred = pieceCount;
+            previousExitActive = exitActive;
             isInitialized = true;
+        } else if (isShooting) {
+
+            if (previousExitActive && !exitActive
+                    && System.currentTimeMillis() - lastExitFallTime > EXIT_FALL_DEBOUNCE_MS) {
+                if (pieceCount > 0) pieceCount--;
+                lastExitFallTime = System.currentTimeMillis();
+            }
         } else {
             boolean recentlyShooting = System.currentTimeMillis() - shootingEndTime < POST_SHOOT_PROTECTION_MS;
 
-            if (!isShooting && !recentlyShooting) {
+            if (!recentlyShooting) {
                 pieceCount = inferWithDebounce(exitActive, middleActive, entryActive);
             } else {
                 int inferred = inferPieceCount(exitActive, middleActive, entryActive);
                 if (inferred < pieceCount) {
-                    pieceCount = inferred;
-                    lastInferred = inferred;
+                    if (inferred != lastFallInferred) {
+                        lastFallInferred = inferred;
+                        lastFallTime = System.currentTimeMillis();
+                    }
+                    if (System.currentTimeMillis() - lastFallTime >= FALL_DEBOUNCE_MS) {
+                        pieceCount = inferred;
+                        lastInferred = inferred;
+                    }
                 }
             }
         }
+
+        previousExitActive = exitActive;
 
         telemetry.addData("Indexer Pieces", pieceCount);
         telemetry.addData("Is Shooting?", isShooting);
@@ -124,9 +146,19 @@ public class IndexerSubsystem extends SubsystemBase {
                 return inferred;
             }
             return pieceCount;
+        } else if (inferred < pieceCount) {
+            if (inferred != lastFallInferred) {
+                lastFallInferred = inferred;
+                lastFallTime = System.currentTimeMillis();
+            }
+            if (System.currentTimeMillis() - lastFallTime >= FALL_DEBOUNCE_MS) {
+                lastInferred = inferred;
+                return inferred;
+            }
+            return pieceCount;
         } else {
             lastInferred = inferred;
-            lastRiseTime = System.currentTimeMillis();
+            lastFallInferred = inferred;
             return inferred;
         }
     }
@@ -138,7 +170,7 @@ public class IndexerSubsystem extends SubsystemBase {
         if (!exit && !middle && !entry) return 0;
         if (!exit && !middle && entry)  return 1;
         if (!exit && middle && !entry)  return 1;
-        if (!exit && middle && entry)   return 1;
+        if (!exit && middle && entry)   return 2;
         if (exit && !middle && entry)   return 2;
         return 0;
     }
@@ -146,6 +178,7 @@ public class IndexerSubsystem extends SubsystemBase {
     public void setShootingState(boolean state) {
         if (!state && isShooting) {
             shootingEndTime = System.currentTimeMillis();
+            lastFallInferred = -1;
         }
         this.isShooting = state;
     }

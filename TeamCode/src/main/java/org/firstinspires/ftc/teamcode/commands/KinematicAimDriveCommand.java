@@ -22,8 +22,8 @@ public class KinematicAimDriveCommand extends CommandBase {
     private final double targetY;
     private boolean isAtTarget = false;
 
-    private static final double ARTIFACT_VELOCITY_INCHES_PER_SEC = 550.0;
-    private static final double SYSTEM_LATENCY_SECONDS = 0.35;
+    private static final double ARTIFACT_VELOCITY_INCHES_PER_SEC = 700.0;
+    private static final double SYSTEM_LATENCY_SECONDS = 0.3;
 
     private double smoothedVelX = 0.0;
     private double smoothedVelY = 0.0;

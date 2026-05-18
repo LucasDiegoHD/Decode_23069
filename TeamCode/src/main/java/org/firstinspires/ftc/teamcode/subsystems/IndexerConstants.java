@@ -25,5 +25,5 @@ public class IndexerConstants {
     /** The distance threshold in centimeters for the exit sensor to be considered triggered. */
     public static double EXIT_DISTANCE_CM = 10.0;
     public static double ENTRY_DISTANCE_CM = 10.0;
-    public static final double MIDDLE_DISTANCE_CM = 12.0;
+    public static final double MIDDLE_DISTANCE_CM = 3.5;
 }
