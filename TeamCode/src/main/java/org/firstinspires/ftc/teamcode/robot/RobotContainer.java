@@ -145,7 +145,7 @@ public class RobotContainer {
             new GamepadButton(driver, GamepadKeys.Button.Y)
                     .whileHeld(new AlignToAprilTagCommand(drivetrain, vision, telemetry, operator));
 
-            double targetx = (alliance == AllianceEnum.Red)? 144 : 0;
+            double targetx = (alliance == AllianceEnum.Red)? 141 : 3;
             double targety = 144;
 
             // new GamepadButton(driver, GamepadKeys.Button.X)

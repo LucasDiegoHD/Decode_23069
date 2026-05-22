@@ -107,6 +107,6 @@ public class ShooterConstants {
     public static double ANGLE_KP = 0.8;
     public static double ANGLE_KI = 0.02;
     public static double ANGLE_KD = 0.1;
-    public static double ANGLE_KF = 0.12;
-    public static double ANGLE_TOLERANCE = 0.1;
+    public static double ANGLE_KF = 0.15;
+    public static double ANGLE_TOLERANCE = 0.08;
 }

@@ -23,7 +23,7 @@ public class KinematicAimDriveCommand extends CommandBase {
     private boolean isAtTarget = false;
 
     private static final double ARTIFACT_VELOCITY_INCHES_PER_SEC = 700.0;
-    private static final double SYSTEM_LATENCY_SECONDS = 0.3;
+    private static final double SYSTEM_LATENCY_SECONDS = 0.4;
 
     private double smoothedVelX = 0.0;
     private double smoothedVelY = 0.0;
@@ -65,7 +65,6 @@ public class KinematicAimDriveCommand extends CommandBase {
         Vector velocity = follower.getVelocity();
         double heading = pose.getHeading();
 
-        // === MOVIMENTO FIELD-CENTRIC (igual ao TeleOpDriveCommand sem slew rate) ===
         double rawY = driver.getLeftX();
         double rawX = driver.getLeftY();
 
@@ -128,9 +127,6 @@ public class KinematicAimDriveCommand extends CommandBase {
 
         turnPower = Math.max(-1.0, Math.min(1.0, turnPower));
 
-        // Movimento field-centric + rotação controlada pelo PID de mira
-        // true = robot centric, mas os vetores xField/yField já estão
-        // rotacionados para field, igual ao TeleOpDriveCommand
         follower.setTeleOpDrive(
                 xField,
                 -yField,

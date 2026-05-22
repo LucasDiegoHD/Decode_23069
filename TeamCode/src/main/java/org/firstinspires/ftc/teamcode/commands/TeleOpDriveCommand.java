@@ -2,37 +2,24 @@ package org.firstinspires.ftc.teamcode.commands;
 
 import com.arcrobotics.ftclib.command.CommandBase;
 import com.arcrobotics.ftclib.gamepad.GamepadEx;
-import com.bylazar.telemetry.PanelsTelemetry;
 import com.pedropathing.geometry.Pose;
 import org.firstinspires.ftc.teamcode.subsystems.DrivetrainSubsystem;
 import org.firstinspires.ftc.teamcode.utils.AllianceEnum;
 import org.firstinspires.ftc.teamcode.utils.DataStorage;
 
-/**
- * A command for controlling the robot's drivetrain during the tele-operated period.
- * It uses field-centric control, meaning the robot's movement is relative to the field,
- * not the robot's orientation.
- */
 public class TeleOpDriveCommand extends CommandBase {
 
     private final DrivetrainSubsystem drivetrain;
     private final GamepadEx driverGamepad;
     private final AllianceEnum alliance;
+    private static final double MAX_ACCELERATION = 6.5;
 
-    // --- CONTROLE DE TRAÇÃO (Slew Rate Limiter) ---
-    private static final double ACCELERATION_TIME_SECONDS = 0.05;
-    // Variáveis de memória para a rampa
-    private double currentY = 0.0;
-    private double currentX = 0.0;
-    private double currentTurn = 0.0;
+    private static final double MAX_DECELERATION = 9.0;
+
+    private double currentMagnitude = 0.0;
+    private double currentAngle = 0.0;
     private long lastTime = 0;
 
-    /**
-     * Creates a new TeleOpDriveCommand.
-     *
-     * @param drivetrain    The DrivetrainSubsystem to control.
-     * @param driverGamepad The gamepad used for driving.
-     */
     public TeleOpDriveCommand(DrivetrainSubsystem drivetrain, GamepadEx driverGamepad) {
         this.drivetrain = drivetrain;
         this.driverGamepad = driverGamepad;
@@ -40,66 +27,72 @@ public class TeleOpDriveCommand extends CommandBase {
         addRequirements(drivetrain);
     }
 
-    /**
-     * Called when the command is initially scheduled. Prepares the follower for teleop mode.
-     */
     @Override
     public void initialize() {
         drivetrain.getFollower().startTeleopDrive();
-        lastTime = System.currentTimeMillis(); // Inicia o relógio do acelerador
+        lastTime = System.currentTimeMillis();
+        currentMagnitude = 0.0;
+        currentAngle = 0.0;
     }
 
-    /**
-     * Called repeatedly while the command is scheduled. Reads joystick inputs,
-     * calculates field-centric drive vectors, and commands the drivetrain.
-     */
     @Override
     public void execute() {
         Pose p = drivetrain.getFollower().getPose();
         double heading = p.getHeading();
 
-        double rawY = driverGamepad.getLeftX(); // Forward/backward
-        double rawX = driverGamepad.getLeftY(); // Strafe left/right
+        double rawY = driverGamepad.getLeftX();
+        double rawX = driverGamepad.getLeftY();
         double rawTurn = -driverGamepad.getRightX();
 
-        double targetY = rawY * Math.abs(rawY);
         double targetX = rawX * Math.abs(rawX);
+        double targetY = rawY * Math.abs(rawY);
         double targetTurn = rawTurn * Math.abs(rawTurn);
 
         long currentTime = System.currentTimeMillis();
-        double dt = (currentTime - lastTime) / 1000.0;
+        double dt = Math.min((currentTime - lastTime) / 1000.0, 0.05);
         lastTime = currentTime;
 
-        currentY = applySlewRate(targetY, currentY, dt);
-        currentX = applySlewRate(targetX, currentX, dt);
+        double targetMagnitude = Math.hypot(targetX, targetY);
+        double targetAngle = (targetMagnitude > 0.01)
+                ? Math.atan2(targetY, targetX)
+                : currentAngle;
 
-        double xField = currentX * Math.cos(heading) - currentY * Math.sin(heading);
-        double yField = currentX * Math.sin(heading) + currentY * Math.cos(heading);
+        double delta;
+        if (targetMagnitude >= currentMagnitude) {
+            delta = MAX_ACCELERATION * dt;
+        } else {
+            delta = MAX_DECELERATION * dt;
+        }
 
-        if(alliance == AllianceEnum.Blue){
+        if (Math.abs(targetMagnitude - currentMagnitude) <= delta) {
+            currentMagnitude = targetMagnitude;
+        } else {
+            currentMagnitude += Math.copySign(delta, targetMagnitude - currentMagnitude);
+        }
+        if (targetMagnitude > 0.05) {
+            double angleDiff = targetAngle - currentAngle;
+            while (angleDiff > Math.PI) angleDiff -= 2 * Math.PI;
+            while (angleDiff < -Math.PI) angleDiff += 2 * Math.PI;
+            currentAngle += angleDiff * Math.min(1.0, currentMagnitude * 8.0 * dt);
+        }
+
+        double smoothX = currentMagnitude * Math.cos(currentAngle);
+        double smoothY = currentMagnitude * Math.sin(currentAngle);
+
+        // Rotação field-centric
+        double xField = smoothX * Math.cos(heading) - smoothY * Math.sin(heading);
+        double yField = smoothX * Math.sin(heading) + smoothY * Math.cos(heading);
+
+        if (alliance == AllianceEnum.Blue) {
             xField = -xField;
             yField = -yField;
         }
 
         drivetrain.getFollower().setTeleOpDrive(
-                xField, // Forward/backward power
-                -yField, // Strafe power
-                targetTurn, // Turn power
+                xField,
+                -yField,
+                targetTurn,
                 true
         );
-    }
-
-    /**
-     * Método auxiliar que calcula a rampa de aceleração limitando o salto brusco de energia.
-     */
-    private double applySlewRate(double target, double current, double dt) {
-        double maxChange = (1.0 / ACCELERATION_TIME_SECONDS) * dt;
-        double error = target - current;
-
-        if (Math.abs(error) > maxChange) {
-            return current + Math.copySign(maxChange, error);
-        } else {
-            return target;
-        }
     }
 }
