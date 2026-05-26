@@ -79,7 +79,6 @@ public class KinematicAimDriveCommand extends CommandBase {
             yField = -yField;
         }
 
-        // === MIRA CINEMÁTICA (igual ao original) ===
         smoothedVelX = (VEL_ALPHA * velocity.getXComponent()) + ((1 - VEL_ALPHA) * smoothedVelX);
         smoothedVelY = (VEL_ALPHA * velocity.getYComponent()) + ((1 - VEL_ALPHA) * smoothedVelY);
 
@@ -113,7 +112,7 @@ public class KinematicAimDriveCommand extends CommandBase {
         double turnPower = turnController.calculate(error);
 
         double innerTolerance = Math.toRadians(ShooterConstants.ANGLE_TOLERANCE);
-        double outerTolerance = innerTolerance + Math.toRadians(0.5);
+        double outerTolerance = innerTolerance + Math.toRadians(0.4);
 
         if (isAtTarget) {
             if (Math.abs(error) > outerTolerance) isAtTarget = false;

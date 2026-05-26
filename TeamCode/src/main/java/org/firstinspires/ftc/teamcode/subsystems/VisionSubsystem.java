@@ -25,8 +25,6 @@ public class VisionSubsystem extends SubsystemBase {
 
     @Override
     public void periodic() {
-        // Ponto único de leitura da Limelight por loop.
-        // Todos os métodos usam this.latestResult — zero chamadas extras ao hardware.
         latestResult = limelight.getLatestResult();
 
         if (latestResult != null && latestResult.isValid()) {
@@ -44,8 +42,6 @@ public class VisionSubsystem extends SubsystemBase {
     }
 
     public Optional<Pose> getRobotPoseMT2(double yawRadians) {
-        // updateRobotOrientation envia o yaw para o próximo frame da Limelight.
-        // Como ela é assíncrona, o comportamento é equivalente ao original.
         limelight.updateRobotOrientation(Math.toDegrees(yawRadians) + 90);
         if (!hasTarget()) return Optional.empty();
         Pose3D botPose = latestResult.getBotpose_MT2();
