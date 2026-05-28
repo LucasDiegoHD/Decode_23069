@@ -82,8 +82,11 @@ public class KinematicAimDriveCommand extends CommandBase {
         smoothedVelX = (VEL_ALPHA * velocity.getXComponent()) + ((1 - VEL_ALPHA) * smoothedVelX);
         smoothedVelY = (VEL_ALPHA * velocity.getYComponent()) + ((1 - VEL_ALPHA) * smoothedVelY);
 
-        if (Math.abs(smoothedVelX) < 2.0) smoothedVelX = 0.0;
-        if (Math.abs(smoothedVelY) < 2.0) smoothedVelY = 0.0;
+        double velMagnitude = Math.hypot(smoothedVelX, smoothedVelY);
+        if (velMagnitude < 2.0) {
+            smoothedVelX = 0.0;
+            smoothedVelY = 0.0;
+        }
 
         double robotX = pose.getX();
         double robotY = pose.getY();
