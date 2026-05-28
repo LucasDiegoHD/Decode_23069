@@ -172,7 +172,7 @@ public class RobotContainer {
             // .whileActiveContinuous(new KinematicAimDriveCommand(drivetrain, driver, targetx, targety));
 
                     new GamepadButton(driver, GamepadKeys.Button.RIGHT_BUMPER)
-                            .whileHeld(new AutoShootCommand(drivetrain, vision, shooter, intake, indexer, endPose, led));
+                            .whileHeld(new AutoShootCommand(drivetrain, vision, shooter, intake, indexer, endPose, led, driver));
 
             new GamepadButton(driver, GamepadKeys.Button. DPAD_UP)
                     .whileHeld(new InstantCommand(climber::esticar, climber))
@@ -185,16 +185,16 @@ public class RobotContainer {
         }
 
         if (operator!= null) {
-            configureTeleOpBindings(operator, alliance);
+            configureTeleOpBindings(operator, alliance, driver);
         }
     }
 
-    private void configureTeleOpBindings(GamepadEx operator, AllianceEnum alliance) {
+    private void configureTeleOpBindings(GamepadEx operator, AllianceEnum alliance, GamepadEx driver) {
         Pose endPose = (alliance == AllianceEnum.Red)?
                 BlueRearPoses.getPose(PosesNames.EndPose) : RedRearPoses.getPose(PosesNames.EndPose);
 
         new GamepadButton(operator, GamepadKeys.Button.RIGHT_BUMPER)
-                .whileHeld(new AutoShootCommand(drivetrain, vision, shooter, intake, indexer, endPose, led));
+                .whileHeld(new AutoShootCommand(drivetrain, vision, shooter, intake, indexer, endPose, led, driver));
 
         new GamepadButton(operator, GamepadKeys.Button. LEFT_BUMPER)
                 .whileHeld(new InstantCommand(intake::run, intake))

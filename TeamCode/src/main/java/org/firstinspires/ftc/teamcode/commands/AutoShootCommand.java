@@ -1,6 +1,7 @@
 package org.firstinspires.ftc.teamcode.commands;
 
 import com.arcrobotics.ftclib.command.SequentialCommandGroup;
+import com.arcrobotics.ftclib.gamepad.GamepadEx;
 import com.pedropathing.geometry.Pose;
 
 import org.firstinspires.ftc.teamcode.subsystems.DrivetrainSubsystem;
@@ -24,7 +25,7 @@ public class AutoShootCommand extends SequentialCommandGroup {
      * @param shooter    The shooter subsystem for launching the note.
      * @param intake     The intake subsystem for feeding the note.
      */
-    public AutoShootCommand(DrivetrainSubsystem drivetrain, VisionSubsystem vision, ShooterSubsystem shooter, IntakeSubsystem intake, IndexerSubsystem indexer, Pose fallbackPose, LEDSubsystem ledSubsystem) {
+    public AutoShootCommand(DrivetrainSubsystem drivetrain, VisionSubsystem vision, ShooterSubsystem shooter, IntakeSubsystem intake, IndexerSubsystem indexer, Pose fallbackPose, LEDSubsystem ledSubsystem,  GamepadEx driver) {
         addCommands(
 
                 //new UpdatePoseLimelightCommand(drivetrain, vision, fallbackPose),
@@ -32,7 +33,7 @@ public class AutoShootCommand extends SequentialCommandGroup {
 
                 //new AdjustShooterCommand(shooter, vision),
 
-                new ShootCommand(shooter, intake, indexer)
+                new ShootCommand(shooter, intake, indexer, driver)
         );
     }
 }

@@ -1,6 +1,7 @@
 package org.firstinspires.ftc.teamcode.commands;
 
 import com.arcrobotics.ftclib.command.CommandBase;
+import com.arcrobotics.ftclib.gamepad.GamepadEx;
 import com.bylazar.telemetry.PanelsTelemetry;
 import com.bylazar.telemetry.TelemetryManager;
 import com.qualcomm.robotcore.util.ElapsedTime;
@@ -15,6 +16,7 @@ public class ShootCommand extends CommandBase {
 
     private final ShooterSubsystem shooter;
     private final IntakeSubsystem intake;
+    private final GamepadEx driver;
 
     private final ElapsedTime timer = new ElapsedTime();
     private final ElapsedTime cooldownTimer = new ElapsedTime();
@@ -31,17 +33,18 @@ public class ShootCommand extends CommandBase {
     private final TelemetryManager telemetryM;
     private final IndexerSubsystem indexer;
 
-    public ShootCommand(ShooterSubsystem shooter, IntakeSubsystem intake, IndexerSubsystem indexer, int shoots) {
+    public ShootCommand(ShooterSubsystem shooter, IntakeSubsystem intake, IndexerSubsystem indexer, int shoots, GamepadEx driver) {
         telemetryM = PanelsTelemetry.INSTANCE.getTelemetry();
         this.indexer = indexer;
         this.shooterCounter = shoots;
         this.shooter = shooter;
         this.intake = intake;
+        this.driver = driver;
         addRequirements(shooter, indexer);
     }
 
-    public ShootCommand(ShooterSubsystem shooter, IntakeSubsystem intake, IndexerSubsystem indexer) {
-        this(shooter, intake, indexer, 500);
+    public ShootCommand(ShooterSubsystem shooter, IntakeSubsystem intake, IndexerSubsystem indexer, GamepadEx driver) {
+        this(shooter, intake, indexer, 500, driver);
     }
 
     @Override
@@ -51,6 +54,9 @@ public class ShootCommand extends CommandBase {
         state = SHOOT_STATES.Conveyor;
         timer.reset();
         indexer.setShootingState(true);
+        if (driver != null && driver.gamepad != null) {
+            driver.gamepad.rumble(150);
+        }
     }
 
     @Override
