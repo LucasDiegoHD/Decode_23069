@@ -12,9 +12,8 @@ public class TeleOpDriveCommand extends CommandBase {
     private final DrivetrainSubsystem drivetrain;
     private final GamepadEx driverGamepad;
     private final AllianceEnum alliance;
-    private static final double MAX_ACCELERATION = 6.5;
-
-    private static final double MAX_DECELERATION = 9.0;
+    private static final double MAX_ACCELERATION = 8.5;
+    private static final double MAX_DECELERATION = 10.0;
 
     private double currentMagnitude = 0.0;
     private double currentAngle = 0.0;
