@@ -58,12 +58,9 @@ public class ActiveAimCommand extends CommandBase {
         } else {
             distanceToUse = virtualDistanceMeters;
         }
+        double hood = ShooterConstants.HOOD_N0 + distanceToUse * (ShooterConstants.HOOD_N1 + distanceToUse * (ShooterConstants.HOOD_N2 + distanceToUse * ShooterConstants.HOOD_N3));
 
-        double hood = ShooterConstants.HOOD_N0 + ShooterConstants.HOOD_N1 * distanceToUse
-                + ShooterConstants.HOOD_N2 * Math.pow(distanceToUse, 2) + ShooterConstants.HOOD_N3 * Math.pow(distanceToUse, 3);
-
-        double finalRpm = ShooterConstants.RPM_N0 + ShooterConstants.RPM_N1 * distanceToUse
-                + ShooterConstants.RPM_N2 * Math.pow(distanceToUse, 2);
+        double finalRpm = ShooterConstants.RPM_N0 + distanceToUse * (ShooterConstants.RPM_N1 + distanceToUse * ShooterConstants.RPM_N2);
 
         if (distanceToUse > VisionConstants.LONGEST_DISTANCE) {
             hood = VisionConstants.LONGEST_HOOD;
@@ -87,8 +84,7 @@ public class ActiveAimCommand extends CommandBase {
             double effectiveDistanceInches = Math.hypot(effectiveGroundDistance, deltaZ);
             double effectiveDistanceMeters = effectiveDistanceInches / 39.3701;
 
-            finalRpm = ShooterConstants.RPM_N0 + ShooterConstants.RPM_N1 * effectiveDistanceMeters
-                    + ShooterConstants.RPM_N2 * Math.pow(effectiveDistanceMeters, 2);
+            finalRpm = ShooterConstants.RPM_N0 + effectiveDistanceMeters * (ShooterConstants.RPM_N1 + effectiveDistanceMeters * ShooterConstants.RPM_N2);
 
             if (speedDot > 0) {
                 finalRpm += speedDot * RPM_FORWARD_MULT;
