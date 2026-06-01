@@ -62,7 +62,7 @@ public class ShooterConstants {
     public static double K_HOOD_COMPENSATION = 0.0005;
     public static double K_ANTI_OVERSHOOT = 0.00025;
     /** Tolerância de cadência para tiros longos. */
-    public static double CADENCE_TOLERANCE_PERCENT = 0.94;
+    public static double CADENCE_TOLERANCE_PERCENT = 0.96;
 
     // --- TIMINGS ---
     /** The time in milliseconds to wait after triggering before shooting. */

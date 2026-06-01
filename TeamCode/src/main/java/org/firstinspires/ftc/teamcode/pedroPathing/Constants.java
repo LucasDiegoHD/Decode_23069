@@ -86,7 +86,7 @@ public class Constants {
     public static PathConstraints autoTransitConstraints = new PathConstraints(
             0.95,  // tValue — termina aos 95% do caminho, não espera o fim
             8.0,   // velocity — pode ainda estar rápido ao "terminar"
-            3.0,   // translational — aceita até 3 inches de erro
+            6.0,   // translational — aceita até 3 inches de erro
             0.1,   // heading — aceita até ~5.7° de erro
             100,   // timeout — só 100ms de correção, não 250
             2.0,
@@ -103,7 +103,7 @@ public class Constants {
             300,   // timeout — 150ms é suficiente
             2.5,
             10,
-            0.3
+            0.5
     );
 
     public static Follower createFollower(HardwareMap hardwareMap) {

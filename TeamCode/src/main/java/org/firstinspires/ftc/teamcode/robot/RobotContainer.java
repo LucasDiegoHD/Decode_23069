@@ -105,24 +105,6 @@ public class RobotContainer {
 
             CommandScheduler.getInstance().schedule(periodicUpdateLoop);
 
-           /*Command AdjustHood = new RepeatCommand(
-                            new AdjustHoodCommand(shooter, vision, drivetrain, goalX, goalY)
-            );
-
-            CommandScheduler.getInstance().schedule(AdjustHood);
-
-
-
-            /*Command AdjustShooter = new RepeatCommand(
-                            new ConditionalCommand(
-                                    new AdjustShooterCommand(shooter, vision, drivetrain, goalX, goalY),
-                                    new InstantCommand(),
-                                    () -> isShooterAutoAdjustActive
-                            )
-            );
-
-            CommandScheduler.getInstance().schedule(AdjustShooter);*/
-
             shooter.setDefaultCommand(
                     new ActiveAimCommand(shooter, vision, drivetrain, goalX, goalY,
                             () -> isShooterAutoAdjustActive
@@ -135,9 +117,6 @@ public class RobotContainer {
 
             double targetx = (alliance == AllianceEnum.Red)? 141 : 3;
             double targety = 144;
-
-            // new GamepadButton(driver, GamepadKeys.Button.X)
-            //.whileHeld(new AimByPoseCommand(drivetrain, targetx, targety, telemetry, operator));
 
             new GamepadButton(driver, GamepadKeys.Button.X)
                     .whileHeld(new KinematicAimDriveCommand(drivetrain, driver, targetx, targety));
@@ -155,9 +134,6 @@ public class RobotContainer {
             new GamepadButton(driver, GamepadKeys.Button.LEFT_BUMPER)
                     .whileHeld(new InstantCommand(intake::run, intake))
                     .whenReleased(new InstantCommand(intake::stop, intake));
-
-            //new Trigger(() -> driver.getTrigger(GamepadKeys.Trigger.LEFT_TRIGGER) > 0.3)
-            // .whileActiveContinuous(new KinematicAimDriveCommand(drivetrain, driver, targetx, targety));
 
                     new GamepadButton(driver, GamepadKeys.Button.RIGHT_BUMPER)
                             .whileHeld(new AutoShootCommand(drivetrain, vision, shooter, intake, indexer, endPose, led, driver));
