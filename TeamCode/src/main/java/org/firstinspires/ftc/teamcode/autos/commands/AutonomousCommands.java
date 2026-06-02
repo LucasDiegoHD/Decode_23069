@@ -31,7 +31,7 @@ public class AutonomousCommands extends SequentialCommandGroup {
                         .setConstraints(Constants.autoShootConstraints),
                 new UpdatePoseLimelightCommand(drivetrain, vision, poses.get(PosesNames.GoToShoot1.ordinal())),
                 new AlignAndAdjustAutoCommand(drivetrain, vision, shooter),
-                new WaitUntilCommand(shooter::isReady).withTimeout(1700),
+                new WaitUntilCommand(shooter::getShooterAtTarget).withTimeout(1700),
                 new ShootCommandAutonomous(shooter, intake, indexer, 3).withTimeout(3000),
 
                 // === BUSCA LINHA 1 ===
@@ -78,11 +78,11 @@ public class AutonomousCommands extends SequentialCommandGroup {
                 new WaitCommand(700),
 
                 // === TIRO 4 ===
-                new GoToPoseCommand(drivetrain, poses.get(PosesNames.GoToShoot2.ordinal()))
+                new GoToPoseCommand(drivetrain, poses.get(PosesNames.GoToShoot1.ordinal()))
                         .setConstraints(Constants.autoShootConstraints),
-                new UpdatePoseLimelightCommand(drivetrain, vision, poses.get(PosesNames.GoToShoot2.ordinal())),
+                new UpdatePoseLimelightCommand(drivetrain, vision, poses.get(PosesNames.GoToShoot1.ordinal())),
                 new AlignAndAdjustAutoCommand(drivetrain, vision, shooter),
-                new WaitCommand(400),
+                new WaitCommand(700),
                 new ShootCommandAutonomous(shooter, intake, indexer, 3).withTimeout(3000),
 
                 // === TIRO 5 ===

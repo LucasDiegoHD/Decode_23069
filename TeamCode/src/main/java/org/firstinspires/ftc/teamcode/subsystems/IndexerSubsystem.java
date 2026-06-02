@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode.subsystems;
 
 import com.arcrobotics.ftclib.command.SubsystemBase;
 import com.bylazar.telemetry.TelemetryManager;
+import com.qualcomm.hardware.rev.RevColorSensorV3;
 import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
@@ -13,7 +14,7 @@ public class IndexerSubsystem extends SubsystemBase {
 
     private final DistanceSensor exitSensor;
     private final DistanceSensor entrySensor;
-    private final DistanceSensor middleSensor;
+    private final RevColorSensorV3 middleSensor;
 
     private int pieceCount = 0;
     private boolean isShooting = false;
@@ -22,9 +23,9 @@ public class IndexerSubsystem extends SubsystemBase {
     private static final long RISE_DEBOUNCE_MS = 200;
     private static final long FALL_DEBOUNCE_MS = 80;
 
-    private volatile double currentEntryDist = 23069.0;
-    private volatile double currentExitDist = 23069.0;
-    private volatile double currentMiddleDist = 23069.0;
+    private double currentEntryDist = 23069.0;
+    private double currentExitDist = 23069.0;
+    private int currentMiddleLight = 0;
 
     private boolean isInitialized = false;
     private long startTime = 0;
@@ -37,50 +38,45 @@ public class IndexerSubsystem extends SubsystemBase {
     private boolean previousExitActive = false;
     private long lastExitFallTime = 0;
     private static final long EXIT_FALL_DEBOUNCE_MS = 100;
-
-    private Thread sensorThread;
+    private long lastExitReadTime = 0;
+    private long lastEntryReadTime = 0;
+    private long lastMiddleReadTime = 0;
+    private static final long EXIT_READ_INTERVAL_MS = 150;
+    private static final long ENTRY_READ_INTERVAL_MS = 150;
+    private static final long MIDDLE_READ_INTERVAL_MS = 150;
 
     public IndexerSubsystem(HardwareMap hardwareMap, TelemetryManager telemetry) {
         this.telemetry = telemetry;
 
         exitSensor = hardwareMap.get(DistanceSensor.class, IndexerConstants.EXIT_SENSOR_NAME);
         entrySensor = hardwareMap.get(DistanceSensor.class, IndexerConstants.ENTRY_SENSOR_NAME);
-        middleSensor = hardwareMap.get(DistanceSensor.class, IndexerConstants.MIDDLE_SENSOR_NAME);
+        middleSensor = hardwareMap.get(RevColorSensorV3.class, IndexerConstants.MIDDLE_SENSOR_NAME);
 
         startTime = System.currentTimeMillis();
-        iniciarThreadDeSensores();
-    }
-
-    private void iniciarThreadDeSensores() {
-        sensorThread = new Thread(() -> {
-            while (!Thread.currentThread().isInterrupted()) {
-                try {
-                    currentEntryDist = entrySensor.getDistance(DistanceUnit.CM);
-                    currentExitDist = exitSensor.getDistance(DistanceUnit.CM);
-                    currentMiddleDist = middleSensor.getDistance(DistanceUnit.CM);
-                    Thread.sleep(40);
-                } catch (InterruptedException e) {
-                    Thread.currentThread().interrupt();
-                } catch (Exception e) {
-                }
-            }
-        });
-        sensorThread.setDaemon(true);
-        sensorThread.start();
-    }
-
-    public void stopSensorThread() {
-        if (sensorThread != null && sensorThread.isAlive()) {
-            sensorThread.interrupt();
-        }
     }
 
     @Override
     public void periodic() {
         long tempoInicio = System.currentTimeMillis();
 
-        if (!isInitialized && System.currentTimeMillis() - startTime < INIT_DELAY_MS) {
+        if (!isInitialized && tempoInicio - startTime < INIT_DELAY_MS) {
+            currentExitDist = exitSensor.getDistance(DistanceUnit.CM);
+            currentEntryDist = entrySensor.getDistance(DistanceUnit.CM);
+            currentMiddleLight = middleSensor.alpha();
+            lastExitReadTime = tempoInicio;
+            lastEntryReadTime = tempoInicio;
+            lastMiddleReadTime = tempoInicio;
             return;
+        }
+        if (tempoInicio - lastExitReadTime >= EXIT_READ_INTERVAL_MS) {
+            currentExitDist = exitSensor.getDistance(DistanceUnit.CM);
+            lastExitReadTime = tempoInicio;
+        } else if (tempoInicio - lastEntryReadTime >= ENTRY_READ_INTERVAL_MS) {
+            currentEntryDist = entrySensor.getDistance(DistanceUnit.CM);
+            lastEntryReadTime = tempoInicio;
+        } else if (tempoInicio - lastMiddleReadTime >= MIDDLE_READ_INTERVAL_MS) {
+            currentMiddleLight = middleSensor.alpha();
+            lastMiddleReadTime = tempoInicio;
         }
 
         boolean exitActive = getExitSensor();
@@ -93,14 +89,13 @@ public class IndexerSubsystem extends SubsystemBase {
             previousExitActive = exitActive;
             isInitialized = true;
         } else if (isShooting) {
-
             if (previousExitActive && !exitActive
-                    && System.currentTimeMillis() - lastExitFallTime > EXIT_FALL_DEBOUNCE_MS) {
+                    && tempoInicio - lastExitFallTime > EXIT_FALL_DEBOUNCE_MS) {
                 if (pieceCount > 0) pieceCount--;
-                lastExitFallTime = System.currentTimeMillis();
+                lastExitFallTime = tempoInicio;
             }
         } else {
-            boolean recentlyShooting = System.currentTimeMillis() - shootingEndTime < POST_SHOOT_PROTECTION_MS;
+            boolean recentlyShooting = tempoInicio - shootingEndTime < POST_SHOOT_PROTECTION_MS;
 
             if (!recentlyShooting) {
                 pieceCount = inferWithDebounce(exitActive, middleActive, entryActive);
@@ -109,9 +104,9 @@ public class IndexerSubsystem extends SubsystemBase {
                 if (inferred < pieceCount) {
                     if (inferred != lastFallInferred) {
                         lastFallInferred = inferred;
-                        lastFallTime = System.currentTimeMillis();
+                        lastFallTime = tempoInicio;
                     }
-                    if (System.currentTimeMillis() - lastFallTime >= FALL_DEBOUNCE_MS) {
+                    if (tempoInicio - lastFallTime >= FALL_DEBOUNCE_MS) {
                         pieceCount = inferred;
                         lastInferred = inferred;
                     }
@@ -125,7 +120,7 @@ public class IndexerSubsystem extends SubsystemBase {
         telemetry.addData("Is Shooting?", isShooting);
         telemetry.addData("Exit Dist (CM)", currentExitDist);
         telemetry.addData("Exit Triggered", exitActive);
-        telemetry.addData("Middle Dist (CM)", currentMiddleDist);
+        telemetry.addData("Middle Light", currentMiddleLight);
         telemetry.addData("Middle Triggered", middleActive);
         telemetry.addData("Entry Dist (CM)", currentEntryDist);
         telemetry.addData("Entry Triggered", entryActive);
@@ -188,7 +183,7 @@ public class IndexerSubsystem extends SubsystemBase {
     }
 
     public boolean getMiddleSensor() {
-        return currentMiddleDist < IndexerConstants.MIDDLE_DISTANCE_CM;
+        return currentMiddleLight > IndexerConstants.MIDDLE_LIGHT_THRESHOLD;
     }
 
     public boolean getEntrySensor() {

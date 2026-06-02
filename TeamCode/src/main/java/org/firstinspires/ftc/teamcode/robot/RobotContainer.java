@@ -225,10 +225,6 @@ public class RobotContainer {
         Command current = drivetrain.getCurrentCommand();
         return current instanceof AlignToAprilTagCommand;
     }
-    public void stopIndexerThread() {
-        indexer.stopSensorThread();
-    }
-
     public void setAutoStartPose(Pose startPose) {
         drivetrain.getFollower().setStartingPose(startPose);
         drivetrain.getFollower().setPose(startPose);         

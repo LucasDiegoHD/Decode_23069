@@ -15,10 +15,10 @@ public class RedRearPoses {
             new Pose(94.134, 36.169, Math.toRadians(180)),
             new Pose(120.276, 36.169, Math.toRadians(180)),
 
-            new Pose(83.35, 16.547, Math.toRadians(69)),
+            new Pose(83.35, 17.547, Math.toRadians(69)),
 
 
-            new Pose(104.35, 17.047, Math.toRadians(180)),
+            new Pose(104.35, 16.547, Math.toRadians(180)),
             new Pose(130.776, 10, Math.toRadians(180)),
 
             new Pose(85.35, 34, Math.toRadians(90)),
@@ -26,7 +26,7 @@ public class RedRearPoses {
             new Pose(94.134, 60.169, Math.toRadians(180)),
             new Pose(120.276, 60.169, Math.toRadians(180)),
 
-            new Pose(122.276, 64.169, Math.toRadians(90)),
+            new Pose(125.276, 64.169, Math.toRadians(90)),
 
             new Pose(130.276, 28, Math.toRadians(180)),
 

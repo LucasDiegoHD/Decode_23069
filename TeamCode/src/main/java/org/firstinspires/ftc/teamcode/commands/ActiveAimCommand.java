@@ -1,6 +1,7 @@
 package org.firstinspires.ftc.teamcode.commands;
 
 import com.arcrobotics.ftclib.command.CommandBase;
+import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.Pose;
 import com.pedropathing.math.Vector;
 
@@ -17,19 +18,24 @@ public class ActiveAimCommand extends CommandBase {
     private final ShooterSubsystem shooter;
     private final VisionSubsystem vision;
     private final DrivetrainSubsystem drivetrain;
+    private final Follower follower;
     private final double targetX;
     private final double targetY;
     private final BooleanSupplier isReadyToSpin;
+
     private static final double RPM_FORWARD_MULT = -6.0;
-    private static final double RPM_BACKWARD_MULT = 6.5;
+    private static final double RPM_BACKWARD_MULT = 7.0;
     private static final double MAX_SAFE_RPM = 3800;
     private static final double MIN_SAFE_RPM = 1000.0;
     private static final double TIME_OF_FLIGHT = 0.4;
+    private static final double DELTA_Z = 38.75;
+    private static final double INCHES_TO_METERS = 1.0 / 39.3701;
 
     public ActiveAimCommand(ShooterSubsystem shooter, VisionSubsystem vision, DrivetrainSubsystem drivetrain, double targetX, double targetY, BooleanSupplier isReadyToSpin) {
         this.shooter = shooter;
         this.vision = vision;
         this.drivetrain = drivetrain;
+        this.follower = drivetrain.getFollower();
         this.targetX = targetX;
         this.targetY = targetY;
         this.isReadyToSpin = isReadyToSpin;
@@ -38,59 +44,64 @@ public class ActiveAimCommand extends CommandBase {
 
     @Override
     public void execute() {
-        Pose pose = drivetrain.getFollower().getPose();
-        Vector velocity = drivetrain.getFollower().getVelocity();
+        Pose pose = follower.getPose();
+        Vector velocity = follower.getVelocity();
 
-        double virtualX = targetX - (velocity.getXComponent() * TIME_OF_FLIGHT);
-        double virtualY = targetY - (velocity.getYComponent() * TIME_OF_FLIGHT);
+        double velX = velocity.getXComponent();
+        double velY = velocity.getYComponent();
+
+        double virtualX = targetX - (velX * TIME_OF_FLIGHT);
+        double virtualY = targetY - (velY * TIME_OF_FLIGHT);
 
         double dx = virtualX - pose.getX();
         double dy = virtualY - pose.getY();
         double groundDistance = Math.hypot(dx, dy);
 
-        double deltaZ = 38.75;
-        double virtualDistanceInches = Math.hypot(groundDistance, deltaZ);
-        double virtualDistanceMeters = virtualDistanceInches / 39.3701;
+        double virtualDistanceMeters = Math.hypot(groundDistance, DELTA_Z) * INCHES_TO_METERS;
 
-        double distanceToUse;
-        if (drivetrain.isRobotStopped()) {
-            distanceToUse = vision.getDirectDistanceToTarget().orElse(virtualDistanceMeters);
-        } else {
-            distanceToUse = virtualDistanceMeters;
-        }
-        double hood = ShooterConstants.HOOD_N0 + distanceToUse * (ShooterConstants.HOOD_N1 + distanceToUse * (ShooterConstants.HOOD_N2 + distanceToUse * ShooterConstants.HOOD_N3));
+        boolean robotStopped = drivetrain.isRobotStopped();
 
-        double finalRpm = ShooterConstants.RPM_N0 + distanceToUse * (ShooterConstants.RPM_N1 + distanceToUse * ShooterConstants.RPM_N2);
+        double distanceToUse = robotStopped
+                ? vision.getDirectDistanceToTarget().orElse(virtualDistanceMeters)
+                : virtualDistanceMeters;
 
-        if (distanceToUse > VisionConstants.LONGEST_DISTANCE) {
+        boolean isLongShot = distanceToUse > VisionConstants.LONGEST_DISTANCE;
+
+        double hood;
+        double finalRpm;
+
+        if (isLongShot) {
             hood = VisionConstants.LONGEST_HOOD;
             finalRpm = VisionConstants.LONGEST_RPM;
+        } else {
+            hood = ShooterConstants.HOOD_N0 + distanceToUse * (ShooterConstants.HOOD_N1 + distanceToUse * (ShooterConstants.HOOD_N2 + distanceToUse * ShooterConstants.HOOD_N3));
+            finalRpm = ShooterConstants.RPM_N0 + distanceToUse * (ShooterConstants.RPM_N1 + distanceToUse * ShooterConstants.RPM_N2);
         }
 
-        shooter.setLongShotMode(distanceToUse > VisionConstants.LONGEST_DISTANCE);
+        shooter.setLongShotMode(isLongShot);
         shooter.setHoodPosition(hood);
 
-        if (!drivetrain.isRobotStopped() && groundDistance > 1e-6 && distanceToUse < VisionConstants.LONGEST_DISTANCE) {
-            double unitX = dx / groundDistance;
-            double unitY = dy / groundDistance;
+        if (!robotStopped && groundDistance > 1e-6 && !isLongShot) {
+            double invGroundDistance = 1.0 / groundDistance;
+            double unitX = dx * invGroundDistance;
+            double unitY = dy * invGroundDistance;
 
-            double speedDot = velocity.getXComponent() * unitX + velocity.getYComponent() * unitY;
+            double speedDot = velX * unitX + velY * unitY;
 
-            double lateralVelX = velocity.getXComponent() - (speedDot * unitX);
-            double lateralVelY = velocity.getYComponent() - (speedDot * unitY);
+            double lateralVelX = velX - (speedDot * unitX);
+            double lateralVelY = velY - (speedDot * unitY);
             double lateralSpeed = Math.hypot(lateralVelX, lateralVelY);
 
-            double effectiveGroundDistance = Math.hypot(groundDistance, lateralSpeed * TIME_OF_FLIGHT);
-            double effectiveDistanceInches = Math.hypot(effectiveGroundDistance, deltaZ);
-            double effectiveDistanceMeters = effectiveDistanceInches / 39.3701;
+            double effectiveDistanceMeters = Math.hypot(
+                    Math.hypot(groundDistance, lateralSpeed * TIME_OF_FLIGHT),
+                    DELTA_Z
+            ) * INCHES_TO_METERS;
 
             finalRpm = ShooterConstants.RPM_N0 + effectiveDistanceMeters * (ShooterConstants.RPM_N1 + effectiveDistanceMeters * ShooterConstants.RPM_N2);
 
-            if (speedDot > 0) {
-                finalRpm += speedDot * RPM_FORWARD_MULT;
-            } else {
-                finalRpm += Math.abs(speedDot) * RPM_BACKWARD_MULT;
-            }
+            finalRpm += speedDot > 0
+                    ? speedDot * RPM_FORWARD_MULT
+                    : Math.abs(speedDot) * RPM_BACKWARD_MULT;
         }
 
         finalRpm = Math.max(MIN_SAFE_RPM, Math.min(finalRpm, MAX_SAFE_RPM));

@@ -58,9 +58,6 @@ public class teleop extends CommandOpMode {
     public void runOpMode() throws InterruptedException {
         super.runOpMode();
 
-        if (robot != null) {
-            robot.stopIndexerThread();
-        }
         CommandScheduler.getInstance().reset();
     }
 }
