@@ -101,4 +101,15 @@ public class AlignToAprilTagCommand extends CommandBase {
         telemetry.debug("Alignment finished.");
         telemetry.update();
     }
+    @Override
+    public boolean isFinished() {
+        if (vision.hasTarget() && turnController.atSetPoint()) {
+            return true;
+        }
+
+        if (IsAprilTagNotSeemCounter >= ApriltagNotSeemMaximumCounter) {
+            return true;
+        }
+        return false;
+    }
 }
