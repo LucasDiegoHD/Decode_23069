@@ -11,6 +11,7 @@ import com.bylazar.telemetry.PanelsTelemetry;
 import com.pedropathing.geometry.Pose;
 import org.firstinspires.ftc.teamcode.autos.paths.PosesNames;
 import org.firstinspires.ftc.teamcode.commands.AlignToAprilTagCommand;
+import org.firstinspires.ftc.teamcode.commands.SpinShooterCommand;
 import org.firstinspires.ftc.teamcode.commands.UpdatePoseLimelightCommand;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 import org.firstinspires.ftc.teamcode.subsystems.DrivetrainSubsystem;
@@ -29,6 +30,7 @@ public class AutonomousCommands extends SequentialCommandGroup {
                 // === INÍCIO ===
                 new UpdatePoseLimelightCommand(drivetrain, vision, poses.get(PosesNames.StartPose.ordinal())),
                 new AlignAndAdjustAutoCommand(drivetrain, vision, shooter),
+                new SpinShooterCommand(shooter, SpinShooterCommand.Action.LONG_SHOOT),
 
                 // === TIRO 1 ===
                 new GoToPoseCommand(drivetrain, poses.get(PosesNames.GoToShoot1.ordinal()))
@@ -36,68 +38,61 @@ public class AutonomousCommands extends SequentialCommandGroup {
                 new UpdatePoseLimelightCommand(drivetrain, vision, poses.get(PosesNames.GoToShoot1.ordinal())),
                 new AlignAndAdjustAutoCommand(drivetrain, vision, shooter),
                 new WaitUntilCommand(shooter::getShooterAtTarget).withTimeout(1700),
-                new AlignToAprilTagCommand(drivetrain, vision, PanelsTelemetry.INSTANCE.getTelemetry(), null).withTimeout(300),
-                new ShootCommandAutonomous(shooter, intake, indexer, 3).withTimeout(3000),
+                new AlignToAprilTagCommand(drivetrain, vision, PanelsTelemetry.INSTANCE.getTelemetry(), null).withTimeout(500),
+                new ShootCommandAutonomous(shooter, intake, indexer, 2).withTimeout(3000),
 
                 // === BUSCA LINHA 1 ===
                 new ParallelCommandGroup(
                         new GoToPoseCommand(drivetrain, true,
                         poses.get(PosesNames.GoToLine1.ordinal()),
                         poses.get(PosesNames.CatchLine1.ordinal())
-                ).setConstraints(Constants.autoTransitConstraints).withNoDeceleration().withTimeout(4000),
-                        new RunCommand(() -> {
-                            if (!indexer.isFull()) intake.run();
-                            else intake.stop();
-                        }
-                )),
+                        ).setConstraints(Constants.autoTransitConstraints).withNoDeceleration().withConstantHeading().withTimeout(4000),
+                        new InstantCommand(intake::run)
+                ),
 
                 // === TIRO 2 ===
                 new GoToPoseCommand(drivetrain, poses.get(PosesNames.GoToShoot1.ordinal()))
                         .setConstraints(Constants.autoShootConstraints),
-                new UpdatePoseLimelightCommand(drivetrain, vision, poses.get(PosesNames.GoToShoot1.ordinal())),
                 new AlignAndAdjustAutoCommand(drivetrain, vision, shooter),
-                new AlignToAprilTagCommand(drivetrain, vision, PanelsTelemetry.INSTANCE.getTelemetry(), null).withTimeout(400),
-                new ShootCommandAutonomous(shooter, intake, indexer, indexer::getPieceCount).withTimeout(3000),
+                new AlignToAprilTagCommand(drivetrain, vision, PanelsTelemetry.INSTANCE.getTelemetry(), null).withTimeout(600),
+                new ShootCommandAutonomous(shooter, intake, indexer, 2).withTimeout(3000),
 
                 // === BUSCA LINHA 3 ===
                 new ParallelCommandGroup(
                         new GoToPoseCommand(drivetrain, true,
                                 poses.get(PosesNames.GoToLine3.ordinal()),
                                 poses.get(PosesNames.CatchLine3.ordinal())
-                        ).setConstraints(Constants.autoTransitConstraints).withNoDeceleration().withTimeout(4000),
-                        new RunCommand(() -> {
-                            if (!indexer.isFull()) intake.run();
-                            else intake.stop();
-                        }
-                )),
+                        ).setConstraints(Constants.autoTransitConstraints).withNoDeceleration().withConstantHeading().withTimeout(4000),
+                        new InstantCommand(intake::run)
+                        ),
 
                 // === GATE ===
                 new GoToPoseCommand(drivetrain, poses.get(PosesNames.GatePose.ordinal()))
-                        .setConstraints(Constants.autoShootConstraints).withTimeout(1000),
+                        .setConstraints(Constants.autoShootConstraints).withTimeout(1500),
 
                 // === TIRO 3 ===
+                new GoToPoseCommand(drivetrain,poses.get(PosesNames.GotoLine6.ordinal()))
+                        .setConstraints(Constants.autoTransitConstraints),
                 new GoToPoseCommand(drivetrain, poses.get(PosesNames.GoToShoot1.ordinal()))
                         .setConstraints(Constants.autoShootConstraints),
-                new UpdatePoseLimelightCommand(drivetrain, vision, poses.get(PosesNames.GoToShoot1.ordinal())),
                 new AlignAndAdjustAutoCommand(drivetrain, vision, shooter),
-                new AlignToAprilTagCommand(drivetrain, vision, PanelsTelemetry.INSTANCE.getTelemetry(), null).withTimeout(400),
-                new ShootCommandAutonomous(shooter, intake, indexer, indexer::getPieceCount).withTimeout(3000),
+                new AlignToAprilTagCommand(drivetrain, vision, PanelsTelemetry.INSTANCE.getTelemetry(), null).withTimeout(600),
+                new ShootCommandAutonomous(shooter, intake, indexer, 2).withTimeout(3000),
 
                 // === BUSCA LINHA 2 ===
                 new InstantCommand(intake::run),
                 new GoToPoseCommand(drivetrain, true,
                         poses.get(PosesNames.GoToLine2.ordinal()),
                         poses.get(PosesNames.CatchLine2.ordinal())
-                ).setConstraints(Constants.autoTransitConstraints).withNoDeceleration().withTimeout(2000),
+                ).setConstraints(Constants.autoTransitConstraints).withNoDeceleration().withConstantHeading().withTimeout(2000),
                 new WaitUntilCommand(indexer::isFull).withTimeout(700),
 
                 // === TIRO 4 ===
                 new GoToPoseCommand(drivetrain, poses.get(PosesNames.GoToShoot1.ordinal()))
                         .setConstraints(Constants.autoShootConstraints),
-                new UpdatePoseLimelightCommand(drivetrain, vision, poses.get(PosesNames.GoToShoot1.ordinal())),
                 new AlignAndAdjustAutoCommand(drivetrain, vision, shooter),
-                new AlignToAprilTagCommand(drivetrain, vision, PanelsTelemetry.INSTANCE.getTelemetry(), null).withTimeout(600),
-                new ShootCommandAutonomous(shooter, intake, indexer, indexer::getPieceCount).withTimeout(3000),
+                new AlignToAprilTagCommand(drivetrain, vision, PanelsTelemetry.INSTANCE.getTelemetry(), null).withTimeout(800),
+                new ShootCommandAutonomous(shooter, intake, indexer, 2).withTimeout(3000),
 
                 // === TIRO 5 ===
                  /*new InstantCommand(intake::run),

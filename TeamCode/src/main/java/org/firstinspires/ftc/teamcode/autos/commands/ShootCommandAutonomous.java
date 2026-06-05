@@ -32,8 +32,6 @@ public class ShootCommandAutonomous extends CommandBase {
 
     private SHOOT_STATES state;
     private int shooterCounter;
-
-    // Construtor com IntSupplier — valor dinâmico avaliado no initialize()
     public ShootCommandAutonomous(ShooterSubsystem shooter, IntakeSubsystem intake, IndexerSubsystem indexer, IntSupplier shootCount) {
         telemetryM = PanelsTelemetry.INSTANCE.getTelemetry();
         this.shooter = shooter;

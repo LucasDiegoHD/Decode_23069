@@ -1,6 +1,7 @@
 package org.firstinspires.ftc.teamcode.autos.commands;
 
 import com.arcrobotics.ftclib.command.CommandBase;
+import com.pedropathing.geometry.BezierCurve;
 import com.pedropathing.geometry.BezierLine;
 import com.pedropathing.geometry.Pose;
 import com.pedropathing.paths.PathBuilder;
@@ -17,12 +18,14 @@ public class GoToPoseCommand extends CommandBase {
     private final List<Pose> waypoints;
     private final boolean holdEnd;
     private PathConstraints constraints;
-
-    // Modos de desaceleração
+    private double pathMaxPower = 1.0;
     private enum DecelerationMode { DEFAULT, GLOBAL, NONE }
     private DecelerationMode decelerationMode = DecelerationMode.DEFAULT;
-    private double globalBrakingStrength = 1.5;
-    private double globalBrakingStart = 0.4;
+
+    // Modos de Ângulo (Heading)
+    public enum HeadingMode { LINEAR, TANGENT, CONSTANT }
+    private HeadingMode headingMode = HeadingMode.LINEAR;
+    private double customConstantHeading = Double.NaN;
 
     public GoToPoseCommand(DrivetrainSubsystem drivetrain, Pose targetPose) {
         this(drivetrain, true, targetPose);
@@ -40,19 +43,51 @@ public class GoToPoseCommand extends CommandBase {
         addRequirements(drivetrain);
     }
 
+    // Builder para Constraints
     public GoToPoseCommand setConstraints(PathConstraints customConstraints) {
         this.constraints = customConstraints;
         return this;
     }
 
+    // Builder para Potência (Útil se não quiser mexer nas constraints)
+    public GoToPoseCommand withMaxPower(double maxPower) {
+        this.pathMaxPower = maxPower;
+        return this;
+    }
+
+    // Builders para Desaceleração
     public GoToPoseCommand withNoDeceleration() {
         this.decelerationMode = DecelerationMode.NONE;
         return this;
     }
 
-    public GoToPoseCommand withGlobalDeceleration(double brakingStrength) {
+    public GoToPoseCommand withGlobalDeceleration() {
         this.decelerationMode = DecelerationMode.GLOBAL;
-        this.globalBrakingStrength = brakingStrength;
+        return this;
+    }
+
+    // Builders para Modos de Ângulo
+    public GoToPoseCommand withTangentHeading() {
+        this.headingMode = HeadingMode.TANGENT;
+        return this;
+    }
+
+    /**
+     * Trava o ângulo. Automaticamente usa o ângulo do PRIMEIRO waypoint passado.
+     */
+    public GoToPoseCommand withConstantHeading() {
+        this.headingMode = HeadingMode.CONSTANT;
+        this.customConstantHeading = Double.NaN;
+        return this;
+    }
+
+    /**
+     * Trava o ângulo em um valor específico passado por você.
+     * @param headingInRadians Ângulo alvo em radianos.
+     */
+    public GoToPoseCommand withConstantHeading(double headingInRadians) {
+        this.headingMode = HeadingMode.CONSTANT;
+        this.customConstantHeading = headingInRadians;
         return this;
     }
 
@@ -63,21 +98,36 @@ public class GoToPoseCommand extends CommandBase {
         Pose startPose = drivetrain.getFollower().getPose();
         PathBuilder builder = drivetrain.getFollower().pathBuilder();
 
-        builder.addPath(new BezierLine(startPose, waypoints.get(0)));
-        builder.setLinearHeadingInterpolation(startPose.getHeading(), waypoints.get(0).getHeading());
-        applyConstraints(builder);
+        int size = waypoints.size();
 
-        for (int i = 1; i < waypoints.size(); i++) {
-            Pose previous = waypoints.get(i - 1);
-            Pose current = waypoints.get(i);
-            builder.addPath(new BezierLine(previous, current));
-            builder.setLinearHeadingInterpolation(previous.getHeading(), current.getHeading());
-            applyConstraints(builder);
+        if (size == 1) {
+            builder.addPath(new BezierLine(startPose, waypoints.get(0)));
+        } else if (size == 2) {
+            builder.addPath(new BezierCurve(startPose, waypoints.get(0), waypoints.get(1)));
+        } else if (size == 3) {
+            builder.addPath(new BezierCurve(startPose, waypoints.get(0), waypoints.get(1), waypoints.get(2)));
         }
 
+        Pose lastPose = waypoints.get(size - 1);
+        switch (headingMode) {
+            case TANGENT:
+                builder.setTangentHeadingInterpolation();
+                break;
+            case CONSTANT:
+                double targetAngle = Double.isNaN(customConstantHeading)
+                        ? waypoints.get(0).getHeading()
+                        : customConstantHeading;
+                builder.setConstantHeadingInterpolation(targetAngle);
+                break;
+            case LINEAR:
+            default:
+                builder.setLinearHeadingInterpolation(startPose.getHeading(), lastPose.getHeading());
+                break;
+        }
+
+        applyConstraints(builder);
         PathChain chain = builder.build();
 
-        // Aplica o modo de desaceleração na PathChain
         switch (decelerationMode) {
             case NONE:
                 chain.setDecelerationType(PathChain.DecelerationType.NONE);
@@ -90,6 +140,7 @@ public class GoToPoseCommand extends CommandBase {
                 break;
         }
 
+        drivetrain.getFollower().setMaxPower(this.pathMaxPower);
         drivetrain.getFollower().followPath(chain, holdEnd);
     }
 
@@ -97,6 +148,11 @@ public class GoToPoseCommand extends CommandBase {
         if (constraints != null) {
             builder.setConstraints(constraints);
         }
+    }
+
+    @Override
+    public void end(boolean interrupted) {
+        drivetrain.getFollower().setMaxPower(1.0);
     }
 
     @Override

@@ -35,13 +35,13 @@ public class Constants {
             .useSecondaryDrivePIDF(false)
             .centripetalScaling(0.0000)
             .translationalPIDFCoefficients(
-                    new PIDFCoefficients(5, 0.01, 0.5, 0.3)
+                    new PIDFCoefficients(5, 0.01, 0.3, 0.3)
             )
             .headingPIDFCoefficients(
-                    new PIDFCoefficients(1.4, 0.0, 0.5, 0.02)
+                    new PIDFCoefficients(1.4, 0.0, 0.3, 0.02)
             )
             .drivePIDFCoefficients(
-                    new FilteredPIDFCoefficients(0.65, 0.001, 0.11, 0.5, 0.02)
+                    new FilteredPIDFCoefficients(0.65, 0.001, 0.09, 0.5, 0.02)
             );
 
     public static MecanumConstants driveConstants = new MecanumConstants()
@@ -97,7 +97,7 @@ public class Constants {
     // Constraints para poses de TIRO — precisa parar com precisão
     public static PathConstraints autoShootConstraints = new PathConstraints(
             0.99,  // tValue — percorre quase tudo
-            3.0,   // velocity — pode estar um pouco mais rápido que antes
+            5.0,   // velocity — pode estar um pouco mais rápido que antes
             1.5,   // translational — 1.5 inches de tolerância
             0.05,  // heading — ~2.9°
             300,   // timeout — 150ms é suficiente
