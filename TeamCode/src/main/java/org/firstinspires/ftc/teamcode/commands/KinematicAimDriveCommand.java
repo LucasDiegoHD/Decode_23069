@@ -139,7 +139,8 @@ public class KinematicAimDriveCommand extends CommandBase {
 
     @Override
     public void end(boolean interrupted) {
-        follower.setTeleOpDrive(0, 0, 0, true);
+
+
     }
 
     private double angleDifference(double target, double current) {

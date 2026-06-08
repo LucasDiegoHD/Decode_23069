@@ -52,9 +52,8 @@ public class AutonomousCommands extends SequentialCommandGroup {
 
                 // === TIRO 2 ===
                 new GoToPoseCommand(drivetrain, poses.get(PosesNames.GoToShoot1.ordinal()))
-                        .setConstraints(Constants.autoShootConstraints),
-                new AlignAndAdjustAutoCommand(drivetrain, vision, shooter),
-                new AlignToAprilTagCommand(drivetrain, vision, PanelsTelemetry.INSTANCE.getTelemetry(), null).withTimeout(600),
+                        .setConstraints(Constants.autoShootConstraints).withConstantHeading(),
+                new AlignToAprilTagCommand(drivetrain, vision, PanelsTelemetry.INSTANCE.getTelemetry(), null).withTimeout(500),
                 new ShootCommandAutonomous(shooter, intake, indexer, 2).withTimeout(3000),
 
                 // === BUSCA LINHA 3 ===
@@ -68,15 +67,14 @@ public class AutonomousCommands extends SequentialCommandGroup {
 
                 // === GATE ===
                 new GoToPoseCommand(drivetrain, poses.get(PosesNames.GatePose.ordinal()))
-                        .setConstraints(Constants.autoShootConstraints).withTimeout(1500),
+                        .setConstraints(Constants.autoShootConstraints).withTimeout(800),
 
                 // === TIRO 3 ===
                 new GoToPoseCommand(drivetrain,poses.get(PosesNames.GotoLine6.ordinal()))
-                        .setConstraints(Constants.autoTransitConstraints),
+                        .setConstraints(Constants.autoTransitConstraints).withConstantHeading(),
                 new GoToPoseCommand(drivetrain, poses.get(PosesNames.GoToShoot1.ordinal()))
                         .setConstraints(Constants.autoShootConstraints),
-                new AlignAndAdjustAutoCommand(drivetrain, vision, shooter),
-                new AlignToAprilTagCommand(drivetrain, vision, PanelsTelemetry.INSTANCE.getTelemetry(), null).withTimeout(600),
+                new AlignToAprilTagCommand(drivetrain, vision, PanelsTelemetry.INSTANCE.getTelemetry(), null).withTimeout(500),
                 new ShootCommandAutonomous(shooter, intake, indexer, 2).withTimeout(3000),
 
                 // === BUSCA LINHA 2 ===
@@ -85,24 +83,24 @@ public class AutonomousCommands extends SequentialCommandGroup {
                         poses.get(PosesNames.GoToLine2.ordinal()),
                         poses.get(PosesNames.CatchLine2.ordinal())
                 ).setConstraints(Constants.autoTransitConstraints).withNoDeceleration().withConstantHeading().withTimeout(2000),
-                new WaitUntilCommand(indexer::isFull).withTimeout(700),
 
                 // === TIRO 4 ===
                 new GoToPoseCommand(drivetrain, poses.get(PosesNames.GoToShoot1.ordinal()))
                         .setConstraints(Constants.autoShootConstraints),
-                new AlignAndAdjustAutoCommand(drivetrain, vision, shooter),
                 new AlignToAprilTagCommand(drivetrain, vision, PanelsTelemetry.INSTANCE.getTelemetry(), null).withTimeout(800),
                 new ShootCommandAutonomous(shooter, intake, indexer, 2).withTimeout(3000),
 
                 // === TIRO 5 ===
-                 /*new InstantCommand(intake::run),
-                new GoToPoseCommand(drivetrain, true,
-                        poses.get(PosesNames.GoToLine2.ordinal()),
-                        poses.get(PosesNames.CatchLine2.ordinal())
-                ).withTimeout(2000),
-                new GoToPoseCommand(drivetrain, poses.get(PosesNames.GoToShoot1.ordinal())),
-                new AlignAndAdjustAutoCommand(drivetrain, vision, shooter),
-                new ShootCommand(shooter, intake, indexer, 3, ledSubsystem).withTimeout(1200),*/
+                new ParallelCommandGroup(
+                        new GoToPoseCommand(drivetrain, true,
+                                poses.get(PosesNames.GoToLine2.ordinal()),
+                                poses.get(PosesNames.CatchLine2.ordinal())
+                        ).setConstraints(Constants.autoTransitConstraints).withNoDeceleration().withConstantHeading().withTimeout(4000),
+                        new InstantCommand(intake::run)
+                ),
+                new GoToPoseCommand(drivetrain, poses.get(PosesNames.GoToShoot1.ordinal()))
+                        .setConstraints(Constants.autoShootConstraints).withConstantHeading(),
+                new ShootCommandAutonomous(shooter, intake, indexer, 2).withTimeout(1200),
 
                 // === FIM ===
                 new GoToPoseCommand(drivetrain, poses.get(PosesNames.EndPose.ordinal()))

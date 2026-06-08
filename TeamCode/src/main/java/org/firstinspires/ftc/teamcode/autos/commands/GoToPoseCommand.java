@@ -80,14 +80,11 @@ public class GoToPoseCommand extends CommandBase {
         this.customConstantHeading = Double.NaN;
         return this;
     }
+    private double exitTolerance = -1.0;
 
-    /**
-     * Trava o ângulo em um valor específico passado por você.
-     * @param headingInRadians Ângulo alvo em radianos.
-     */
-    public GoToPoseCommand withConstantHeading(double headingInRadians) {
-        this.headingMode = HeadingMode.CONSTANT;
-        this.customConstantHeading = headingInRadians;
+    // Builder para definir o raio de chegada
+    public GoToPoseCommand withExitTolerance(double inches) {
+        this.exitTolerance = inches;
         return this;
     }
 
@@ -157,6 +154,20 @@ public class GoToPoseCommand extends CommandBase {
 
     @Override
     public boolean isFinished() {
+        if (exitTolerance > 0 && !waypoints.isEmpty()) {
+            Pose currentPose = drivetrain.getFollower().getPose();
+            Pose targetPose = waypoints.get(waypoints.size() - 1);
+
+            double distance = Math.hypot(
+                    currentPose.getX() - targetPose.getX(),
+                    currentPose.getY() - targetPose.getY()
+            );
+
+            if (distance <= exitTolerance) {
+                return true;
+            }
+        }
+
         return !drivetrain.getFollower().isBusy();
     }
 }

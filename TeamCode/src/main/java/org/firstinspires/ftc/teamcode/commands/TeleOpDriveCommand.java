@@ -30,8 +30,15 @@ public class TeleOpDriveCommand extends CommandBase {
     public void initialize() {
         drivetrain.getFollower().startTeleopDrive();
         lastTime = System.currentTimeMillis();
-        currentMagnitude = 0.0;
-        currentAngle = 0.0;
+
+        double rawY = driverGamepad.getLeftX();
+        double rawX = driverGamepad.getLeftY();
+
+        double targetX = rawX * Math.abs(rawX);
+        double targetY = rawY * Math.abs(rawY);
+
+        currentMagnitude = Math.hypot(targetX, targetY);
+        currentAngle = (currentMagnitude > 0.01) ? Math.atan2(targetY, targetX) : 0.0;
     }
 
     @Override
