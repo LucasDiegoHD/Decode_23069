@@ -98,7 +98,7 @@ public class AutonomousCommands extends SequentialCommandGroup {
                 ),
                 new GoToPoseCommand(drivetrain, poses.get(PosesNames.GoToShoot2.ordinal()))
                         .setConstraints(Constants.autoShootConstraints),
-                new ShootCommandAutonomous(shooter, intake, indexer, 2).withTimeout(2000),
+                new ShootCommandAutonomous(shooter, intake, indexer, 2).withTimeout(2400),
 
                 // === FIM ===
                 new GoToPoseCommand(drivetrain, poses.get(PosesNames.EndPose.ordinal()))
