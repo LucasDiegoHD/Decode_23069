@@ -33,6 +33,7 @@ import org.firstinspires.ftc.teamcode.subsystems.*;
 import org.firstinspires.ftc.teamcode.utils.AllianceEnum;
 import org.firstinspires.ftc.teamcode.utils.DataStorage;
 import org.firstinspires.ftc.teamcode.utils.Polygon2d;
+import org.firstinspires.ftc.teamcode.utils.PoseStorage;
 
 /**
  * Main container for robot organization.
@@ -70,10 +71,12 @@ public class RobotContainer {
         led.setDefaultCommand(new LedCommand(led, indexer));
 
         if (driver!= null) {
-            if (DataStorage.actualPose != null) {
-                drivetrain.restorePoseFromStorage();
+            Pose savedPose = (DataStorage.actualPose != null) ? DataStorage.actualPose : PoseStorage.loadPose();
+
+            if (savedPose != null && !Double.isNaN(savedPose.getX()) && !Double.isNaN(savedPose.getY())) {
+                drivetrain.getFollower().setPose(savedPose);
             } else {
-                Pose startPose = (alliance == AllianceEnum.Red)?
+                Pose startPose = (alliance == AllianceEnum.Red) ?
                         RedRearPoses.getPose(PosesNames.StartPose) : BlueRearPoses.getPose(PosesNames.StartPose);
                 drivetrain.getFollower().setPose(startPose);
             }
@@ -172,6 +175,21 @@ public class RobotContainer {
 
         new GamepadButton(operator, GamepadKeys.Button.DPAD_UP)
                 .whenPressed(new InstantCommand(() -> isShooterAutoAdjustActive = true));
+
+        new GamepadButton(operator, GamepadKeys.Button.DPAD_RIGHT)
+                .whenPressed(new InstantCommand(() -> {
+                    shooter.adjustRpmOffset(10);
+                    if (operator.gamepad != null) operator.gamepad.rumble(100);
+                }));
+
+        new GamepadButton(operator, GamepadKeys.Button.DPAD_LEFT)
+                .whenPressed(new InstantCommand(() -> {
+                    shooter.adjustRpmOffset(-10);
+                    if (operator.gamepad != null) operator.gamepad.rumble(100);
+                }));
+
+        new GamepadButton(operator, GamepadKeys.Button.LEFT_STICK_BUTTON)
+                .whenPressed(new InstantCommand(shooter::resetRpmOffset));
 
     }
     public void clearBulkCache() {

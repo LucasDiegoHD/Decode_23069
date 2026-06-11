@@ -98,7 +98,7 @@ public class Constants {
     public static PathConstraints autoShootConstraints = new PathConstraints(
             0.97,  // tValue — percorre quase tudo
             8.0,   // velocity — pode estar um pouco mais rápido que antes
-            1.5,   // translational — 1.5 inches de tolerância
+            2.0,   // translational — 1.5 inches de tolerância
             0.05,  // heading — ~2.9°
             300,   // timeout — 150ms é suficiente
             2.5,

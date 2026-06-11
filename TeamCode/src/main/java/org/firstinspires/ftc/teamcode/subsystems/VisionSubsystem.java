@@ -24,15 +24,7 @@ public class VisionSubsystem extends SubsystemBase {
     }
 
     @Override
-    public void periodic() {
-        latestResult = limelight.getLatestResult();
-
-        if (latestResult != null && latestResult.isValid()) {
-            telemetry.addData("Limelight", "👀 Vendo Alvo");
-        } else {
-            telemetry.addData("Limelight", "❌ Cega");
-        }
-    }
+    public void periodic() {latestResult = limelight.getLatestResult();}
 
     public Optional<Pose> getRobotPoseMT1() {
         if (!hasTarget()) return Optional.empty();

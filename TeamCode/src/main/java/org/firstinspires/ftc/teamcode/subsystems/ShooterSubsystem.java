@@ -119,6 +119,18 @@ public class ShooterSubsystem extends SubsystemBase {
         shotBoostTimer.reset();
         isBoostActive = true;
     }
+    private double liveRpmOffset = 0.0;
+
+    public void adjustRpmOffset(double delta) {
+        liveRpmOffset += delta;
+    }
+
+    public double getLiveRpmOffset() {
+        return liveRpmOffset;
+    }
+    public void resetRpmOffset() {
+        liveRpmOffset = 0.0;
+    }
 
     @Override
     public void periodic() {

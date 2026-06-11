@@ -121,7 +121,6 @@ public class ShootCommand extends CommandBase {
                     if (shooterCounter > 0) {
                         state = SHOOT_STATES.Cooldown;
 
-                        // DESLIGA AQUI (Apenas 1 vez!)
                         intake.stopTrigger();
                         intake.stop();
                         cooldownTimer.reset();

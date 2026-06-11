@@ -17,6 +17,7 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 import org.firstinspires.ftc.teamcode.utils.DataStorage;
 import org.firstinspires.ftc.teamcode.utils.Polygon2d;
+import org.firstinspires.ftc.teamcode.utils.PoseStorage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,6 +29,7 @@ public class DrivetrainSubsystem extends SubsystemBase {
     private static final Logger log = LoggerFactory.getLogger(DrivetrainSubsystem.class);
     private final Follower follower;
     private final TelemetryManager telemetry;
+    private long ultimoTempoSalvo = 0;
 
     /**
      * Constructs a new DrivetrainSubsystem.
@@ -105,6 +107,11 @@ public class DrivetrainSubsystem extends SubsystemBase {
         follower.update();
         DataStorage.actualPose = follower.getPose();
         telemetry.addData("Robot pose", follower.getPose());
+        long tempoAtual = System.currentTimeMillis();
+        if (tempoAtual - ultimoTempoSalvo > 1000) {
+            PoseStorage.savePose(follower.getPose());
+            ultimoTempoSalvo = tempoAtual;
+        }
 
         Drawing.drawRobot(follower.getPose());
         Drawing.sendPacket();

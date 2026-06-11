@@ -96,8 +96,7 @@ public class AutonomousTuffCommand extends SequentialCommandGroup {
                         new InstantCommand(intake::run)
                 ),
 
-
-                // === TIRO 4 ===
+                // === TIRO 5 ===
                 new GoToPoseCommand(drivetrain, poses.get(PosesNames.GoToShoot1.ordinal()))
                         .setConstraints(Constants.autoShootConstraints).withConstantHeading(),
                 new AlignToAprilTagCommand(drivetrain, vision, PanelsTelemetry.INSTANCE.getTelemetry(), null).withTimeout(500),

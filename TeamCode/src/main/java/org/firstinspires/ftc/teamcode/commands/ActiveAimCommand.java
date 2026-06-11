@@ -103,6 +103,11 @@ public class ActiveAimCommand extends CommandBase {
                     ? speedDot * RPM_FORWARD_MULT
                     : Math.abs(speedDot) * RPM_BACKWARD_MULT;
         }
+        if (distanceToUse > 3.10) {
+            finalRpm += 30.0;
+        }
+
+        finalRpm += shooter.getLiveRpmOffset();
 
         finalRpm = Math.max(MIN_SAFE_RPM, Math.min(finalRpm, MAX_SAFE_RPM));
 
