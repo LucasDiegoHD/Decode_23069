@@ -21,14 +21,13 @@ public class KinematicAimDriveCommand extends CommandBase {
     private final double targetX;
     private final double targetY;
     private boolean isAtTarget = false;
-
     private static final double ARTIFACT_VELOCITY_INCHES_PER_SEC = 1000.0;
     private static final double SYSTEM_LATENCY_SECONDS = 0.4;
-
+    private static final double FEEDFORWARD_DEAD_ZONE = Math.toRadians(2.0);
+    private static final double SHOOTER_RADIUS_INCHES = 4.0;
     private double smoothedVelX = 0.0;
     private double smoothedVelY = 0.0;
     private static final double VEL_ALPHA = 0.8;
-    private static final double FEEDFORWARD_DEAD_ZONE = Math.toRadians(2.0);
 
     public KinematicAimDriveCommand(DrivetrainSubsystem drivetrain, GamepadEx driver, double targetX, double targetY) {
         this.follower = drivetrain.getFollower();
@@ -41,7 +40,7 @@ public class KinematicAimDriveCommand extends CommandBase {
                 ShooterConstants.ANGLE_KP,
                 ShooterConstants.ANGLE_KI,
                 ShooterConstants.ANGLE_KD,
-                ShooterConstants.ANGLE_KF
+                0
         );
 
         addRequirements(drivetrain);
@@ -51,7 +50,6 @@ public class KinematicAimDriveCommand extends CommandBase {
     public void initialize() {
         follower.startTeleopDrive();
         turnController.reset();
-        turnController.setSetPoint(0);
         turnController.setTolerance((Math.PI / 180.0) * ShooterConstants.ANGLE_TOLERANCE);
 
         smoothedVelX = follower.getVelocity().getXComponent();
@@ -87,32 +85,36 @@ public class KinematicAimDriveCommand extends CommandBase {
             smoothedVelX = 0.0;
             smoothedVelY = 0.0;
         }
-
         double robotX = pose.getX();
         double robotY = pose.getY();
 
         double diffX = targetX - robotX;
         double diffY = targetY - robotY;
-        double distanceToTarget = Math.hypot(diffX, diffY);
-        if (distanceToTarget < 1.0) distanceToTarget = 1.0;
+        double distanceToTarget = Math.max(Math.hypot(diffX, diffY), 1.0);
 
         double targetDirX = diffX / distanceToTarget;
         double targetDirY = diffY / distanceToTarget;
         double velTowardsGoal = (smoothedVelX * targetDirX) + (smoothedVelY * targetDirY);
 
-        double effectiveArtifactVelocity = ARTIFACT_VELOCITY_INCHES_PER_SEC + velTowardsGoal;
-        if (effectiveArtifactVelocity < 100.0) effectiveArtifactVelocity = 100.0;
-
+        double effectiveArtifactVelocity = Math.max(ARTIFACT_VELOCITY_INCHES_PER_SEC + velTowardsGoal, 100.0);
         double timeOfFlight = distanceToTarget / effectiveArtifactVelocity;
         double totalPredictionTime = timeOfFlight + SYSTEM_LATENCY_SECONDS;
 
-        double virtualX = targetX - (smoothedVelX * totalPredictionTime);
-        double virtualY = targetY - (smoothedVelY * totalPredictionTime);
+        double angularVel = follower.getAngularVelocity();
+        double tangentialVelMagnitude = angularVel * SHOOTER_RADIUS_INCHES;
+        double tangentialVelX = tangentialVelMagnitude * -targetDirY;
+        double tangentialVelY = tangentialVelMagnitude * targetDirX;
+
+        double virtualX = targetX - (smoothedVelX * totalPredictionTime) - (tangentialVelX * totalPredictionTime);
+        double virtualY = targetY - (smoothedVelY * totalPredictionTime) - (tangentialVelY * totalPredictionTime);
+
+        double lateralVel = (smoothedVelX * -targetDirY) + (smoothedVelY * targetDirX);
+        double omegaFeedforward = (lateralVel / distanceToTarget) * ShooterConstants.K_OMEGA;
 
         double desiredAngle = Math.atan2(virtualY - robotY, virtualX - robotX);
         double error = angleDifference(desiredAngle, heading);
 
-        double turnPower = turnController.calculate(error);
+        double turnPower = turnController.calculate(error, 0);
 
         double innerTolerance = Math.toRadians(ShooterConstants.ANGLE_TOLERANCE);
         double outerTolerance = innerTolerance + Math.toRadians(0.4);
@@ -125,8 +127,11 @@ public class KinematicAimDriveCommand extends CommandBase {
 
         if (!isAtTarget && Math.abs(error) > FEEDFORWARD_DEAD_ZONE) {
             turnPower += Math.copySign(ShooterConstants.ANGLE_KF, turnPower);
+        } else if (isAtTarget) {
+            turnPower = 0.0;
         }
 
+        turnPower += omegaFeedforward;
         turnPower = Math.max(-1.0, Math.min(1.0, turnPower));
 
         follower.setTeleOpDrive(
@@ -138,10 +143,7 @@ public class KinematicAimDriveCommand extends CommandBase {
     }
 
     @Override
-    public void end(boolean interrupted) {
-
-
-    }
+    public void end(boolean interrupted) {}
 
     private double angleDifference(double target, double current) {
         double diff = target - current;

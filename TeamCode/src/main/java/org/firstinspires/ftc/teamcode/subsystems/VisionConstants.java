@@ -23,7 +23,7 @@ public class VisionConstants {
     /** The feedforward gain for the turn controller. */
     public static double TURN_KF = 0.3;
     public static double LONGEST_HOOD = 0.76;
-    public static double LONGEST_RPM = 2910;
+    public static double LONGEST_RPM = 2900;
     public static double LONGEST_DISTANCE = 2.55;
 
     // distância máxima em METROS
