@@ -7,6 +7,7 @@ import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
+import org.firstinspires.ftc.teamcode.utils.DataStorage;
 
 public class IndexerSubsystem extends SubsystemBase {
 
@@ -117,13 +118,15 @@ public class IndexerSubsystem extends SubsystemBase {
         previousExitActive = exitActive;
 
         telemetry.addData("Indexer Pieces", pieceCount);
-        telemetry.addData("Is Shooting?", isShooting);
-        telemetry.addData("Exit Dist (CM)", currentExitDist);
-        telemetry.addData("Exit Triggered", exitActive);
-        telemetry.addData("Middle Light", currentMiddleLight);
-        telemetry.addData("Middle Triggered", middleActive);
-        telemetry.addData("Entry Dist (CM)", currentEntryDist);
-        telemetry.addData("Entry Triggered", entryActive);
+        if  (DataStorage.DEBUG_MODE) {
+            telemetry.addData("Is Shooting?", isShooting);
+            telemetry.addData("Exit Dist (CM)", currentExitDist);
+            telemetry.addData("Exit Triggered", exitActive);
+            telemetry.addData("Middle Light", currentMiddleLight);
+            telemetry.addData("Middle Triggered", middleActive);
+            telemetry.addData("Entry Dist (CM)", currentEntryDist);
+            telemetry.addData("Entry Triggered", entryActive);
+        }
 
         long tempoFim = System.currentTimeMillis();
         telemetry.addData(">> Tempo Sensores Indexer (ms)", tempoFim - tempoInicio);

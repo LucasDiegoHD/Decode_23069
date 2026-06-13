@@ -11,6 +11,7 @@ import com.qualcomm.robotcore.hardware.VoltageSensor;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit;
+import org.firstinspires.ftc.teamcode.utils.DataStorage;
 
 public class ShooterSubsystem extends SubsystemBase {
 
@@ -187,10 +188,12 @@ public class ShooterSubsystem extends SubsystemBase {
                 Math.min(ShooterConstants.MAXIMUM_HOOD, currentDynamicHoodPos));
         updateHoodServos();
 
-        telemetry.addData("Shooter RPM Real", currentRPM);
-        //telemetry.addData("Shooter Target", targetRPM);
-        //telemetry.addData("Shooter Power Sent", lastPower);
-        //telemetry.addData("Voltage", voltageSensor.getVoltage());
-        telemetry.addData("Hood Position", hoodPosition);
+        if (DataStorage.DEBUG_MODE) {
+            telemetry.addData("Shooter RPM Real", currentRPM);
+            telemetry.addData("Shooter Target", targetRPM);
+            telemetry.addData("Shooter Power Sent", lastPower);
+            telemetry.addData("Voltage", voltageSensor.getVoltage());
+            telemetry.addData("Hood Position", hoodPosition);
+        }
     }
 }

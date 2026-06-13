@@ -42,9 +42,11 @@ public class teleop extends CommandOpMode {
 
         long tempoComandos = System.currentTimeMillis();
 
-        telemetryM.addData("1. Tempo do Cache (ms)", tempoCache - tempoInicio);
-        telemetryM.addData("2. Tempo dos Comandos (ms)", tempoComandos - tempoCache);
-        telemetryM.addData("3. Tempo da Telemetria (ms)", ultimoTempoTelemetria);
+        if (DataStorage.DEBUG_MODE) {
+            telemetryM.addData("1. Tempo do Cache (ms)", tempoCache - tempoInicio);
+            telemetryM.addData("2. Tempo dos Comandos (ms)", tempoComandos - tempoCache);
+            telemetryM.addData("3. Tempo da Telemetria (ms)", ultimoTempoTelemetria);
+        }
 
         long tempoTotal = (tempoComandos - tempoInicio) + ultimoTempoTelemetria;
         telemetryM.addData("⚡ TOTAL LOOP TIME (ms)", tempoTotal);

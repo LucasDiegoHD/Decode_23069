@@ -106,7 +106,7 @@ public class DrivetrainSubsystem extends SubsystemBase {
     public void periodic() {
         follower.update();
         DataStorage.actualPose = follower.getPose();
-        telemetry.addData("Robot pose", follower.getPose());
+        if (DataStorage.DEBUG_MODE){telemetry.addData("Robot pose", follower.getPose());}
         long tempoAtual = System.currentTimeMillis();
         if (tempoAtual - ultimoTempoSalvo > 1000) {
             PoseStorage.savePose(follower.getPose());
