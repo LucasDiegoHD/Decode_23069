@@ -9,17 +9,17 @@ public class BlueRearPoses {
 
     public static final Pose[] POSES = {
 
-            new Pose(62.411, 13.399, Math.toRadians(90)),
-            new Pose(60.335, 18.547, Math.toRadians(113)),
+            new Pose(63.411, 13.399, Math.toRadians(90)),
+            new Pose(60.335, 18.547, Math.toRadians(111)),
 
             new Pose(64.134, 38.169, Math.toRadians(0)),
             new Pose(24, 38.169, Math.toRadians(0)),
 
-            new Pose(60.335, 17.547, Math.toRadians(111.5)),
+            new Pose(60.335, 17.547, Math.toRadians(109)),
 
 
-            new Pose(41, 24.547, Math.toRadians(0)),
-            new Pose(24, 12, Math.toRadians(0)),
+            new Pose(41, 19.547, Math.toRadians(0)),
+            new Pose(24, 13, Math.toRadians(0)),
 
             new Pose(60.335, 34, Math.toRadians(90)),
 

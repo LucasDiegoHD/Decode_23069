@@ -105,7 +105,7 @@ public class ShooterConstants {
     public static double RPM_N0 = 2630.5;
     public static double RPM_N1 = -521.9;
     public static double RPM_N2 = 171.8;
-    public static double ANGLE_KP = 0.95;
+    public static double ANGLE_KP = 1.05;
     public static double ANGLE_KI = 0.025;
     public static double ANGLE_KD = 0.1;
     public static double ANGLE_KF = 0.15;

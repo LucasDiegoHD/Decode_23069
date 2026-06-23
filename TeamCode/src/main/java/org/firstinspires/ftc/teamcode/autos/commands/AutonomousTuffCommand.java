@@ -69,7 +69,7 @@ public class AutonomousTuffCommand extends SequentialCommandGroup {
                 ).setConstraints(Constants.autoTransitConstraints).withNoDeceleration().withConstantHeading().withTimeout(2000),
 
                 // === TIRO 3 ===
-                new GoToPoseCommand(drivetrain, poses.get(PosesNames.GoToShoot1.ordinal()))
+                new GoToPoseCommand(drivetrain, poses.get(PosesNames.GoToShoot2.ordinal()))
                         .setConstraints(Constants.autoShootConstraints),
                 new AlignToAprilTagCommand(drivetrain, vision, PanelsTelemetry.INSTANCE.getTelemetry(), null).withTimeout(600),
                 new ShootCommandAutonomous(shooter, intake, indexer, 2).withTimeout(3000),
@@ -82,7 +82,7 @@ public class AutonomousTuffCommand extends SequentialCommandGroup {
                 ).setConstraints(Constants.autoTransitConstraints).withNoDeceleration().withConstantHeading().withTimeout(2000),
 
                 // === TIRO 4 ===
-                new GoToPoseCommand(drivetrain, poses.get(PosesNames.GoToShoot1.ordinal()))
+                new GoToPoseCommand(drivetrain, poses.get(PosesNames.GoToShoot2.ordinal()))
                         .setConstraints(Constants.autoShootConstraints),
                 new AlignToAprilTagCommand(drivetrain, vision, PanelsTelemetry.INSTANCE.getTelemetry(), null).withTimeout(600),
                 new ShootCommandAutonomous(shooter, intake, indexer, 2).withTimeout(3000),
@@ -97,7 +97,7 @@ public class AutonomousTuffCommand extends SequentialCommandGroup {
                 ),
 
                 // === TIRO 5 ===
-                new GoToPoseCommand(drivetrain, poses.get(PosesNames.GoToShoot1.ordinal()))
+                new GoToPoseCommand(drivetrain, poses.get(PosesNames.GoToShoot2.ordinal()))
                         .setConstraints(Constants.autoShootConstraints).withConstantHeading(),
                 new AlignToAprilTagCommand(drivetrain, vision, PanelsTelemetry.INSTANCE.getTelemetry(), null).withTimeout(500),
                 new ShootCommandAutonomous(shooter, intake, indexer, 2).withTimeout(3000),
