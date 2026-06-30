@@ -13,6 +13,7 @@ import com.pedropathing.paths.Path;
 import com.pedropathing.paths.PathChain;
 import com.pedropathing.util.PoseHistory;
 import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.robotcore.hardware.VoltageSensor;
 
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 import org.firstinspires.ftc.teamcode.utils.DataStorage;
@@ -30,6 +31,8 @@ public class DrivetrainSubsystem extends SubsystemBase {
     private final Follower follower;
     private final TelemetryManager telemetry;
     private long ultimoTempoSalvo = 0;
+    private final VoltageSensor voltageSensor;
+
 
     /**
      * Constructs a new DrivetrainSubsystem.
@@ -43,6 +46,9 @@ public class DrivetrainSubsystem extends SubsystemBase {
         Drawing.init();
         Drawing.drawRobot(follower.getPose());
         Drawing.sendPacket();
+        this.voltageSensor = hardwareMap.voltageSensor.iterator().hasNext()
+                ? hardwareMap.voltageSensor.iterator().next()
+                : null;
     }
 
     /**
@@ -97,6 +103,9 @@ public class DrivetrainSubsystem extends SubsystemBase {
 
             follower.setPose(safePose);
         }
+    }
+    public double getVoltage() {
+        return (voltageSensor != null) ? voltageSensor.getVoltage() : 13.0;
     }
 
     /**
