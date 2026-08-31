@@ -4,8 +4,9 @@ import com.pedropathing.geometry.Pose;
 
 
 public class DataStorage {
-    public static Pose actualPose = new Pose();
-    public static AllianceEnum alliance = AllianceEnum.Error;
+    public static Pose actualPose = null;
+    public static AllianceEnum alliance = AllianceEnum.Red;
     public static int pieceCount = 0;
+    public static boolean DEBUG_MODE = false;
 
 }

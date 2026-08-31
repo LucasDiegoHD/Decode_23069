@@ -13,12 +13,13 @@ import org.firstinspires.ftc.teamcode.subsystems.VisionSubsystem;
 public class AlignAndAdjustAutoCommand extends SequentialCommandGroup {
     public AlignAndAdjustAutoCommand(DrivetrainSubsystem drivetrain, VisionSubsystem vision, ShooterSubsystem shooter) {
         addCommands(
-                new AlignToAprilTagCommand(drivetrain, vision, PanelsTelemetry.INSTANCE.getTelemetry(), null, null).withTimeout(500),
+                new AdjustShooterCommandAuto(shooter, vision),
+                new AdjustHoodCommandAuto(shooter, vision)
+                //new AlignToAprilTagCommand(drivetrain, vision, PanelsTelemetry.INSTANCE.getTelemetry(), null).withTimeout(400)
 
-                new AdjustShooterCommand(shooter, vision),
-                new AdjustHoodCommand(shooter, vision)
+
 
         );
-        addRequirements(drivetrain, shooter);
+        addRequirements(shooter);
     }
 }

@@ -78,6 +78,7 @@ public class MotorDirections extends OpMode {
         else
             rightRear.setPower(0);
 
+
         telemetryM.addLine("Press A to spin the left front motor at 100% power");
         telemetryM.addLine("Press Y to spin the left rear motor at 100% power");
         telemetryM.addLine("Press B to spin the right front motor at 100% power");
@@ -86,3 +87,4 @@ public class MotorDirections extends OpMode {
         telemetryM.update();
     }
 }
+

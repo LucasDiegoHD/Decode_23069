@@ -1,140 +1,199 @@
 package org.firstinspires.ftc.teamcode.subsystems;
 
 import com.arcrobotics.ftclib.command.SubsystemBase;
+import com.arcrobotics.ftclib.controller.PIDFController;
 import com.bylazar.telemetry.TelemetryManager;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.VoltageSensor;
+import com.qualcomm.robotcore.util.ElapsedTime;
 
-/**
- * The ShooterSubsystem is responsible for controlling the robot's shooting mechanism.
- * This includes managing the speed of the shooter motors and the angle of the hood.
- */
-/// /@AutoLog
+import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit;
+import org.firstinspires.ftc.teamcode.utils.DataStorage;
 
 public class ShooterSubsystem extends SubsystemBase {
-    /*
 
-        formula para calcular o RPM pela distancia
-        RPM = 520.71 * distancia + 3815.97
-     */
-    private final DcMotorEx rShooterMotor;
-    private final DcMotorEx lShooterMotor;
+    private final DcMotorEx rShooterMotor, lShooterMotor;
     private final VoltageSensor voltageSensor;
     private final TelemetryManager telemetry;
-    private final Servo hoodServo;
-
+    private final Servo hoodServoLeft, hoodServoRight;
+    private final PIDFController controller;
     private double targetRPM = 0.0;
+    private double hoodPosition = 0.7;
+    private double currentDynamicHoodPos = 0.7;
+    private double lastPower = 0;
+    private boolean isLongShotMode = false;
+    private final ElapsedTime shotBoostTimer = new ElapsedTime();
+    private boolean isBoostActive = false;
 
-    // Hood position values
-    private double hoodPosition = 0.5; // initial position (0.0 - 1.0)
-
-    /**
-     * Constructs a new ShooterSubsystem.
-     *
-     * @param hardwareMap The hardware map to retrieve hardware devices from.
-     * @param telemetry   The telemetry manager for logging.
-     */
     public ShooterSubsystem(HardwareMap hardwareMap, TelemetryManager telemetry) {
         this.telemetry = telemetry;
         rShooterMotor = hardwareMap.get(DcMotorEx.class, ShooterConstants.RSHOOTER_MOTOR_NAME);
         lShooterMotor = hardwareMap.get(DcMotorEx.class, ShooterConstants.LSHOOTER_MOTOR_NAME);
         voltageSensor = hardwareMap.voltageSensor.iterator().next();
-        hoodServo = hardwareMap.get(Servo.class, ShooterConstants.HOOD_SERVO_NAME);
+        hoodServoLeft = hardwareMap.get(Servo.class, ShooterConstants.HOOD_SERVO_LEFT_NAME);
+        hoodServoRight = hardwareMap.get(Servo.class, ShooterConstants.HOOD_SERVO_RIGHT_NAME);
+
+        controller = new PIDFController(ShooterConstants.kP, ShooterConstants.kI, ShooterConstants.kD, 0);
+
         rShooterMotor.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
         lShooterMotor.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
 
         rShooterMotor.setMode(DcMotorEx.RunMode.RUN_WITHOUT_ENCODER);
         lShooterMotor.setMode(DcMotorEx.RunMode.RUN_WITHOUT_ENCODER);
+
+        rShooterMotor.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.FLOAT);
+        lShooterMotor.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.FLOAT);
+
+        hoodServoRight.setDirection(Servo.Direction.REVERSE);
         rShooterMotor.setDirection(DcMotorSimple.Direction.REVERSE);
 
-        // Initialize hood to default position
-        hoodServo.setPosition(ShooterConstants.MAXIMUM_HOOD);
+        updateHoodServos();
+    }
+
+    public void setTargetVelocity(double rpm) { targetRPM = Math.max(0, rpm); }
+
+    public void stop() {
+        targetRPM = 0;
+        controller.reset();
+        rShooterMotor.setPower(0);
+        lShooterMotor.setPower(0);
+        lastPower = 0;
+        isBoostActive = false;
+    }
+
+    public void increaseHood() {
+        hoodPosition = Math.min(ShooterConstants.MAXIMUM_HOOD, hoodPosition + ShooterConstants.HOOD_INCREMENT);
+    }
+
+    public void decreaseHood() {
+        hoodPosition = Math.max(ShooterConstants.MINIMUM_HOOD, hoodPosition - ShooterConstants.HOOD_INCREMENT);
     }
 
     public void setHoodPosition(double position) {
-        hoodPosition = position;
-        hoodServo.setPosition(hoodPosition);
-    }
-    /**
-     * Sets the target velocity of the shooter in RPM.
-     * @param rpm The target RPM.
-     */
-    public void setTargetVelocity(double rpm) {
-        targetRPM = Math.max(0, rpm);
-        lShooterMotor.setVelocity(RPMToTicks(rpm));
-        rShooterMotor.setVelocity(RPMToTicks(rpm));
-    }
-    public void setMax(){
-        rShooterMotor.setPower(1.0);
-        lShooterMotor.setPower(1.0);
+        hoodPosition = Math.max(ShooterConstants.MINIMUM_HOOD, Math.min(ShooterConstants.MAXIMUM_HOOD, position));
     }
 
-    /**
-     * Completely stops the shooter.
-     */
-    public void stop() {
-        targetRPM = 0;
+    public void setLongShotMode(boolean active) { this.isLongShotMode = active; }
 
-        lShooterMotor.setVelocity(0);
-        rShooterMotor.setVelocity(0);
+    private double currentDistance = 99.0;
+
+    public void setCurrentDistance(double distanceMeters) {
+        this.currentDistance = distanceMeters;
+    }
+    public boolean getShooterAtTarget() {
+        if (targetRPM <= 50) return false;
+        double tolerance = calcularTolerancia(currentDistance);
+        return getCurrentRPM() > (targetRPM * tolerance);
     }
 
-    /**
-     * Increases the angle of the hood.
-     */
-    public void increaseHood() {
-        hoodPosition = Math.min(ShooterConstants.MAXIMUM_HOOD, hoodPosition + ShooterConstants.HOOD_INCREMENT);
-        hoodServo.setPosition(hoodPosition);
+    private double calcularTolerancia(double distanceMeters) {
+        double minTolerance = 0.80;
+        double maxTolerance = ShooterConstants.CADENCE_TOLERANCE_PERCENT;
+
+        if (distanceMeters >= VisionConstants.LONGEST_DISTANCE) return maxTolerance;
+        if (distanceMeters <= VisionConstants.LONGEST_DISTANCE * 0.7) return minTolerance;
+
+        double t = (distanceMeters - VisionConstants.LONGEST_DISTANCE * 0.7) /
+                (VisionConstants.LONGEST_DISTANCE * 0.3);
+        return minTolerance + t * (maxTolerance - minTolerance);
     }
 
-    /**
-     * Decreases the angle of the hood.
-     */
-    public void decreaseHood() {
-        hoodPosition = Math.max(ShooterConstants.MINIMUM_HOOD, hoodPosition - ShooterConstants.HOOD_INCREMENT);
-        hoodServo.setPosition(hoodPosition);
+    public boolean isReady() {
+        if (targetRPM <= 50) return false;
+        return getCurrentRPM() > (targetRPM * 0.96);
     }
 
-    /**
-     * Gets the current average RPM of the shooter motors.
-     * @return The current RPM.
-     */
-    protected double getCurrentRPM() {
+    public double getCurrentRPM() {
         double ticksPerSecond = (rShooterMotor.getVelocity() + lShooterMotor.getVelocity()) / 2.0;
         return (ticksPerSecond / ShooterConstants.TICKS_PER_REV) * 60.0;
     }
 
-    /**
-     * Converts RPM to ticks per second.
-     * @param rpm The RPM to convert.
-     * @return The equivalent ticks per second.
-     */
-    protected int RPMToTicks(double rpm) {
-        return (int) ((rpm / 60.0) * ShooterConstants.TICKS_PER_REV);
+    private void updateHoodServos() {
+        hoodServoLeft.setPosition(currentDynamicHoodPos);
+        hoodServoRight.setPosition(currentDynamicHoodPos);
     }
 
-    /**
-     * Checks if the shooter is at its target velocity.
-     * @return True if the current RPM is within the tolerance of the target RPM, false otherwise.
-     */
-    public boolean getShooterAtTarget() {
-        return Math.abs(getCurrentRPM() - targetRPM) < ShooterConstants.VELOCITY_TOLERANCE;
+    public void anticipateShot() {
+        shotBoostTimer.reset();
+        isBoostActive = true;
+    }
+    private double liveRpmOffset = 0.0;
+
+    public void adjustRpmOffset(double delta) {
+        liveRpmOffset += delta;
     }
 
+    public double getLiveRpmOffset() {
+        return liveRpmOffset;
+    }
+    public void resetRpmOffset() {
+        liveRpmOffset = 0.0;
+    }
 
-    /**
-     * This method is called periodically to update the subsystem's state and telemetry.
-     */
     @Override
     public void periodic() {
-        telemetry.addData("Shooter at target", getShooterAtTarget());
-        telemetry.addData("Shooter Target RPM", targetRPM);
-        telemetry.addData("Shooter Current RPM", getCurrentRPM());
-        telemetry.addData("Shooter Error", targetRPM - getCurrentRPM());
-        telemetry.addData("Battery Voltage", voltageSensor.getVoltage());
-        telemetry.addData("Hood Position", hoodPosition);
+        double currentRPM = getCurrentRPM();
+        double rpmError = targetRPM - currentRPM;
+
+        if (targetRPM > 50) {
+            double v = voltageSensor.getVoltage();
+
+            double voltageComp = 12.0 / v;
+
+            double feedforward = (ShooterConstants.kS * Math.signum(targetRPM) + ShooterConstants.kV * targetRPM) * (12.0 / v);
+            double shotBoost = 0.0;
+            if (isBoostActive) {
+                if (shotBoostTimer.milliseconds() < ShooterConstants.SHOT_BOOST_DURATION) {
+                    shotBoost = ShooterConstants.kF_SHOT_BOOST * voltageComp;
+                } else {
+                    isBoostActive = false;
+                }
+            }
+
+            double power;
+            if (rpmError < -150) {
+                controller.reset();
+                power = 0.0;
+            } else {
+                double feedback = controller.calculate(currentRPM, targetRPM);
+                power = Math.max(0, Math.min(1.0, feedforward + feedback + shotBoost));
+            }
+
+            if (Math.abs(power - lastPower) > 0.0005) {
+                rShooterMotor.setPower(power);
+                lShooterMotor.setPower(power);
+                lastPower = power;
+            }
+        } else {
+            stop();
+        }
+
+        if (isLongShotMode && targetRPM > 2000 && rpmError > 0) {
+            double offset = rpmError * ShooterConstants.K_HOOD_COMPENSATION;
+            currentDynamicHoodPos = hoodPosition + offset;
+        } else if (!isLongShotMode && targetRPM > 2000 && rpmError < -100) {
+
+            double offset = Math.abs(rpmError) * ShooterConstants.K_ANTI_OVERSHOOT;
+
+            currentDynamicHoodPos = hoodPosition - offset;
+
+        } else {
+            currentDynamicHoodPos = hoodPosition;
+        }
+
+        currentDynamicHoodPos = Math.max(ShooterConstants.MINIMUM_HOOD,
+                Math.min(ShooterConstants.MAXIMUM_HOOD, currentDynamicHoodPos));
+        updateHoodServos();
+
+        if (DataStorage.DEBUG_MODE) {
+            telemetry.addData("Shooter RPM Real", currentRPM);
+            telemetry.addData("Shooter Target", targetRPM);
+            telemetry.addData("Shooter Power Sent", lastPower);
+            telemetry.addData("Voltage", voltageSensor.getVoltage());
+            telemetry.addData("Hood Position", hoodPosition);
+        }
     }
 }

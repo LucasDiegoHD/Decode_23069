@@ -1,156 +1,280 @@
 package org.firstinspires.ftc.teamcode.robot;
 
 import com.arcrobotics.ftclib.command.Command;
+import com.arcrobotics.ftclib.command.CommandScheduler;
+import com.arcrobotics.ftclib.command.ConditionalCommand;
 import com.arcrobotics.ftclib.command.InstantCommand;
+import com.arcrobotics.ftclib.command.RepeatCommand;
+import com.arcrobotics.ftclib.command.SequentialCommandGroup;
+import com.arcrobotics.ftclib.command.WaitCommand;
 import com.arcrobotics.ftclib.command.button.GamepadButton;
+import com.arcrobotics.ftclib.command.button.Trigger;
 import com.arcrobotics.ftclib.gamepad.GamepadEx;
 import com.arcrobotics.ftclib.gamepad.GamepadKeys;
+import com.arcrobotics.ftclib.geometry.Translation2d;
+import com.bylazar.telemetry.PanelsTelemetry;
 import com.bylazar.telemetry.TelemetryManager;
 import com.pedropathing.geometry.Pose;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
+import com.qualcomm.hardware.lynx.LynxModule;
+import java.util.List;
+
 import org.firstinspires.ftc.teamcode.autos.commands.AutonomousCommands;
+import org.firstinspires.ftc.teamcode.autos.commands.AutonomousFrontCommands;
+import org.firstinspires.ftc.teamcode.autos.commands.AutonomousTuffCommand;
+import org.firstinspires.ftc.teamcode.autos.paths.BlueFrontPoses;
 import org.firstinspires.ftc.teamcode.autos.paths.BlueRearPoses;
 import org.firstinspires.ftc.teamcode.autos.paths.PosesNames;
+import org.firstinspires.ftc.teamcode.autos.paths.RedFrontPoses;
 import org.firstinspires.ftc.teamcode.autos.paths.RedRearPoses;
-import org.firstinspires.ftc.teamcode.commands.AimByPoseCommand;
-import org.firstinspires.ftc.teamcode.commands.AlignToAprilTagCommand;
-import org.firstinspires.ftc.teamcode.commands.AutoShootCommand;
-import org.firstinspires.ftc.teamcode.commands.GoToPose;
-import org.firstinspires.ftc.teamcode.commands.ShootCommand;
-import org.firstinspires.ftc.teamcode.commands.SpinShooterCommand;
-import org.firstinspires.ftc.teamcode.commands.TeleOpDriveCommand;
-import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
-import org.firstinspires.ftc.teamcode.subsystems.DrivetrainSubsystem;
-import org.firstinspires.ftc.teamcode.subsystems.IndexerSubsystem;
-import org.firstinspires.ftc.teamcode.subsystems.IntakeSubsystem;
-import org.firstinspires.ftc.teamcode.subsystems.ShooterSubsystem;
-import org.firstinspires.ftc.teamcode.subsystems.VisionSubsystem;
+import org.firstinspires.ftc.teamcode.commands.*;
+import org.firstinspires.ftc.teamcode.subsystems.*;
 import org.firstinspires.ftc.teamcode.utils.AllianceEnum;
+import org.firstinspires.ftc.teamcode.utils.DataStorage;
+import org.firstinspires.ftc.teamcode.utils.Polygon2d;
+import org.firstinspires.ftc.teamcode.utils.PoseStorage;
 
 /**
- * This class is the main container for the robot. It holds all subsystems, configures button
- * bindings, and provides commands for autonomous and tele-operated modes.
- * The RobotContainer is the "glue" that connects the robot's hardware and software components.
+ * Main container for robot organization.
+ * Features Auto-Periodic Limelight Resync and high-level drive scaling.
  */
 public class RobotContainer {
 
-    // Subsystem declarations
     private final DrivetrainSubsystem drivetrain;
     private final IntakeSubsystem intake;
     private final ShooterSubsystem shooter;
     private final VisionSubsystem vision;
     private final IndexerSubsystem indexer;
-    /**
-     * The constructor for the RobotContainer. It is responsible for initializing all
-     * subsystems, setting up default commands, and configuring gamepad button bindings.
-     *
-     * @param hardwareMap The hardware map from the OpMode, used to initialize hardware components.
-     * @param telemetry   The telemetry manager for logging and dashboard output.
-     * @param driver      The driver's gamepad (GamepadEx) for controlling the robot's movement.
-     * @param operator    The operator's gamepad (GamepadEx) for controlling robot mechanisms.
-     */
+    private final LEDSubsystem led;
+    //private final HuskySubsystem husky;
+    private boolean isShooterAutoAdjustActive = true;
+    private List<LynxModule> allHubs;
+    private long tempoDoUltimoLoop = 0;
+
     public RobotContainer(HardwareMap hardwareMap, TelemetryManager telemetry, GamepadEx driver, GamepadEx operator, AllianceEnum alliance) {
+        // Subsystem Initialization
+        allHubs = hardwareMap.getAll(LynxModule.class);
+        for (LynxModule hub : allHubs) {
+            hub.setBulkCachingMode(LynxModule.BulkCachingMode.MANUAL);
+        }
+
         drivetrain = new DrivetrainSubsystem(hardwareMap, telemetry);
-        intake = new IntakeSubsystem(hardwareMap);
+        intake = new IntakeSubsystem(hardwareMap,telemetry);
         shooter = new ShooterSubsystem(hardwareMap, telemetry);
         vision = new VisionSubsystem(hardwareMap, telemetry);
         indexer = new IndexerSubsystem(hardwareMap, telemetry);
+        led = new LEDSubsystem(hardwareMap);
+        //husky = new HuskySubsystem(hardwareMap,telemetry);
 
-        // Initialize robot's starting pose, attempting to use Vision first
-        Pose robotPose = Constants.initialRedPose;
-        if (alliance == AllianceEnum.Blue) {
-            robotPose = Constants.initialBluePose;
-        }
-        drivetrain.getFollower().setPose(robotPose);
 
-        // Set default commands
-        //vision.setDefaultCommand(new UpdateLimelightYawCommand(drivetrain, vision));
-        if (driver != null) {
-            drivetrain.setDefaultCommand(new TeleOpDriveCommand(drivetrain, driver));
+        led.setDefaultCommand(new LedCommand(led, indexer));
 
-            // Driver controller bindings
-            new GamepadButton(driver, GamepadKeys.Button.Y)
-                    .whileHeld(new AlignToAprilTagCommand(drivetrain, vision, telemetry, driver, operator));
-            Pose EndPose;
+        if (driver!= null) {
+            Pose savedPose = (DataStorage.actualPose != null) ? DataStorage.actualPose : PoseStorage.loadPose();
 
-            if (alliance == AllianceEnum.Red) {
-                EndPose = BlueRearPoses.getPose(PosesNames.EndPose);
+            if (savedPose != null && !Double.isNaN(savedPose.getX()) && !Double.isNaN(savedPose.getY())) {
+                drivetrain.getFollower().setPose(savedPose);
             } else {
-                EndPose = RedRearPoses.getPose(PosesNames.EndPose);
+                Pose startPose = (alliance == AllianceEnum.Red) ?
+                        RedRearPoses.getPose(PosesNames.StartPose) : BlueRearPoses.getPose(PosesNames.StartPose);
+                drivetrain.getFollower().setPose(startPose);
             }
 
+
+            drivetrain.setDefaultCommand(new TeleOpDriveCommand(drivetrain, driver));
+
+            Pose endPose = (alliance == AllianceEnum.Red)?
+                    BlueRearPoses.getPose(PosesNames.EndPose) : RedRearPoses.getPose(PosesNames.EndPose);
+            Pose innitialPose = (alliance == AllianceEnum.Red)?
+                    RedRearPoses.getPose(PosesNames.EndPose) : BlueRearPoses.getPose(PosesNames.EndPose);
+            Pose shootPose = (alliance == AllianceEnum.Red)?
+                    RedRearPoses.getPose(PosesNames.GoToShoot1) : BlueRearPoses.getPose(PosesNames.GoToShoot1);
+
+            double goalX = (alliance == AllianceEnum.Red)? 130 : 14;
+            double goalY = 130;
+
+            Command periodicUpdateLoop = new RepeatCommand(
+                    new SequentialCommandGroup(
+                            new WaitCommand(1000),
+                            new ConditionalCommand(
+                                    new InstantCommand(),
+                                    new UpdatePoseLimelightCommand(drivetrain, vision, innitialPose),
+                                    () -> isRobotShooting() || !drivetrain.isRobotStopped()
+                            )
+                    )
+            );
+
+
+            CommandScheduler.getInstance().schedule(periodicUpdateLoop);
+
+            shooter.setDefaultCommand(
+                    new ActiveAimCommand(shooter, vision, drivetrain, goalX, goalY,
+                            () -> isShooterAutoAdjustActive
+                    )
+            );
+
+
+            new GamepadButton(driver, GamepadKeys.Button.Y)
+                    .whileHeld(new AlignToAprilTagCommand(drivetrain, vision, telemetry, operator));
+
+            double targetx = (alliance == AllianceEnum.Red)? 141 : 3;
+            double targety = 144;
+
             new GamepadButton(driver, GamepadKeys.Button.X)
-                    .whileHeld(new AimByPoseCommand(drivetrain, 144, 144));
+                    .whileHeld(new KinematicAimDriveCommand(drivetrain, driver, targetx, targety));
+
+            //new GamepadButton(driver, GamepadKeys.Button.DPAD_LEFT)
+              //      .whileHeld(new ChaseArtifactCommand(drivetrain, husky, intake));
+
+            new GamepadButton(driver, GamepadKeys.Button.START)
+                    .whenPressed(new InstantCommand(() -> {
+                        double targetAngle = 90.0;
+                        UpdatePoseLimelightCommand.forceHardReset(drivetrain, vision, targetAngle);
+                    }));
 
 
-            new GamepadButton(driver, GamepadKeys.Button.A)
-                    .whileHeld(new GoToPose(drivetrain,EndPose));
+            new GamepadButton(driver, GamepadKeys.Button.LEFT_BUMPER)
+                    .whileHeld(new InstantCommand(intake::run, intake))
+                    .whenReleased(new InstantCommand(intake::stop, intake));
+
+                    new GamepadButton(driver, GamepadKeys.Button.RIGHT_BUMPER)
+                            .whileHeld(new AutoShootCommand(drivetrain, vision, shooter, intake, indexer, endPose, led, driver));
 
         }
 
-        if (operator != null) {
-            configureTeleOpBindings(operator, telemetry);
+        if (operator!= null) {
+            configureTeleOpBindings(operator, alliance, driver);
         }
     }
 
-    /**
-     * Gets the command group for the Blue Rear autonomous routine.
-     *
-     * @return A {@link Command} object representing the complete autonomous sequence.
-     */
-    public Command getAutonomousBlueRearCommand() {
-        return new AutonomousCommands(drivetrain, shooter, intake, indexer, vision, BlueRearPoses.asList());
-    }
+    private void configureTeleOpBindings(GamepadEx operator, AllianceEnum alliance, GamepadEx driver) {
+        Pose endPose = (alliance == AllianceEnum.Red)?
+                BlueRearPoses.getPose(PosesNames.EndPose) : RedRearPoses.getPose(PosesNames.EndPose);
 
-    /**
-     * Gets the command group for the Red Rear autonomous routine.
-     *
-     * @return A {@link Command} object representing the complete autonomous sequence.
-     */
-    public Command getAutonomousRedRearCommand() {
-        return new AutonomousCommands(drivetrain, shooter, intake, indexer, vision, RedRearPoses.asList());
-    }
-
-    /**
-     * Configures the button bindings for the operator's gamepad. This method maps specific
-     * gamepad buttons to commands that control the robot's mechanisms like the intake and shooter.
-     *
-     * @param operator  The operator's gamepad (GamepadEx).
-     * @param telemetry The telemetry manager, passed to any commands that need it.
-     */
-    private void configureTeleOpBindings(GamepadEx operator, TelemetryManager telemetry) {
-        ShootCommand shoot = new ShootCommand(shooter, intake, indexer);
-
-        // Hood controls
-        new GamepadButton(operator, GamepadKeys.Button.DPAD_LEFT)
-                .whenPressed(new InstantCommand(shooter::decreaseHood, shooter));
-
-        new GamepadButton(operator, GamepadKeys.Button.DPAD_RIGHT)
-                .whenPressed(new InstantCommand(shooter::increaseHood, shooter));
-
-        // Continuous shooting
         new GamepadButton(operator, GamepadKeys.Button.RIGHT_BUMPER)
-                .whileHeld(new AutoShootCommand(drivetrain, vision, shooter, intake, indexer));
-        // Stop shooter
-        new GamepadButton(operator, GamepadKeys.Button.LEFT_BUMPER)
-                .whenPressed(new InstantCommand(shooter::stop, shooter));
+                .whileHeld(new AutoShootCommand(drivetrain, vision, shooter, intake, indexer, endPose, led, driver));
 
-        // Intake controls
-        new GamepadButton(operator, GamepadKeys.Button.Y)
-                .whenPressed(new InstantCommand(intake::run, intake))
+        new GamepadButton(operator, GamepadKeys.Button. LEFT_BUMPER)
+                .whileHeld(new InstantCommand(intake::run, intake))
                 .whenReleased(new InstantCommand(intake::stop, intake));
 
         new GamepadButton(operator, GamepadKeys.Button.A)
                 .whenPressed(new InstantCommand(intake::reverse, intake))
                 .whenReleased(new InstantCommand(intake::stop, intake));
 
-        // Spin shooter to preset speeds
-        new GamepadButton(operator, GamepadKeys.Button.B)
-                .whenPressed(new SpinShooterCommand(shooter, SpinShooterCommand.Action.SHORT_SHOOT));
+        new GamepadButton(operator, GamepadKeys.Button.X)
+                .whenPressed(new InstantCommand(intake::runTrigger, intake))
+                .whenReleased(new InstantCommand(intake::stop, intake));
 
-        new GamepadButton(operator,GamepadKeys.Button.X)
-                .whenPressed(new SpinShooterCommand(shooter, SpinShooterCommand.Action.LONG_SHOOT));
+        new GamepadButton(operator, GamepadKeys.Button.DPAD_DOWN)
+                .whenPressed(new InstantCommand(() -> {
+                    isShooterAutoAdjustActive = false;
+                    shooter.stop();
+                }));
+
+        new GamepadButton(operator, GamepadKeys.Button.DPAD_UP)
+                .whenPressed(new InstantCommand(() -> isShooterAutoAdjustActive = true));
+
+        new GamepadButton(operator, GamepadKeys.Button.DPAD_RIGHT)
+                .whenPressed(new InstantCommand(() -> {
+                    shooter.adjustRpmOffset(10);
+                    if (operator.gamepad != null) operator.gamepad.rumble(100);
+                }));
+
+        new GamepadButton(operator, GamepadKeys.Button.DPAD_LEFT)
+                .whenPressed(new InstantCommand(() -> {
+                    shooter.adjustRpmOffset(-10);
+                    if (operator.gamepad != null) operator.gamepad.rumble(100);
+                }));
+
+        new GamepadButton(operator, GamepadKeys.Button.LEFT_STICK_BUTTON)
+                .whenPressed(new InstantCommand(shooter::resetRpmOffset));
+
+    }
+    public void clearBulkCache() {
+        if (allHubs != null) {
+            for (LynxModule hub : allHubs) {
+                hub.clearBulkCache();
+            }
+        }
+    }
+    public void printLoopTime() {
+        long tempoAtual = System.currentTimeMillis();
+        long tempoDoLoop = tempoAtual - tempoDoUltimoLoop;
+
+        PanelsTelemetry.INSTANCE.getTelemetry().addData("⚡ Loop Time (ms)", tempoDoLoop);
+
+        tempoDoUltimoLoop = tempoAtual;
     }
 
+    public void updateRobotPose(AllianceEnum alliance, Pose robotPose) {
+        double yaw = robotPose.getHeading();
+        robotPose = vision.getRobotPose(yaw).orElse(robotPose);
+        drivetrain.getFollower().setPose(robotPose);
+        drivetrain.periodic();
+        PanelsTelemetry.INSTANCE.getTelemetry().update();
+    }
+
+    public Command getAutonomousBlueRearCommand() {
+        return new AutonomousCommands(drivetrain, shooter, intake, indexer, vision, BlueRearPoses.asList(), led);
+    }
+
+    public Command getAutonomousRedRearCommand() {
+        return new AutonomousCommands(drivetrain, shooter, intake, indexer, vision, RedRearPoses.asList(), led);
+    }
+
+    public Command getAutonomousBlueFrontCommand() {
+        return new AutonomousFrontCommands(drivetrain, shooter, intake, indexer, vision, BlueFrontPoses.asList(), led);
+    }
+
+    public Command getAutonomousRedFrontCommand() {
+        return new AutonomousFrontCommands(drivetrain, shooter, intake, indexer, vision, RedFrontPoses.asList(), led);
+    }
+
+    public Command getAutonomousRedTuffCommand() {
+        return new AutonomousTuffCommand(drivetrain, shooter, intake, indexer, vision, RedRearPoses.asList(), led);
+    }
+
+    public Command getAutonomousBlueTuffCommand() {
+        return new AutonomousTuffCommand(drivetrain, shooter, intake, indexer, vision, BlueRearPoses.asList(), led);
+    }
+    private boolean isRobotShooting() {
+        Command current = drivetrain.getCurrentCommand();
+        return current instanceof AlignToAprilTagCommand;
+    }
+    public void setAutoStartPose(Pose startPose) {
+        drivetrain.getFollower().setStartingPose(startPose);
+        drivetrain.getFollower().setPose(startPose);         
+    }
+    /**
+     * Tenta relocalizar via Limelight e aplica se válido.
+     * Chamado no loop de espera antes do play para garantir
+     * pose inicial correta independente do Pinpoint.
+     */
+    public void tryRelocalizeLimelight() {
+        Pose currentPose = drivetrain.getFollower().getPose();
+        double heading = currentPose.getHeading();
+
+        vision.getRobotPoseMT2(heading).ifPresent(llPose -> {
+            // Só aplica se a pose da Limelight está próxima da pose esperada
+            // (evita aceitar leituras ruins de tags distantes)
+            double dist = Math.hypot(
+                    llPose.getX() - currentPose.getX(),
+                    llPose.getY() - currentPose.getY()
+            );
+            if (dist < 24.0) { // aceita até 24 inches de diferença
+                drivetrain.getFollower().setPose(
+                        new Pose(llPose.getX(), llPose.getY(), heading)
+                );
+            }
+        });
+    }
+
+    /**
+     * Retorna true se a Limelight está vendo uma tag e tem fix de pose.
+     */
+    public boolean hasLimelightFix() {
+        return vision.hasTarget();
+    }
 }

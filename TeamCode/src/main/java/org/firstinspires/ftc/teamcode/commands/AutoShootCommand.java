@@ -1,9 +1,13 @@
 package org.firstinspires.ftc.teamcode.commands;
 
 import com.arcrobotics.ftclib.command.SequentialCommandGroup;
+import com.arcrobotics.ftclib.gamepad.GamepadEx;
+import com.pedropathing.geometry.Pose;
+
 import org.firstinspires.ftc.teamcode.subsystems.DrivetrainSubsystem;
 import org.firstinspires.ftc.teamcode.subsystems.IndexerSubsystem;
 import org.firstinspires.ftc.teamcode.subsystems.IntakeSubsystem;
+import org.firstinspires.ftc.teamcode.subsystems.LEDSubsystem;
 import org.firstinspires.ftc.teamcode.subsystems.ShooterSubsystem;
 import org.firstinspires.ftc.teamcode.subsystems.VisionSubsystem;
 
@@ -21,15 +25,15 @@ public class AutoShootCommand extends SequentialCommandGroup {
      * @param shooter    The shooter subsystem for launching the note.
      * @param intake     The intake subsystem for feeding the note.
      */
-    public AutoShootCommand(DrivetrainSubsystem drivetrain, VisionSubsystem vision, ShooterSubsystem shooter, IntakeSubsystem intake, IndexerSubsystem indexer) {
+    public AutoShootCommand(DrivetrainSubsystem drivetrain, VisionSubsystem vision, ShooterSubsystem shooter, IntakeSubsystem intake, IndexerSubsystem indexer, Pose fallbackPose, LEDSubsystem ledSubsystem,  GamepadEx driver) {
         addCommands(
-                //new AimByPoseCommand(drivetrain, 144, 144),
-                new AdjustHoodCommand(shooter, vision),
-                new AdjustShooterCommand(shooter, vision),
 
-                new ShootCommand(shooter, intake, indexer)
-                // Note: The shooter is left running after the sequence.
-                // This allows for rapid subsequent shots. A separate button is used to stop it.
+                //new UpdatePoseLimelightCommand(drivetrain, vision, fallbackPose),
+                //new AdjustHoodCommand(shooter, vision),
+
+                //new AdjustShooterCommand(shooter, vision),
+
+                new ShootCommand(shooter, intake, indexer, driver)
         );
     }
 }

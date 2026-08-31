@@ -8,20 +8,33 @@ public class BlueRearPoses {
 
 
     public static final Pose[] POSES = {
-            new Pose(65.78, 8.399, Math.toRadians(90)),
 
-            new Pose(58.615, 7.874, Math.toRadians(100)),
-            new Pose(55.640, 35.869, Math.toRadians(0)),
-            new Pose(7.524, 34.994, Math.toRadians(0)),
-            new Pose(62.989, 6.299, Math.toRadians(100)),
-            new Pose(45.667, 60.365, Math.toRadians(0)),
-            new Pose(5.774, 57.565, Math.toRadians(0)),
-            new Pose(57.740, 4.374, Math.toRadians(100)),
-            new Pose(40.068, 84.335, Math.toRadians(0)),
-            new Pose(13.998, 84.160, Math.toRadians(0)),
+            new Pose(63.411, 13.399, Math.toRadians(90)),
+            new Pose(60.335, 18.547, Math.toRadians(111)),
 
-            new Pose(55.115, 96.233, Math.toRadians(125)),
-            new Pose(40, 36, Math.toRadians(90)),
+            new Pose(64.134, 38.169, Math.toRadians(0)),
+            new Pose(24, 38.169, Math.toRadians(0)),
+
+            new Pose(60.335, 17.547, Math.toRadians(109)),
+
+
+            new Pose(41, 19.547, Math.toRadians(0)),
+            new Pose(24, 13, Math.toRadians(0)),
+
+            new Pose(60.335, 34, Math.toRadians(90)),
+
+            new Pose(64.134, 63.169, Math.toRadians(0)),
+            new Pose(26, 63.169, Math.toRadians(0)),
+
+            new Pose(18, 64.169, Math.toRadians(90)),
+
+            new Pose(20, 28, Math.toRadians(0)),
+
+            new Pose(20, 14.5, Math.toRadians(0)),
+
+            new Pose(60.335, 18.547, Math.toRadians(113)),
+
+            new Pose(120.276, 18, Math.toRadians(90)),
 
 
     };

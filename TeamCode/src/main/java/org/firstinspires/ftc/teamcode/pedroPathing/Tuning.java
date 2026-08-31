@@ -21,6 +21,7 @@ import com.pedropathing.math.*;
 import com.pedropathing.paths.*;
 import com.pedropathing.telemetry.SelectableOpMode;
 import com.pedropathing.util.*;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.ElapsedTime;
@@ -34,6 +35,7 @@ import java.util.List;
  * @author Baron Henderson - 20077 The Indubitables
  * @version 1.0, 6/26/2025
  */
+@Disabled
 @Configurable
 @TeleOp(name = "Tuning", group = "Pedro Pathing")
 public class Tuning extends SelectableOpMode {
@@ -152,7 +154,7 @@ class LocalizationTest extends OpMode {
      */
     @Override
     public void loop() {
-        follower.setTeleOpDrive(-gamepad1.left_stick_y, -gamepad1.left_stick_x, -gamepad1.right_stick_x, true);
+        follower.setTeleOpDrive(gamepad1.right_stick_x, gamepad1.right_stick_y, gamepad1.left_stick_y, true);
         follower.update();
 
         telemetryM.debug("x:" + follower.getPose().getX());
@@ -864,7 +866,7 @@ class HeadingTuner extends OpMode {
  * @version 1.0, 3/12/2024
  */
 class DriveTuner extends OpMode {
-    public static double DISTANCE = 40;
+    public static double DISTANCE = 48;
     private boolean forward = true;
 
     private PathChain forwards;
@@ -890,6 +892,7 @@ class DriveTuner extends OpMode {
     @Override
     public void start() {
         follower.deactivateAllPIDFs();
+        follower.activateHeading();
         follower.activateDrive();
         
         forwards = follower.pathBuilder()
