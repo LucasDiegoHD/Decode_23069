@@ -2,8 +2,8 @@ package org.firstinspires.ftc.teamcode.commands;
 
 import com.arcrobotics.ftclib.command.CommandBase;
 
-import org.firstinspires.ftc.teamcode.subsystems.ShooterConstants;
-import org.firstinspires.ftc.teamcode.subsystems.ShooterSubsystem;
+import org.firstinspires.ftc.teamcode.subsystems.templates.ShooterConstants;
+import org.firstinspires.ftc.teamcode.subsystems.templates.ShooterSubsystem;
 
 /**
  * A command to spin the shooter motors to a specific velocity or stop them.

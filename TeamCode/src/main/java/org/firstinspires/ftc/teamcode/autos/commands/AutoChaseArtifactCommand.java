@@ -1,20 +1,20 @@
 package org.firstinspires.ftc.teamcode.autos.commands;
 
-import static org.firstinspires.ftc.teamcode.subsystems.HuskyConstants.BLIND_DURATION_MS;
-import static org.firstinspires.ftc.teamcode.subsystems.HuskyConstants.MIN_DRIVE_SPEED_PID;
-import static org.firstinspires.ftc.teamcode.subsystems.HuskyConstants.TURBO_SPEED;
-import static org.firstinspires.ftc.teamcode.subsystems.HuskyConstants.TURBO_THRESHOLD;
+import static org.firstinspires.ftc.teamcode.subsystems.templates.HuskyConstants.BLIND_DURATION_MS;
+import static org.firstinspires.ftc.teamcode.subsystems.templates.HuskyConstants.MIN_DRIVE_SPEED_PID;
+import static org.firstinspires.ftc.teamcode.subsystems.templates.HuskyConstants.TURBO_SPEED;
+import static org.firstinspires.ftc.teamcode.subsystems.templates.HuskyConstants.TURBO_THRESHOLD;
 
 import com.arcrobotics.ftclib.command.CommandBase;
 import com.arcrobotics.ftclib.controller.PIDController;
 import com.arcrobotics.ftclib.util.MathUtils;
 import com.qualcomm.hardware.dfrobot.HuskyLens;
 import org.firstinspires.ftc.teamcode.subsystems.DrivetrainSubsystem;
-import org.firstinspires.ftc.teamcode.subsystems.HuskyConstants;
-import org.firstinspires.ftc.teamcode.subsystems.HuskySubsystem;
+import org.firstinspires.ftc.teamcode.subsystems.templates.HuskyConstants;
+import org.firstinspires.ftc.teamcode.subsystems.templates.HuskySubsystem;
 import org.firstinspires.ftc.teamcode.subsystems.IntakeSubsystem;
-import org.firstinspires.ftc.teamcode.subsystems.IndexerSubsystem;
-import org.firstinspires.ftc.teamcode.subsystems.IndexerConstants;
+import org.firstinspires.ftc.teamcode.subsystems.templates.IndexerSubsystem;
+import org.firstinspires.ftc.teamcode.subsystems.templates.IndexerConstants;
 
 import java.util.Optional;
 

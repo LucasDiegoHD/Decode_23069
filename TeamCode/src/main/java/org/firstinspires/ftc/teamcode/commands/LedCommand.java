@@ -1,8 +1,8 @@
 package org.firstinspires.ftc.teamcode.commands;
 
 import com.arcrobotics.ftclib.command.CommandBase;
-import org.firstinspires.ftc.teamcode.subsystems.IndexerSubsystem;
-import org.firstinspires.ftc.teamcode.subsystems.LEDSubsystem;
+import org.firstinspires.ftc.teamcode.subsystems.templates.IndexerSubsystem;
+import org.firstinspires.ftc.teamcode.subsystems.templates.LEDSubsystem;
 
 public class LedCommand extends CommandBase {
     private final LEDSubsystem ledSubsystem;

@@ -4,8 +4,8 @@ import com.arcrobotics.ftclib.command.CommandBase;
 import com.pedropathing.geometry.Pose;
 import org.firstinspires.ftc.teamcode.subsystems.DrivetrainSubsystem;
 
-import org.firstinspires.ftc.teamcode.subsystems.ShooterConstants;
-import org.firstinspires.ftc.teamcode.subsystems.ShooterSubsystem;
+import org.firstinspires.ftc.teamcode.subsystems.templates.ShooterConstants;
+import org.firstinspires.ftc.teamcode.subsystems.templates.ShooterSubsystem;
 import org.firstinspires.ftc.teamcode.subsystems.VisionConstants;
 import org.firstinspires.ftc.teamcode.subsystems.VisionSubsystem;
 
