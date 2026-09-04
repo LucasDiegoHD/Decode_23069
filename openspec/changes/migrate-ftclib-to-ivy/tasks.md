@@ -1,0 +1,71 @@
+## 1. Fase 0 — Dependência e limpeza
+
+- [ ] 1.1 Confirmar a coordenada Maven do Ivy fazendo um sync de teste com `com.pedropathing:ivy:1.0.0` e, se falhar, com `com.pedropathing.ivy:core` + `com.pedropathing.ivy:pedro`; verificar que `com.pedropathing.ivy.Scheduler` e `com.pedropathing.ivy.pedro.PedroCommands` resolvem, e registrar a coordenada correta em `MIGRACAO-IVY.md §2`
+- [ ] 1.2 Em `build.dependencies.gradle`, adicionar a dependência confirmada do Ivy e remover `org.ftclib.ftclib:core:2.1.1`; verificar com `./gradlew :TeamCode:dependencies` que o Ivy aparece e a FTCLib não
+- [ ] 1.3 Deletar os 6 OpModes `@Disabled` `autos/Auto{Red,Blue}{Front,Rear,Tuff}.java`; verificar que nenhum outro arquivo os referencia (`grep -rn "AutoRedRear\|AutoBlueRear\|AutoRedFront\|AutoBlueFront\|AutoRedTuff\|AutoBlueTuff" TeamCode/src` vazio)
+- [ ] 1.4 Deletar os templates não usados `subsystems/templates/{Husky,Climber,Elevator}Subsystem.java`, seus `*Constants.java` e `ElevatorTestOpMode.java`; verificar `grep -rn "HuskySubsystem\|ClimberSubsystem\|ElevatorSubsystem" TeamCode/src` vazio
+- [ ] 1.5 Deletar os comandos sem referência `commands/{AimByPose,ChaseArtifact,TeleOpDriveCommandZoneRepulsion}Command.java`, `autos/commands/{AdjustAuto,AutoChaseArtifact}Command.java` e `utils/Polygon2d.java`; verificar que os nomes não aparecem mais em `TeamCode/src`
+- [ ] 1.6 Remover os imports mortos de `Polygon2d` e `Translation2d` em `robot/RobotContainer.java` e `subsystems/DrivetrainSubsystem.java`; verificar com `grep -n "Polygon2d\|Translation2d"` nesses dois arquivos
+- [ ] 1.7 Rodar `./gradlew :TeamCode:compileDebugJavaWithJavac` e salvar a saída como baseline de erros da migração (contagem de erros por arquivo)
+
+## 2. Fase 1 — Base de OpMode
+
+- [ ] 2.1 Criar `robot/RobotOpMode.java` (`abstract class RobotOpMode extends OpMode`) com `init()` fazendo `Scheduler.reset()`, telemetria Panels, construção do `Robot` e agendamento de `robot.periodicCommands()`; verificar que o arquivo compila isoladamente (erros restantes apenas por `Robot` ainda inexistente)
+- [ ] 2.2 Implementar em `RobotOpMode` os métodos `init_loop()` e `loop()` fazendo `clearBulkCache()` → `Scheduler.execute()` → `telemetryM.update()`, e `stop()` fazendo `Scheduler.reset()`; verificar por leitura que o bulk cache é limpo antes de qualquer leitura de sensor da iteração
+
+## 3. Fase 2 — Subsistemas
+
+- [ ] 3.1 Migrar `subsystems/DrivetrainSubsystem.java`: remover `extends SubsystemBase`, converter `periodic()` em `Command periodic()` com `Commands.infinite(...)` sem `requiring`, manter `follower.update()`, `Drawing.*`, telemetria e todos os métodos públicos; verificar que a classe compila e que `getFollower()`, `isRobotStopped()`, `driveRobotCentric()`, `stop()`, `restorePoseFromStorage()`, `getVoltage()` seguem presentes
+- [ ] 3.2 Migrar `subsystems/IntakeSubsystem.java` no mesmo padrão e adicionar fábricas `Command` para ligar, parar, reverter e acionar o gatilho; verificar compilação e que cada fábrica reserva o motor correspondente
+- [ ] 3.3 Migrar `subsystems/VisionSubsystem.java` no mesmo padrão, preservando as assinaturas de `getRobotPoseMT1/MT2`, `getTargetTx`, `hasTarget`, `getDirectDistanceToTarget`; verificar compilação
+- [ ] 3.4 Migrar `subsystems/templates/ShooterSubsystem.java` no mesmo padrão, mantendo o `PIDFController` da FTCLib por ora (trocado na Fase 7); verificar compilação e que `isReady()`, `getShooterAtTarget()`, `adjustRpmOffset()`, `resetRpmOffset()`, `stop()` seguem presentes
+- [ ] 3.5 Migrar `subsystems/templates/IndexerSubsystem.java` no mesmo padrão, preservando a contagem de peças por 3 sensores e o limite de capacidade; verificar compilação
+- [ ] 3.6 Migrar `subsystems/templates/LEDSubsystem.java` no mesmo padrão; verificar compilação
+
+## 4. Fase 3 — Comandos
+
+- [ ] 4.1 Converter `commands/TeleOpDriveCommand.java` em fábrica `static Command` `infinite` lendo `Gamepad` do SDK, com `.requiring(drivetrain).setPriority(0).setInterruptedBehavior(SUSPEND)`; verificar que a lógica de slew, trava de rumo e escala por tensão foi preservada linha a linha
+- [ ] 4.2 Converter `commands/ActiveAimCommand.java` em fábrica `infinite` com `.requiring(shooter).setPriority(0).setInterruptedBehavior(SUSPEND)`, com o estado mutável capturado em objeto `final` local ou via Class API; verificar compilação e que a compensação de tempo de voo e movimento lateral foi preservada
+- [ ] 4.3 Converter `commands/LedCommand.java` em fábrica `infinite` sem `requiring`; verificar que o mapeamento contagem→cor é idêntico ao atual
+- [ ] 4.4 Converter `commands/AlignToAprilTagCommand.java` em fábrica com `.requiring(drivetrain).setPriority(1)`, expondo uma forma de o `Robot` saber que está ativo (flag em `setStart`/`setEnd`); verificar compilação e preservação da condição de término (setpoint ou 20 loops sem alvo)
+- [ ] 4.5 Converter `commands/KinematicAimDriveCommand.java` em fábrica com `.requiring(drivetrain).setPriority(1)`; verificar compilação e preservação da predição de movimento
+- [ ] 4.6 Unificar `commands/ShootCommand.java` e `autos/commands/ShootCommandAutonomous.java` numa fábrica única `shoot(shooter, indexer, intake, IntSupplier n)` com `.requiring(shooter, indexer)`; verificar que os 5 estados da máquina de tiro e seus tempos são idênticos aos atuais
+- [ ] 4.7 Converter `commands/AutoShootCommand.java` em `Groups.sequential(...)` sobre a fábrica de tiro, migrando só o caminho ativo (não ressuscitar o código comentado); verificar compilação
+- [ ] 4.8 Unificar `SpinShooterCommand`, `AdjustHoodCommand`, `AdjustShooterCommand`, `AdjustHoodCommandAuto`, `AdjustShooterCommandAuto` em fábricas one-shot via `Commands.instant(...)` com `.requiring(shooter)`; verificar que os polinômios de distância→RPM e distância→capô e o clamp 1000–4500 RPM foram preservados
+- [ ] 4.9 Converter `commands/UpdatePoseLimelightCommand.java` em fábrica via `Commands.instant(...)` sem requirements, mantendo `forceHardReset` como método `static`; verificar que a fusão ponderada odo/LL, o caso de primeiro boot e a rejeição de salto grande foram preservados
+- [ ] 4.10 Converter `autos/commands/GoToPoseCommand.java` em builder `GoToPose` com `toCommand()`, construindo o `PathChain` via `Commands.lazy(() -> PedroCommands.follow(follower, chain))` e `.requiring(drivetrain)`; verificar que a API fluente (`setConstraints`, `withMaxPower`, `withNoDeceleration`, `withGlobalDeceleration`, `withTangentHeading`, `withConstantHeading`, `withExitTolerance`) segue disponível
+- [ ] 4.11 Converter `autos/commands/AlignAndAdjustAutoCommand.java` em `Groups.sequential(adjustShooter, adjustHood)`; verificar compilação
+
+## 5. Fase 4 — Robot e teleop
+
+- [ ] 5.1 Criar `robot/Robot.java` com os 6 subsistemas `public final`, construtor `(HardwareMap, TelemetryManager)`, bulk caching manual nos hubs, `clearBulkCache()` e `periodicCommands()`; verificar que `RobotOpMode` compila contra ele
+- [ ] 5.2 Mover para `Robot` o campo `shooterAutoAdjust`, a lógica de pose inicial (`DataStorage.actualPose` → `PoseStorage` → pose padrão da aliança), `setAutoStartPose`, `tryRelocalizeLimelight`, `hasLimelightFix` e `updateRobotPose`; verificar compilação
+- [ ] 5.3 Implementar `Robot.isShooting()` sem `getCurrentCommand()` (flag do comando de align ou `Scheduler.isRunning`); verificar por leitura que o laço de resync o consulta corretamente
+- [ ] 5.4 Reescrever `teleop.java` como `extends RobotOpMode`, agendando no `start()` os contínuos de condução e auto-mira e o laço de resync via `Groups.loop(Groups.sequential(waitMs(1000), conditional(...)))`; verificar compilação
+- [ ] 5.5 Implementar no `loop()` do teleop os bindings do piloto (Y, X, START, LB, RB) por polling com `gamepad1.*WasPressed()/WasReleased()`; verificar contra a tabela em `specs/teleop-control/spec.md` que cada botão tem o efeito especificado
+- [ ] 5.6 Implementar no `loop()` do teleop os bindings do operador (RB, LB, A, X, D-PAD ▲▼◀▶, botão do analógico esquerdo); verificar contra a tabela em `specs/teleop-control/spec.md`
+- [ ] 5.7 Preservar no `loop()` do teleop a telemetria de tempo de loop sob `DataStorage.DEBUG_MODE`; verificar que os mesmos campos de antes são publicados
+- [ ] 5.8 Deletar `robot/RobotContainer.java`; verificar `grep -rn "RobotContainer" TeamCode/src` vazio
+
+## 6. Fase 5 — Autônomo
+
+- [ ] 6.1 Converter `AutonomousCommands`, `AutonomousFrontCommands` e `AutonomousTuffCommand` em fábricas `static` (`AutoRoutines.rearNormal/front/rearNoGate(Robot, List<Pose>)`) usando `Groups.sequential`/`Groups.parallel`, traduzindo `withTimeout(t)` para `.raceWith(Commands.waitMs(t))` e removendo o parâmetro `led` não usado; verificar passo a passo que a ordem de comandos é idêntica às versões atuais
+- [ ] 6.2 Reescrever `autos/Autos.java` como `extends RobotOpMode`, movendo o loop de configuração pré-play de `initialize()` para `init_loop()` como máquina de estado com flag `isConfigured` e edge-helpers do `gamepad2`; verificar compilação
+- [ ] 6.3 Implementar no `Autos` a seleção de rotina e pose inicial por aliança × estratégia, `robot.setAutoStartPose(startPose)` e persistência de `DataStorage.alliance`; verificar contra `specs/autonomous-selector/spec.md` que as 6 combinações mapeiam para a rotina e a lista de poses corretas
+- [ ] 6.4 Agendar a rotina escolhida no `start()` do `Autos`, mantendo o `Scheduler.execute()` rodando durante o pré-play para a odometria assentar; verificar por leitura que nada é agendado antes do `play`
+
+## 7. Fase 6 — Controladores
+
+- [ ] 7.1 Trocar `com.arcrobotics.ftclib.controller.PIDFController` por `com.pedropathing.control.PIDFController` em `AlignToAprilTagCommand`, ajustando `calculate(measured, setpoint)` para `updateError(setpoint - measured)` + `run()`; verificar compilação e conferir o sinal do erro por leitura
+- [ ] 7.2 Fazer a mesma troca em `KinematicAimDriveCommand`; verificar compilação e sinal do erro
+- [ ] 7.3 Fazer a mesma troca em `ShooterSubsystem`, preservando kS/kV, o boost de feedforward de tiro e a compensação de tensão; verificar compilação
+- [ ] 7.4 Confirmar que `grep -rn "com.arcrobotics.ftclib" TeamCode/src` retorna vazio e que `build.dependencies.gradle` não menciona ftclib
+
+## 8. Verificação
+
+- [ ] 8.1 Rodar `./gradlew :TeamCode:compileDebugJavaWithJavac` e confirmar zero erros
+- [ ] 8.2 Rodar `./gradlew :TeamCode:assembleDebug` e confirmar que o APK é gerado
+- [ ] 8.3 No robô com as rodas no ar, rodar `teleop` e confirmar: condução responde aos analógicos; segurar Y suspende a condução e soltar a retoma sem novo acionamento; LB roda o intake; D-PAD ◀/▶ do operador ajusta o offset de RPM com rumble; D-PAD ▲/▼ liga e desliga o auto-ajuste; START relocaliza pela Limelight
+- [ ] 8.4 No robô, rodar `Autos` e confirmar: X/B e D-PAD mudam a seleção na telemetria antes do play; A confirma e a telemetria indica pronto; o play dispara a rotina e o robô segue o primeiro path e executa o primeiro ciclo de tiro
+- [ ] 8.5 Rodar `teleop` → parar → rodar de novo, e depois `Autos` → parar → `teleop`, confirmando que nenhum comando vaza entre execuções (sem movimento fantasma nem motor ligado) e que a pose persiste do autônomo para o teleop
+- [ ] 8.6 Atualizar `MIGRACAO-IVY.md` com a coordenada Maven confirmada e quaisquer desvios do plano encontrados durante a implementação
