@@ -5,18 +5,25 @@ controle contínuo que cada um mantém enquanto um OpMode está ativo.
 
 ## ADDED Requirements
 
-### Requirement: Controle contínuo por subsistema
+### Requirement: Controle contínuo do robô
 
-Cada subsistema SHALL expor um comando de controle contínuo que, uma vez agendado, executa em
-toda iteração do loop até o fim do OpMode, aplicando o estado atual do subsistema aos
-atuadores e publicando telemetria. Esse comando SHALL NOT reservar o subsistema como recurso,
-de modo a rodar em paralelo com os comandos de ação.
+O robô SHALL expor uma rotina de atualização única que, uma vez agendada como comando contínuo,
+executa em toda iteração do loop até o fim do OpMode. Essa rotina SHALL limpar o bulk cache dos
+hubs e então atualizar cada subsistema em ordem fixa e determinística, aplicando o estado atual
+aos atuadores e publicando telemetria. O comando contínuo SHALL NOT reservar nenhum subsistema
+como recurso, de modo a rodar em paralelo com os comandos de ação.
 
 #### Scenario: Controle contínuo sobrevive a comandos de ação
 
-- **WHEN** um comando de ação que reserva o subsistema é agendado e depois termina
-- **THEN** o comando de controle contínuo do subsistema nunca deixou de executar
-- **AND** a telemetria do subsistema continuou sendo publicada durante todo o período
+- **WHEN** um comando de ação que reserva um subsistema é agendado e depois termina
+- **THEN** o comando de controle contínuo nunca deixou de executar
+- **AND** a telemetria dos subsistemas continuou sendo publicada durante todo o período
+
+#### Scenario: Ordem de atualização é determinística
+
+- **WHEN** uma iteração do controle contínuo executa
+- **THEN** o bulk cache é limpo antes de qualquer leitura de sensor daquela iteração
+- **AND** os subsistemas são atualizados sempre na mesma ordem
 
 ### Requirement: Drivetrain
 

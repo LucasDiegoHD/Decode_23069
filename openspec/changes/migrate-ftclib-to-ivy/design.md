@@ -47,15 +47,27 @@ O Ivy não tem default command. Alternativas consideradas:
   o suspenso automaticamente ao liberar o recurso — reproduz exatamente o default command da
   FTCLib com mecanismo nativo do Ivy.
 
-O `LedCommand` é caso à parte: nada conflita com o LED, então é `infinite` **sem** `requiring`,
-agendado junto dos `periodic()`.
+O `LedCommand` é caso à parte: nada disputa o LED com ele, então deixa de ser comando — o corpo
+vira `led.update()` dentro do laço contínuo único (D2).
 
-### D2 — `periodic()` vira `Command periodic()` sem requirements
+### D2 — Um único laço contínuo, não um por subsistema
 
 O corpo do `periodic()` atual (leitura de sensores, `follower.update()`, telemetria, aplicação
 de estado) roda **sempre**, inclusive enquanto um comando de ação detém o subsistema. Logo o
-comando `periodic()` **não** pode reservar o subsistema. Fica `Commands.infinite(...)` sem
-`requiring`, agendado uma vez no `init()`. Só o `Scheduler.reset()` o encerra.
+controle contínuo **não** pode reservar o subsistema.
+
+Alternativas consideradas:
+- **(a) Um `Commands.infinite()` por subsistema** (proposta inicial, e o que o repo de exemplo
+  oficial Code Blooded faz): seis agendamentos; a ordem de execução vem da ordem de iteração do
+  `Deque` do `Scheduler`.
+- **(b escolhida) Um único `Commands.infinite(robot::update)`**, com `Robot.update()` chamando
+  `clearBulkCache()` e cada `subsistema.update()` em ordem fixa e explícita. É o padrão do
+  RevAmped (time 12808, que tem um dev do Pedro Pathing e venceu o MTI). Ordem determinística
+  escrita no código, `clearBulkCache()` garantidamente antes de toda leitura do ciclo, e um
+  agendamento em vez de seis.
+
+Cada subsistema expõe `void update()` (não `Command periodic()`). Só o `Scheduler.reset()`
+encerra o laço.
 
 ### D3 — Comandos como fábricas `static`, não classes
 
@@ -76,7 +88,7 @@ cmd.cancel();`.
 ### D5 — `RobotContainer` → `Robot` (fiação) + OpMode (bindings)
 
 `RobotContainer` mistura fiação, poses, laço de resync, bindings e getters de autônomo.
-Separação: `Robot.java` só constrói subsistemas e expõe `periodicCommands()`, `shooterAutoAdjust`,
+Separação: `Robot.java` só constrói subsistemas e expõe `update()`, `shooterAutoAdjust`,
 `isShooting()`, helpers de pose. Bindings e laço de resync vão para `teleop.java`. Getters de
 autônomo viram fábricas `static` (`AutoRoutines`).
 
@@ -103,14 +115,18 @@ Fase 6.
 ## Risks / Trade-offs
 
 - **Coordenada Maven do Ivy incerta** (doc: `com.pedropathing:ivy:1.0.0`; repo publica `:core`
-  + `:pedro`) → confirmar no primeiro sync da Fase 0 antes de escrever qualquer código;
-  registrar a coordenada correta no `MIGRACAO-IVY.md`.
+  + `:pedro`) → confirmar no primeiro sync da Fase 0 antes de escrever qualquer código. Fallback
+  comprovado, usado pelo RevAmped: clonar `Pedro-Pathing/Ivy`, `./gradlew deployLocal`,
+  `mavenLocal()` + `com.pedropathing:ivy:LOCAL`. Registrar a coordenada correta no
+  `MIGRACAO-IVY.md`.
+- **Código do RevAmped roda um Ivy pré-1.0** (`ICommand`, `Scheduler.getInstance()`,
+  `new Instant(...)`) → traduzir para a API 1.0.0, nunca copiar as formas.
 - **Janela de não-compilação nas fases 2–5** → trabalhar no branch `IvyMigrate`, não tocar
   `master`; commit por fase para permitir rollback granular.
 - **`Scheduler` global** → esquecer `reset()` vaza comandos entre OpModes; mitigar
   centralizando `reset()` no `RobotOpMode` (`init()` e `stop()`) e testando "rodar → parar →
   rodar" na verificação.
-- **Comandos `infinite` sem requirements nunca terminam sozinhos** → auditar cada `periodic()`
+- **O `infinite(robot::update)` nunca termina sozinho** → auditar cada `update()`
   para garantir que é inofensivo entre execuções; `reset()` é a única saída.
 - **Máquinas de estado de tiro/mira com estado capturado em lambda** → risco de bug sutil de
   reuso; se ficar frágil, cair para a Class API do Ivy nesses comandos.

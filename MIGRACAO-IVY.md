@@ -71,11 +71,18 @@ subsistema, "default command" nem DSL de bindings (`GamepadEx` / `Trigger` / `.w
 
 ### Coordenada Maven (a confirmar no primeiro sync)
 
-A doc oficial diz `implementation 'com.pedropathing:ivy:1.0.0'`. O repositório publica dois
-módulos: `com.pedropathing.ivy:core` e `com.pedropathing.ivy:pedro`. Confirmar no primeiro
-sync qual(is) coordenada(s) resolve(m) `com.pedropathing.ivy.Scheduler` **e**
+Ordem de tentativa no primeiro sync:
+
+1. `implementation 'com.pedropathing:ivy:1.0.0'` — o que a doc oficial manda.
+2. `com.pedropathing.ivy:core` + `com.pedropathing.ivy:pedro` — os dois módulos que o repo
+   publica; pode exigir ambos.
+3. **Fallback comprovado** (usado pelo RevAmped, §11): clonar `Pedro-Pathing/Ivy`, rodar
+   `./gradlew deployLocal`, adicionar `mavenLocal()` aos repositórios e declarar
+   `implementation 'com.pedropathing:ivy:LOCAL'`.
+
+Critério: resolver `com.pedropathing.ivy.Scheduler` **e**
 `com.pedropathing.ivy.pedro.PedroCommands`. Repo maven já presente no projeto:
-`https://maven.pedropathing.com/`. Alternativa: snapshots do Sonatype.
+`https://maven.pedropathing.com/`. Alternativa adicional: snapshots do Sonatype.
 
 ---
 
@@ -142,14 +149,36 @@ arquivos vivos a migrar.
 - Remover `extends SubsystemBase` e imports FTCLib. Classe simples (mantém
   `@Configurable` / `@Config`).
 - Manter o construtor `(HardwareMap, TelemetryManager)`.
-- `@Override public void periodic()` → **`public Command periodic()`** retornando
-  `Commands.infinite(() -> { <corpo antigo do periodic> })`. **Sem `.requiring(...)`** — roda
-  sempre, em paralelo com os comandos de controle.
+- `@Override public void periodic()` → **`public void update()`** com o mesmo corpo. Sem
+  `@Override`, sem `Command`. O laço contínuo é **único** e vive no `Robot` (ver Padrão A2).
 - Métodos de estado `void` chamados de dentro do `periodic()` / bindings (`intake.run()`,
   `shooter.stop()`, `shooter.adjustRpmOffset()`, `setShootingState()`, …): **mantêm-se**.
 - Ações discretas hoje embrulhadas em `new InstantCommand(intake::run, intake)`: adicionar
   fábricas idiomáticas no subsistema — `public Command runIntake()` =
   `Commands.instant(this::run).requiring(intakeMotor)`.
+
+### Padrão A2 — Um único laço contínuo no `Robot`
+
+**Decisão (2026-09-03, após avaliar o RevAmped — §11).** Em vez de cada subsistema expor um
+`Command periodic()` agendado separadamente, o `Robot` chama os `update()` em **ordem fixa e
+explícita**, e o OpMode agenda **um** `Commands.infinite(robot::update)`:
+
+```java
+// Robot.java
+public void update() {
+    clearBulkCache();
+    drivetrain.update();   // follower.update() + Drawing + telemetria
+    vision.update();
+    indexer.update();
+    shooter.update();
+    intake.update();
+    led.update();          // era o LedCommand
+}
+```
+
+Motivo: ordem determinística escrita no código (não dependente da ordem de iteração do `Deque`
+do `Scheduler`), `clearBulkCache()` garantidamente antes de toda leitura de sensor do ciclo, e
+um agendamento em vez de seis.
 
 ### Padrão B — "Default command" contínuo
 
@@ -246,12 +275,15 @@ public abstract class RobotOpMode extends OpMode {
 
 ### Fase 2 — Subsistemas (Padrão A)
 
-Migrar os 6 subsistemas vivos. `DrivetrainSubsystem`: `follower.update()` + `Drawing.*` +
-telemetria continuam dentro do `periodic()` infinite; `getFollower()`, `driveRobotCentric()`,
-`isRobotStopped()`, `stop()`, `restorePoseFromStorage()`, `getVoltage()` continuam métodos
-normais. `ShooterSubsystem`: adiar a troca do `PIDFController` para a Fase 6.
+Migrar os 6 subsistemas vivos (Padrão A) e montar o laço único (Padrão A2).
+`DrivetrainSubsystem`: `follower.update()` + `Drawing.*` + telemetria vão para o `update()`;
+`getFollower()`, `driveRobotCentric()`, `isRobotStopped()`, `stop()`,
+`restorePoseFromStorage()`, `getVoltage()` continuam métodos normais. `LEDSubsystem`: o corpo
+do antigo `LedCommand` vira `led.update()` — deixa de existir como comando.
+`ShooterSubsystem`: adiar a troca do `PIDFController` para a Fase 6.
 
-**Entregável:** subsistemas sem herança FTCLib, cada um expondo `Command periodic()`.
+**Entregável:** subsistemas sem herança FTCLib, cada um expondo `void update()`, e
+`Robot.update()` chamando-os em ordem fixa.
 
 ### Fase 3 — Comandos (Padrão C)
 
@@ -283,8 +315,9 @@ Constraints de path em `pedroPathing/Constants.java` (`autoTransitConstraints`,
 **`robot/Robot.java`** — só fiação:
 - Campos `public final` dos 6 subsistemas; construtor `(HardwareMap, TelemetryManager)`.
 - `setBulkCachingMode(MANUAL)` nos hubs + `clearBulkCache()`.
-- `List<Command> periodicCommands()` = `[drivetrain.periodic(), intake.periodic(),
-  shooter.periodic(), vision.periodic(), indexer.periodic(), Led.command(led, indexer)]`.
+- `void update()` = `clearBulkCache()` seguido de `drivetrain.update()`, `vision.update()`,
+  `indexer.update()`, `shooter.update()`, `intake.update()`, `led.update()` **nessa ordem**
+  (Padrão A2). O `RobotOpMode` agenda um único `Commands.infinite(robot::update)`.
 - Campo `public boolean shooterAutoAdjust = true`.
 - `boolean isShooting()` — hoje usa `drivetrain.getCurrentCommand() instanceof
   AlignToAprilTagCommand` (não existe no Ivy). Trocar por `volatile boolean` setado no
@@ -333,8 +366,11 @@ removida do gradle.
 
 ## 6. Análise de implementação — pontos de atenção
 
-- **Coordenada Maven do Ivy** — doc vs. repo divergem; confirmar `core` + `pedro` no primeiro
-  sync antes de qualquer código.
+- **Coordenada Maven do Ivy** — doc vs. repo divergem. §2 tem a ordem de tentativa e o
+  fallback comprovado (`deployLocal` + `mavenLocal()`), então é risco de tempo, não de bloqueio.
+- **Não copiar formas de API do RevAmped** (§11) — eles rodam um Ivy pré-1.0 (`ICommand`,
+  `Scheduler.getInstance()`, `new Instant(...)`, `new Sequential(...)`). A API 1.0.0 é
+  `Command`, `Scheduler` estático, `Commands.instant(...)`, `Groups.sequential(...)`.
 - **`OpMode` iterativo vs. `LinearOpMode`** — `teleop` / `Autos` deixam de ter loop
   bloqueante; toda a lógica pré-play de `Autos` precisa virar máquina de estado em
   `init_loop()`.
@@ -344,8 +380,8 @@ removida do gradle.
   estado mutável entre loops; usar array/objeto `final` capturado ou a Class API.
 - **`Scheduler` é estático e global** — `Scheduler.reset()` obrigatório no `init()` **e** no
   `stop()` de todo OpMode, senão comandos vazam entre execuções.
-- **Comandos `infinite` sem `requiring`** rodam para sempre — só o `Scheduler.reset()` os
-  para. Confirmar que todo `infinite` de `periodic()` é inofensivo entre OpModes.
+- **O `infinite(robot::update)` roda para sempre** — só o `Scheduler.reset()` o para.
+  Confirmar que é inofensivo entre OpModes.
 - **`AutoShootCommand` / `AlignAndAdjustAutoCommand`** já têm muita coisa comentada — migrar
   só o caminho ativo, não ressuscitar o comentado.
 - **Bugs pré-existentes achados no inventário** (não corrigir agora, salvo se atrapalharem):
@@ -532,3 +568,94 @@ separadas depois.
 4. **`SOTMUtil` unificado** — uma classe que, de pose + velocidade + aceleração, devolve
    `{turretAngle, hoodAngle, wheelVelocity, feedforwards}`. Nossa lógica equivalente está
    espalhada entre `ActiveAimCommand` e `KinematicAimDriveCommand`.
+
+---
+
+## 11. Anexo — avaliação do `junkjunk123/RevAmped-Decode-V2` (time 12808, vencedor do MTI)
+
+Time que **usa Ivy** e conta com um dos desenvolvedores do Pedro Pathing. O uso arquitetural é
+autoritativo — é como um autor da biblioteca a usa. As formas de API, não (ver §11.1).
+
+### 11.1 Rodam um Ivy pré-1.0 — não copiar formas de API
+
+```gradle
+mavenLocal()
+implementation 'com.pedropathing:ivy:LOCAL'
+```
+
+Compilam o Ivy do fonte, a partir do working copy do próprio dev. O código usa `ICommand`,
+`Scheduler.getInstance()` (singleton), `new Instant(...)`, `new Sequential(...)`,
+`new Command().setStart(...)`. A API 1.0.0 publicada usa `Command` (interface), `Scheduler`
+**estático**, `Commands.instant(...)`, `Groups.sequential(...)`, `Command.build()`.
+
+Consequências:
+
+- **Traduzir, nunca copiar** trechos do código deles.
+- **Confirma o risco de coordenada Maven** e fornece o fallback (`deployLocal` +
+  `mavenLocal()`), já incorporado a §2 e à Fase 0.
+
+### 11.2 ADOTADO — um único `Infinite`, não um por subsistema
+
+```java
+schedule(new Infinite(() -> { robot.update(); autoTrack.update(); telemetry.update(); }));
+```
+
+`Robot.update()` faz `clearBulkCache()` e chama cada mecanismo em ordem fixa. Adotado como
+**Padrão A2** (§4), substituindo a proposta original de seis comandos `periodic()`.
+
+### 11.3 `PathSupplier` — a lição de autos (trabalho futuro)
+
+`PathSupplier` fornece uma `List<FollowParameters>` em ordem; `drivetrain.follow()`
+**desenfileira o próximo**. Os autos viram composição de **métodos de ciclo reutilizáveis**:
+
+```java
+robot.drivetrain.follow(), shoot(),
+sideSpikeCycle(), spikeCycle(),
+gateCycle(), gateCycle(), gateCycle(), gateCycle(), gateCycle(), gateCycle(),
+shootLast()
+```
+
+`FollowParameters` é um `record (pathChain, holdEnd, maxPower, kP, brakingStrength)` — encapsula
+os parâmetros de seguimento por trecho, incluindo os coeficientes de frenagem preditiva.
+
+Nosso equivalente: `Pose[] POSES` indexado por ordinal de enum, em quatro arquivos que precisam
+ficar em lockstep, com o ciclo de tiro repetido inline cinco vezes dentro de
+`AutonomousCommands`. A diferença de manutenibilidade é grande. **Decisão: trabalho futuro** —
+não entra na migração, que quebraria o critério de paridade (§7).
+
+### 11.4 `TeleOpStateHandler` — grafo de estados (trabalho futuro)
+
+Estado do robô (`INTAKE → DRIVE_TO_SHOOT → SHOOT`) com transições validadas contra uma **matriz
+de adjacência**, exatamente uma transição por vez, no máximo uma enfileirada, e um contador de
+abort. É o que impede o teleop de quebrar quando o piloto martela botões. Nosso
+`isShooterAutoAdjustActive` + `isShooting()` é a versão primitiva do mesmo problema.
+
+### 11.5 `BooleanSwitch` + `ButtonMapper` (avaliar só se necessário)
+
+Cerca de 130 linhas que devolvem a DSL de bindings perdida ao largar o `GamepadEx`:
+`risingEdge()`, `fallingEdge()`, `toggled()`, `and()`, `or()`, debounce por timestamp.
+**Ressalva:** no `MTITele` real eles quase não usam o `ButtonMapper` — chamam
+`gamepad_1.right_bumper.isRisingEdge()` direto. Nosso polling cru (§4, Padrão D) basta; só vale
+importar o `toggled()` se aparecer necessidade de toggle.
+
+### 11.6 O que NÃO copiar
+
+- `Robot.INSTANCE` estático (singleton global).
+- `TrackingThread` / `GyroThread` — threads de tracking; e no auto eles nem rodam threaded,
+  chamam `autoTrack.update()` dentro do `Infinite`.
+- `OpModeCommand extends LinearOpMode` com skeleton `runOpMode()` manual. Nossa base iterativa
+  (Fase 1) é mais simples e é o que os outros dois repos de referência fazem.
+
+### 11.7 Comparação dos três repos de referência
+
+| | 23641 (kleongf) | 12808 (RevAmped) | 23069 (nosso plano) |
+|---|---|---|---|
+| Framework | nenhum (FSM próprio) | Ivy pré-1.0 | Ivy 1.0.0 |
+| OpMode | iterativo | `LinearOpMode` + skeleton | iterativo |
+| Laço contínuo | `robot.update()` plano | **1 `Infinite`** | **1 `Infinite`** |
+| Bindings | polling `WasPressed()` | `BooleanSwitch` edges | polling `WasPressed()` |
+| Autos | FSM gigante, paths inline | fila de paths + ciclos | `Groups.sequential` (paridade) |
+| Estado do robô | campos "wanted" | grafo com matriz | flags (como hoje) |
+
+Os três convergem em: **um laço contínuo determinístico**, **bindings por polling com detecção
+de borda** e **configuração pré-play num loop de init**. Nenhum dos três usa a FTCLib.

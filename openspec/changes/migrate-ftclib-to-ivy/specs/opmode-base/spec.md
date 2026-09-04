@@ -21,14 +21,13 @@ não um único método bloqueante.
 ### Requirement: Construção do robô na inicialização
 
 Ao inicializar, o OpMode SHALL reinicializar o escalonador, construir uma única instância do
-robô (fiação de todos os subsistemas) e agendar os comandos de controle contínuo
-(`periodic`) de cada subsistema.
+robô (fiação de todos os subsistemas) e agendar o comando de controle contínuo do robô.
 
 #### Scenario: Subsistemas prontos após o init
 
 - **WHEN** o OpMode termina a inicialização
 - **THEN** todos os 6 subsistemas estão construídos e acessíveis pela instância do robô
-- **AND** o comando de controle contínuo de cada subsistema está agendado e executando
+- **AND** o comando de controle contínuo do robô está agendado e executando
 
 #### Scenario: Hubs Lynx em cache manual
 
