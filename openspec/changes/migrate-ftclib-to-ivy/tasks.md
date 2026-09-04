@@ -59,14 +59,14 @@
 
 - [x] 7.1 Trocar `com.arcrobotics.ftclib.controller.PIDFController` por `com.pedropathing.control.PIDFController` em `AlignToAprilTagCommand`, ajustando `calculate(measured, setpoint)` para `updateError(setpoint - measured)` + `run()`; verificar compilação e conferir o sinal do erro por leitura
 - [x] 7.2 Fazer a mesma troca em `KinematicAimDriveCommand`; verificar compilação e sinal do erro
-- [ ] 7.3 Fazer a mesma troca em `ShooterSubsystem`, preservando kS/kV, o boost de feedforward de tiro e a compensação de tensão; verificar compilação
-- [ ] 7.4 Confirmar que `grep -rn "com.arcrobotics.ftclib" TeamCode/src` retorna vazio e que `build.dependencies.gradle` não menciona ftclib
+- [x] 7.3 Fazer a mesma troca em `ShooterSubsystem`, preservando kS/kV, o boost de feedforward de tiro e a compensação de tensão; verificar compilação
+- [x] 7.4 Confirmar que `grep -rn "com.arcrobotics.ftclib" TeamCode/src` retorna vazio e que `build.dependencies.gradle` não menciona ftclib
 
 ## 8. Verificação
 
-- [ ] 8.1 Rodar `./gradlew :TeamCode:compileDebugJavaWithJavac` e confirmar zero erros
-- [ ] 8.2 Rodar `./gradlew :TeamCode:assembleDebug` e confirmar que o APK é gerado
+- [x] 8.1 Rodar `./gradlew :TeamCode:compileDebugJavaWithJavac` e confirmar zero erros
+- [x] 8.2 Rodar `./gradlew :TeamCode:assembleDebug` e confirmar que o APK é gerado
 - [ ] 8.3 No robô com as rodas no ar, rodar `teleop` e confirmar: condução responde aos analógicos; segurar Y suspende a condução e soltar a retoma sem novo acionamento; LB roda o intake; D-PAD ◀/▶ do operador ajusta o offset de RPM com rumble; D-PAD ▲/▼ liga e desliga o auto-ajuste; START relocaliza pela Limelight
 - [ ] 8.4 No robô, rodar `Autos` e confirmar: X/B e D-PAD mudam a seleção na telemetria antes do play; A confirma e a telemetria indica pronto; o play dispara a rotina e o robô segue o primeiro path e executa o primeiro ciclo de tiro
 - [ ] 8.5 Rodar `teleop` → parar → rodar de novo, e depois `Autos` → parar → `teleop`, confirmando que nenhum comando vaza entre execuções (sem movimento fantasma nem motor ligado) e que a pose persiste do autônomo para o teleop
-- [ ] 8.6 Atualizar `MIGRACAO-IVY.md` com a coordenada Maven confirmada e quaisquer desvios do plano encontrados durante a implementação
+- [x] 8.6 Atualizar `MIGRACAO-IVY.md` com a coordenada Maven confirmada e quaisquer desvios do plano encontrados durante a implementação

@@ -1,6 +1,7 @@
 package org.firstinspires.ftc.teamcode.subsystems.templates;
 
-import com.arcrobotics.ftclib.controller.PIDFController;
+import com.pedropathing.control.PIDFCoefficients;
+import com.pedropathing.control.PIDFController;
 import com.bylazar.telemetry.TelemetryManager;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
@@ -29,7 +30,7 @@ import org.firstinspires.ftc.teamcode.utils.DataStorage;
  *
  * Control Strategy and Features:
  * - Velocity Control: Combines static and velocity feedforward (kS, kV) scaled by
- *   (12.0 / battery_voltage) with FTCLib PIDFController feedback.
+ *   (12.0 / battery_voltage) with Pedro Pathing PIDFController feedback.
  * - Shot Boost: Provides a momentary feedforward impulse (kF_SHOT_BOOST) during
  *   gate trigger actuation to prevent RPM drop upon piece contact.
  * - Dynamic Hood Trimming: Fine-tunes servo positions in real time based on instantaneous
@@ -71,7 +72,8 @@ public class ShooterSubsystem {
         hoodServoLeft = hardwareMap.get(Servo.class, ShooterConstants.HOOD_SERVO_LEFT_NAME);
         hoodServoRight = hardwareMap.get(Servo.class, ShooterConstants.HOOD_SERVO_RIGHT_NAME);
 
-        controller = new PIDFController(ShooterConstants.kP, ShooterConstants.kI, ShooterConstants.kD, 0);
+        controller = new PIDFController(
+                new PIDFCoefficients(ShooterConstants.kP, ShooterConstants.kI, ShooterConstants.kD, 0));
 
         rShooterMotor.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
         lShooterMotor.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
@@ -267,7 +269,8 @@ public class ShooterSubsystem {
                 controller.reset();
                 power = 0.0;
             } else {
-                double feedback = controller.calculate(currentRPM, targetRPM);
+                controller.updateError(targetRPM - currentRPM);
+                double feedback = controller.run();
                 power = Math.max(0, Math.min(1.0, feedforward + feedback + shotBoost));
             }
 

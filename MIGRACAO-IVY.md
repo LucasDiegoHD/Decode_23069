@@ -814,3 +814,38 @@ sozinha — sem precisar do laço manual de `CommandScheduler.run()` que o códi
 A rotina é agendada só no `start()`.
 
 **Erros: 153 → 3, em 5 → 1 arquivo.**
+
+### Fase 6 — concluída (2026-09-03)
+
+Último `PIDFController` da FTCLib trocado, em `ShooterSubsystem`:
+`calculate(currentRPM, targetRPM)` → `updateError(targetRPM - currentRPM)` + `run()`. O
+feedforward (kS/kV), o boost de tiro e a compensação de tensão ficaram intactos — só o termo de
+realimentação mudou de biblioteca.
+
+**Erros: 3 → 0. `BUILD SUCCESSFUL`.**
+
+### Verificação estática — aprovada
+
+| Checagem | Resultado |
+|---|---|
+| `:TeamCode:compileDebugJavaWithJavac` | zero erros |
+| `grep -rn "com.arcrobotics.ftclib" TeamCode/src` | vazio |
+| `grep -rni "ftclib" *.gradle` | vazio |
+| `:TeamCode:assembleDebug` | APK gerado (77 MB) |
+
+### Progressão de erros por fase
+
+| Fase | Erros | Arquivos |
+|---|---:|---:|
+| 0 — baseline | 339 | 28 |
+| 2 — subsistemas | 317 | 22 |
+| 3 — comandos | 249 | 7 |
+| 4 — Robot + teleop | 153 | 5 |
+| 5 — autônomo | 3 | 1 |
+| 6 — controladores | **0** | **0** |
+
+### Pendente: verificação no robô
+
+Falta só o que exige hardware (tarefas 8.3–8.5): teleop com as rodas no ar, seletor de
+autônomo, e o teste de vazamento entre execuções. O critério é **paridade** — cada binding e
+cada rotina com o mesmo efeito observável de antes. Qualquer diferença é bug de migração.
