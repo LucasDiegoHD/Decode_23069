@@ -13,7 +13,7 @@ base.
 - Adicionar a dependência do Ivy e **remover** `org.ftclib.ftclib:core` do `build.dependencies.gradle`. **BREAKING** para qualquer código que importe `com.arcrobotics.ftclib.*`.
 - Substituir o `CommandScheduler` (singleton FTCLib) pelo `Scheduler` (estático Ivy): `reset()` no `init()`/`stop()`, `execute()` 1×/loop, sem vazamento de comandos entre execuções.
 - Criar `robot/RobotOpMode` — base de OpMode **iterativa** (`extends OpMode`), substituindo `CommandOpMode`.
-- Converter os 6 subsistemas vivos: remover `extends SubsystemBase`, expor `Command periodic()` como comando `infinite` de controle contínuo + telemetria.
+- Converter os 6 subsistemas vivos: remover `extends SubsystemBase`, trocar `periodic()` por `void update()`, e concentrar o controle contínuo num único `Commands.infinite(robot::update)` que chama os subsistemas em ordem fixa.
 - Reproduzir o conceito de "default command" (que o Ivy não tem) via comandos `infinite` com `requiring` + prioridade 0 + `InterruptedBehavior.SUSPEND`; comandos de botão usam prioridade ≥ 1.
 - Converter os 19 comandos vivos para fábricas `static` que retornam `com.pedropathing.ivy.Command` (`Command.build()` / `Groups` / `Commands`).
 - Dividir `robot/RobotContainer` em `robot/Robot` (só fiação); mover os bindings de gamepad para polling no `loop()` do OpMode com os edge-helpers do SDK (`gamepadX.<botao>WasPressed()`), eliminando `GamepadEx`/`GamepadButton`/`Trigger`.
@@ -27,8 +27,8 @@ base.
 ### New Capabilities
 
 - `scheduler-lifecycle`: gestão de comandos pelo `Scheduler` do Ivy — reset obrigatório por OpMode, `execute()` por loop, resolução de conflito por requirements/prioridade/`SUSPEND`, ausência de vazamento entre execuções, e a garantia de framework único (zero `com.arcrobotics.ftclib` no código e no gradle).
-- `opmode-base`: a base `RobotOpMode` iterativa — ciclo `init` / `init_loop` / `loop` / `stop`, construção do `Robot`, agendamento dos comandos `periodic()`, limpeza do bulk cache dos Lynx hubs 1×/loop.
-- `robot-subsystems`: os 6 subsistemas (`Drivetrain`, `Intake`, `Vision`, `Shooter`, `Indexer`, `LED`) como classes simples sem herança de framework, cada uma expondo `Command periodic()` (controle contínuo + telemetria) e fábricas de comando para ações discretas.
+- `opmode-base`: a base `RobotOpMode` iterativa — ciclo `init` / `init_loop` / `loop` / `stop`, construção do `Robot`, agendamento do comando contínuo único, limpeza do bulk cache dos Lynx hubs 1×/loop.
+- `robot-subsystems`: os 6 subsistemas (`Drivetrain`, `Intake`, `Vision`, `Shooter`, `Indexer`, `LED`) como classes simples sem herança de framework, cada uma expondo `void update()` (controle contínuo + telemetria), chamado em ordem fixa por `Robot.update()`, e fábricas de comando para ações discretas.
 - `teleop-control`: o OpMode de teleoperação — comandos contínuos de drive e auto-aim via `SUSPEND`/prioridade, bindings de driver e operador (cada botão → efeito), toggle do auto-aim do shooter, trim de offset de RPM, laço periódico de relocalização por Limelight, restauração de pose inicial.
 - `autonomous-routines`: as 3 sequências de autônomo (`rear-normal` com gate, `front` triângulo grande, `rear-no-gate` 15 artefatos) como composições `Groups.sequential` do Ivy, parametrizadas pela lista de `Pose` por aliança, com ciclos de tiro e coletas de linha equivalentes aos scripts atuais.
 - `autonomous-selector`: o OpMode `Autos` — configuração pré-play (aliança em X/B, estratégia no D-PAD, `A` confirma) via máquina de estado em `init_loop()`, seleção de rotina + pose inicial por aliança × estratégia, agendamento no `start()`.

@@ -1,8 +1,8 @@
 # Visão Geral do Código do Robô
 
 Este documento fornece uma visão geral detalhada da arquitetura de software do robô, construída
-sobre o framework de comando da FTCLib. A estrutura é dividida em subsistemas, comandos e um
-contêiner central que os une.
+sobre o **Ivy**, o framework de comando da Pedro Pathing. A estrutura é dividida em subsistemas,
+comandos e uma classe `Robot` central que os une.
 
 ## Estrutura do Projeto
 
@@ -112,12 +112,13 @@ A classe `RobotContainer` é o ponto central do programa. Suas responsabilidades
 
 ## Fluxo de Controle
 
-1. **Inicialização**: Quando um OpMode é iniciado, ele cria uma instância do `RobotContainer`.
-2. **Construção**: O construtor do `RobotContainer` inicializa todos os subsistemas e configura os
-   mapeamentos de botões.
-3. **Execução (TeleOp)**: O `CommandScheduler` da FTCLib executa continuamente o comando padrão do
-   drivetrain (`TeleOpDriveCommand`). Quando um piloto pressiona um botão, o comando correspondente
-   é agendado (por exemplo, `AlignToAprilTagCommand`), que pode interromper temporariamente o
-   comando padrão.
-4. **Execução (Autônomo)**: O OpMode autônomo solicita o comando autônomo apropriado do
-   `RobotContainer` (ex: `getAutonomousBlueRearCommand()`) e o agenda para execução.
+1. **Inicialização**: Todo OpMode estende `RobotOpMode`, que reinicia o `Scheduler` do Ivy, cria
+   uma instância do `Robot` e agenda um único comando contínuo (`Commands.infinite(robot::update)`).
+2. **Construção**: O construtor do `Robot` inicializa todos os subsistemas. Os mapeamentos de
+   botões ficam no `loop()` do OpMode, por polling.
+3. **Execução (TeleOp)**: o comando contínuo de condução roda com prioridade 0 e comportamento
+   `SUSPEND`. Quando o piloto aperta um botão, o comando correspondente (por exemplo o de alinhar
+   ao AprilTag) reserva o mesmo drivetrain com prioridade 1, suspendendo a condução — que o
+   escalonador retoma sozinho quando o comando de botão termina.
+4. **Execução (Autônomo)**: o seletor `Autos` escolhe uma rotina em `AutoRoutines` pela combinação
+   aliança × estratégia e a agenda no `start()`.
