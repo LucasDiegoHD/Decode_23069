@@ -11,7 +11,6 @@ import com.arcrobotics.ftclib.command.button.GamepadButton;
 import com.arcrobotics.ftclib.command.button.Trigger;
 import com.arcrobotics.ftclib.gamepad.GamepadEx;
 import com.arcrobotics.ftclib.gamepad.GamepadKeys;
-import com.arcrobotics.ftclib.geometry.Translation2d;
 import com.bylazar.telemetry.PanelsTelemetry;
 import com.bylazar.telemetry.TelemetryManager;
 import com.pedropathing.geometry.Pose;
@@ -32,7 +31,6 @@ import org.firstinspires.ftc.teamcode.commands.*;
 import org.firstinspires.ftc.teamcode.subsystems.*;
 import org.firstinspires.ftc.teamcode.utils.AllianceEnum;
 import org.firstinspires.ftc.teamcode.utils.DataStorage;
-import org.firstinspires.ftc.teamcode.utils.Polygon2d;
 import org.firstinspires.ftc.teamcode.utils.PoseStorage;
 
 /**
@@ -47,7 +45,6 @@ public class RobotContainer {
     private final VisionSubsystem vision;
     private final IndexerSubsystem indexer;
     private final LEDSubsystem led;
-    //private final HuskySubsystem husky;
     private boolean isShooterAutoAdjustActive = true;
     private List<LynxModule> allHubs;
     private long tempoDoUltimoLoop = 0;
@@ -65,7 +62,6 @@ public class RobotContainer {
         vision = new VisionSubsystem(hardwareMap, telemetry);
         indexer = new IndexerSubsystem(hardwareMap, telemetry);
         led = new LEDSubsystem(hardwareMap);
-        //husky = new HuskySubsystem(hardwareMap,telemetry);
 
 
         led.setDefaultCommand(new LedCommand(led, indexer));
@@ -124,8 +120,6 @@ public class RobotContainer {
             new GamepadButton(driver, GamepadKeys.Button.X)
                     .whileHeld(new KinematicAimDriveCommand(drivetrain, driver, targetx, targety));
 
-            //new GamepadButton(driver, GamepadKeys.Button.DPAD_LEFT)
-              //      .whileHeld(new ChaseArtifactCommand(drivetrain, husky, intake));
 
             new GamepadButton(driver, GamepadKeys.Button.START)
                     .whenPressed(new InstantCommand(() -> {

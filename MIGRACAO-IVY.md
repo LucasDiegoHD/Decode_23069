@@ -71,18 +71,32 @@ subsistema, "default command" nem DSL de bindings (`GamepadEx` / `Trigger` / `.w
 
 ### Coordenada Maven (a confirmar no primeiro sync)
 
-Ordem de tentativa no primeiro sync:
+**CONFIRMADA (2026-09-03):**
 
-1. `implementation 'com.pedropathing:ivy:1.0.0'` — o que a doc oficial manda.
-2. `com.pedropathing.ivy:core` + `com.pedropathing.ivy:pedro` — os dois módulos que o repo
-   publica; pode exigir ambos.
-3. **Fallback comprovado** (usado pelo RevAmped, §11): clonar `Pedro-Pathing/Ivy`, rodar
-   `./gradlew deployLocal`, adicionar `mavenLocal()` aos repositórios e declarar
-   `implementation 'com.pedropathing:ivy:LOCAL'`.
+```gradle
+implementation 'com.pedropathing:ivy:1.0.0'
+```
 
-Critério: resolver `com.pedropathing.ivy.Scheduler` **e**
-`com.pedropathing.ivy.pedro.PedroCommands`. Repo maven já presente no projeto:
-`https://maven.pedropathing.com/`. Alternativa adicional: snapshots do Sonatype.
+Um único `aar` no **Maven Central** (`repo1.maven.org`), já alcançável pelo `mavenCentral()` que
+o projeto declara — não precisa de repositório novo. Contém tudo:
+
+```
+com.pedropathing.ivy.{Command, CommandBuilder, Scheduler}
+com.pedropathing.ivy.behaviors.{BlockedBehavior, ConflictBehavior, EndCondition, InterruptedBehavior}
+com.pedropathing.ivy.commands.{Branch, Commands, Conditional, Lazy, Match}
+com.pedropathing.ivy.groups.{Deadline, Groups, Loop, Parallel, Race, Repeat, Sequential}
+com.pedropathing.ivy.pedro.{Follow, Hold, PedroCommands, Turn}
+```
+
+A API do `sources.jar` publicado confere com esta seção: `Scheduler` estático
+(`schedule` / `execute` / `reset` / `isRunning` / `isScheduled` / `cancel`) e `Commands` com
+`waitMs` / `waitUntil` / `infinite` / `instant` / `conditional` / `branch` / `lazy` / `match` /
+`onInterrupt`.
+
+Alternativas que **não** foram necessárias, registradas caso a v1.0.0 seja abandonada:
+`com.pedropathing.ivy:core:1.0.1` + `com.pedropathing.ivy:pedro:1.0.1` (os dois módulos que o
+`master` do repo publica), ou o fallback do RevAmped (§11): `./gradlew deployLocal` +
+`mavenLocal()` + `com.pedropathing:ivy:LOCAL`.
 
 ---
 
@@ -659,3 +673,41 @@ importar o `toggled()` se aparecer necessidade de toggle.
 
 Os três convergem em: **um laço contínuo determinístico**, **bindings por polling com detecção
 de borda** e **configuração pré-play num loop de init**. Nenhum dos três usa a FTCLib.
+
+---
+
+## 12. Diário de implementação
+
+### Fase 0 — concluída (2026-09-03)
+
+- **Coordenada Maven resolvida na primeira tentativa.** `com.pedropathing:ivy:1.0.0` está no
+  Maven Central e o `mavenCentral()` que o projeto já declara basta — nem o repositório da
+  Pedro nem o fallback `deployLocal` foram necessários. Detalhes em §2.
+- FTCLib removida do `build.dependencies.gradle`; `:TeamCode:dependencies` confirma o Ivy no
+  `debugCompileClasspath` e nenhum `org.ftclib`.
+- 19 arquivos deletados (6 autos `@Disabled`, 3 subsistemas-template + Constants,
+  `ElevatorTestOpMode`, 5 comandos sem referência, `utils/Polygon2d.java`).
+- Imports mortos de `Translation2d` / `Polygon2d` e as linhas comentadas do Husky removidas de
+  `RobotContainer.java` e `DrivetrainSubsystem.java`.
+- **Baseline de compilação: 100 erros em 25 arquivos**, todos por ausência da FTCLib. Esta é a
+  métrica de progresso das fases seguintes — deve chegar a zero na Fase 6.
+
+| Erros | Arquivo | Erros | Arquivo |
+|---:|---|---:|---|
+| 24 | `RobotContainer.java` | 2 | `DrivetrainSubsystem.java` |
+| 7 | `AlignToAprilTagCommand.java` | 2 | `IntakeSubsystem.java` |
+| 7 | `KinematicAimDriveCommand.java` | 2 | `VisionSubsystem.java` |
+| 6 | `ShootCommand.java` | 2 | `IndexerSubsystem.java` |
+| 5 | `AutonomousCommands.java` | 2 | `LEDSubsystem.java` |
+| 5 | `AutonomousFrontCommands.java` | 2 | `AdjustHoodCommandAuto.java` |
+| 5 | `AutonomousTuffCommand.java` | 2 | `AdjustShooterCommandAuto.java` |
+| 4 | `Autos.java` | 2 | `AlignAndAdjustAutoCommand.java` |
+| 4 | `ShooterSubsystem.java` | 2 | `GoToPoseCommand.java` |
+| 4 | `AutoShootCommand.java` | 2 | `ShootCommandAutonomous.java` |
+| 2 | `ActiveAimCommand.java` | 2 | `AdjustHoodCommand.java` |
+| 2 | `AdjustShooterCommand.java` | 2 | `LedCommand.java` |
+| 1 | `SpinShooterCommand.java` | | |
+
+**Nota de ambiente:** o build exige `local.properties` com `sdk.dir` (gitignored) e um JDK 17–21
+— o `jbr` do Android Studio (JDK 21) apontado por `JAVA_HOME` serve; o `jdk-25` que está no
+`PATH` não é suportado pelo Gradle 8.9.

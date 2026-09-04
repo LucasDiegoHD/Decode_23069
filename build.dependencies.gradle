@@ -16,9 +16,9 @@ dependencies {
     implementation 'org.firstinspires.ftc:Hardware:11.2.1'
     implementation 'org.firstinspires.ftc:FtcCommon:11.2.1'
     implementation 'org.firstinspires.ftc:Vision:11.2.1'
-    implementation 'org.ftclib.ftclib:core:2.1.1'
     implementation 'com.pedropathing:ftc:2.1.2'
     implementation 'com.pedropathing:telemetry:1.0.0'
+    implementation 'com.pedropathing:ivy:1.0.0'
 
     implementation "com.bylazar:fullpanels:1.0.12"
     implementation 'androidx.appcompat:appcompat:1.7.1'

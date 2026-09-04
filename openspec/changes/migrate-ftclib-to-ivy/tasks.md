@@ -1,12 +1,12 @@
 ## 1. Fase 0 — Dependência e limpeza
 
-- [ ] 1.1 Confirmar a coordenada Maven do Ivy fazendo um sync de teste com `com.pedropathing:ivy:1.0.0`; se falhar, com `com.pedropathing.ivy:core` + `com.pedropathing.ivy:pedro`; se ainda falhar, clonar `Pedro-Pathing/Ivy`, rodar `./gradlew deployLocal` e usar `mavenLocal()` + `com.pedropathing:ivy:LOCAL` (fallback do RevAmped). Verificar que `com.pedropathing.ivy.Scheduler` e `com.pedropathing.ivy.pedro.PedroCommands` resolvem, e registrar a coordenada correta em `MIGRACAO-IVY.md §2`
-- [ ] 1.2 Em `build.dependencies.gradle`, adicionar a dependência confirmada do Ivy e remover `org.ftclib.ftclib:core:2.1.1`; verificar com `./gradlew :TeamCode:dependencies` que o Ivy aparece e a FTCLib não
-- [ ] 1.3 Deletar os 6 OpModes `@Disabled` `autos/Auto{Red,Blue}{Front,Rear,Tuff}.java`; verificar que nenhum outro arquivo os referencia (`grep -rn "AutoRedRear\|AutoBlueRear\|AutoRedFront\|AutoBlueFront\|AutoRedTuff\|AutoBlueTuff" TeamCode/src` vazio)
-- [ ] 1.4 Deletar os templates não usados `subsystems/templates/{Husky,Climber,Elevator}Subsystem.java`, seus `*Constants.java` e `ElevatorTestOpMode.java`; verificar `grep -rn "HuskySubsystem\|ClimberSubsystem\|ElevatorSubsystem" TeamCode/src` vazio
-- [ ] 1.5 Deletar os comandos sem referência `commands/{AimByPose,ChaseArtifact,TeleOpDriveCommandZoneRepulsion}Command.java`, `autos/commands/{AdjustAuto,AutoChaseArtifact}Command.java` e `utils/Polygon2d.java`; verificar que os nomes não aparecem mais em `TeamCode/src`
-- [ ] 1.6 Remover os imports mortos de `Polygon2d` e `Translation2d` em `robot/RobotContainer.java` e `subsystems/DrivetrainSubsystem.java`; verificar com `grep -n "Polygon2d\|Translation2d"` nesses dois arquivos
-- [ ] 1.7 Rodar `./gradlew :TeamCode:compileDebugJavaWithJavac` e salvar a saída como baseline de erros da migração (contagem de erros por arquivo)
+- [x] 1.1 Confirmar a coordenada Maven do Ivy fazendo um sync de teste com `com.pedropathing:ivy:1.0.0`; se falhar, com `com.pedropathing.ivy:core` + `com.pedropathing.ivy:pedro`; se ainda falhar, clonar `Pedro-Pathing/Ivy`, rodar `./gradlew deployLocal` e usar `mavenLocal()` + `com.pedropathing:ivy:LOCAL` (fallback do RevAmped). Verificar que `com.pedropathing.ivy.Scheduler` e `com.pedropathing.ivy.pedro.PedroCommands` resolvem, e registrar a coordenada correta em `MIGRACAO-IVY.md §2`
+- [x] 1.2 Em `build.dependencies.gradle`, adicionar a dependência confirmada do Ivy e remover `org.ftclib.ftclib:core:2.1.1`; verificar com `./gradlew :TeamCode:dependencies` que o Ivy aparece e a FTCLib não
+- [x] 1.3 Deletar os 6 OpModes `@Disabled` `autos/Auto{Red,Blue}{Front,Rear,Tuff}.java`; verificar que nenhum outro arquivo os referencia (`grep -rn "AutoRedRear\|AutoBlueRear\|AutoRedFront\|AutoBlueFront\|AutoRedTuff\|AutoBlueTuff" TeamCode/src` vazio)
+- [x] 1.4 Deletar os templates não usados `subsystems/templates/{Husky,Climber,Elevator}Subsystem.java`, seus `*Constants.java` e `ElevatorTestOpMode.java`; verificar `grep -rn "HuskySubsystem\|ClimberSubsystem\|ElevatorSubsystem" TeamCode/src` vazio
+- [x] 1.5 Deletar os comandos sem referência `commands/{AimByPose,ChaseArtifact,TeleOpDriveCommandZoneRepulsion}Command.java`, `autos/commands/{AdjustAuto,AutoChaseArtifact}Command.java` e `utils/Polygon2d.java`; verificar que os nomes não aparecem mais em `TeamCode/src`
+- [x] 1.6 Remover os imports mortos de `Polygon2d` e `Translation2d` em `robot/RobotContainer.java` e `subsystems/DrivetrainSubsystem.java`; verificar com `grep -n "Polygon2d\|Translation2d"` nesses dois arquivos
+- [x] 1.7 Rodar `./gradlew :TeamCode:compileDebugJavaWithJavac` e salvar a saída como baseline de erros da migração (contagem de erros por arquivo)
 
 ## 2. Fase 1 — Base de OpMode
 
