@@ -10,8 +10,8 @@
 
 ## 2. Fase 1 — Base de OpMode
 
-- [ ] 2.1 Criar `robot/RobotOpMode.java` (`abstract class RobotOpMode extends OpMode`) com `init()` fazendo `Scheduler.reset()`, telemetria Panels, construção do `Robot` e agendamento de um único `Commands.infinite(robot::update)`; verificar que o arquivo compila isoladamente (erros restantes apenas por `Robot` ainda inexistente)
-- [ ] 2.2 Implementar em `RobotOpMode` os métodos `init_loop()` e `loop()` fazendo `clearBulkCache()` → `Scheduler.execute()` → `telemetryM.update()`, e `stop()` fazendo `Scheduler.reset()`; verificar por leitura que o bulk cache é limpo antes de qualquer leitura de sensor da iteração
+- [x] 2.1 Criar `robot/RobotOpMode.java` (`abstract class RobotOpMode extends OpMode`) com `init()` fazendo `Scheduler.reset()`, telemetria Panels, construção do `Robot` e agendamento de um único `Commands.infinite(robot::update)`; verificar que o arquivo compila isoladamente (erros restantes apenas por `Robot` ainda inexistente)
+- [x] 2.2 Implementar em `RobotOpMode` os métodos `init_loop()` e `loop()` fazendo `Scheduler.execute()` → `telemetryM.update()`, e `stop()` fazendo `Scheduler.reset()`. O `clearBulkCache()` NÃO vai aqui: pela decisão A2 ele é a primeira linha de `Robot.update()` (tarefa 3.7), que roda dentro do `infinite` agendado — assim o cache é limpo exatamente uma vez por iteração e antes de toda leitura de sensor; verificar por leitura que não há limpeza duplicada
 
 ## 3. Fase 2 — Subsistemas
 

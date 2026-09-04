@@ -689,24 +689,30 @@ de borda** e **configuração pré-play num loop de init**. Nenhum dos três usa
   `ElevatorTestOpMode`, 5 comandos sem referência, `utils/Polygon2d.java`).
 - Imports mortos de `Translation2d` / `Polygon2d` e as linhas comentadas do Husky removidas de
   `RobotContainer.java` e `DrivetrainSubsystem.java`.
-- **Baseline de compilação: 100 erros em 25 arquivos**, todos por ausência da FTCLib. Esta é a
+- **Baseline de compilação: 339 erros em 28 arquivos**, todos por ausência da FTCLib. Esta é a
   métrica de progresso das fases seguintes — deve chegar a zero na Fase 6.
+
+  > **Armadilha:** o `javac` trunca em 100 erros por padrão. Para medir o baseline de verdade,
+  > compile com `-Xmaxerrs` elevado, via init script:
+  > `./gradlew -I maxerrs.gradle :TeamCode:compileDebugJavaWithJavac`, com
+  > `allprojects { tasks.withType(JavaCompile).configureEach { options.compilerArgs << "-Xmaxerrs" << "10000" } }`.
 
 | Erros | Arquivo | Erros | Arquivo |
 |---:|---|---:|---|
-| 24 | `RobotContainer.java` | 2 | `DrivetrainSubsystem.java` |
-| 7 | `AlignToAprilTagCommand.java` | 2 | `IntakeSubsystem.java` |
-| 7 | `KinematicAimDriveCommand.java` | 2 | `VisionSubsystem.java` |
-| 6 | `ShootCommand.java` | 2 | `IndexerSubsystem.java` |
-| 5 | `AutonomousCommands.java` | 2 | `LEDSubsystem.java` |
-| 5 | `AutonomousFrontCommands.java` | 2 | `AdjustHoodCommandAuto.java` |
-| 5 | `AutonomousTuffCommand.java` | 2 | `AdjustShooterCommandAuto.java` |
-| 4 | `Autos.java` | 2 | `AlignAndAdjustAutoCommand.java` |
-| 4 | `ShooterSubsystem.java` | 2 | `GoToPoseCommand.java` |
-| 4 | `AutoShootCommand.java` | 2 | `ShootCommandAutonomous.java` |
-| 2 | `ActiveAimCommand.java` | 2 | `AdjustHoodCommand.java` |
-| 2 | `AdjustShooterCommand.java` | 2 | `LedCommand.java` |
-| 1 | `SpinShooterCommand.java` | | |
+| 79 | `RobotContainer.java` | 5 | `ActiveAimCommand.java` |
+| 39 | `Autos.java` | 5 | `AutoShootCommand.java` |
+| 28 | `AutonomousCommands.java` | 5 | `SpinShooterCommand.java` |
+| 26 | `AutonomousFrontCommands.java` | 4 | `AdjustHoodCommandAuto.java` |
+| 26 | `AutonomousTuffCommand.java` | 4 | `AdjustShooterCommandAuto.java` |
+| 18 | `teleop.java` | 4 | `AlignAndAdjustAutoCommand.java` |
+| 13 | `AlignToAprilTagCommand.java` | 4 | `AdjustHoodCommand.java` |
+| 12 | `KinematicAimDriveCommand.java` | 4 | `AdjustShooterCommand.java` |
+| 11 | `ShootCommand.java` | 4 | `UpdatePoseLimelightCommand.java` |
+| 8 | `TeleOpDriveCommand.java` | 3 | `DrivetrainSubsystem.java` |
+| 7 | `ShootCommandAutonomous.java` | 3 | `IntakeSubsystem.java` |
+| 6 | `ShooterSubsystem.java` | 3 | `VisionSubsystem.java` |
+| 6 | `GoToPoseCommand.java` | 3 | `IndexerSubsystem.java` |
+| 6 | `LedCommand.java` | 3 | `LEDSubsystem.java` |
 
 **Nota de ambiente:** o build exige `local.properties` com `sdk.dir` (gitignored) e um JDK 17–21
 — o `jbr` do Android Studio (JDK 21) apontado por `JAVA_HOME` serve; o `jdk-25` que está no
