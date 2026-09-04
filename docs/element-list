@@ -6,3 +6,5 @@ org.firstinspires.ftc.teamcode.commands
 org.firstinspires.ftc.teamcode.pedroPathing
 org.firstinspires.ftc.teamcode.robot
 org.firstinspires.ftc.teamcode.subsystems
+org.firstinspires.ftc.teamcode.subsystems.templates
+org.firstinspires.ftc.teamcode.utils
