@@ -717,3 +717,23 @@ de borda** e **configuração pré-play num loop de init**. Nenhum dos três usa
 **Nota de ambiente:** o build exige `local.properties` com `sdk.dir` (gitignored) e um JDK 17–21
 — o `jbr` do Android Studio (JDK 21) apontado por `JAVA_HOME` serve; o `jdk-25` que está no
 `PATH` não é suportado pelo Gradle 8.9.
+
+### Fase 1 — concluída (2026-09-03)
+
+`robot/RobotOpMode.java` criado. Único desvio: o `clearBulkCache()` **não** fica no `loop()` do
+OpMode (como a tarefa 2.2 dizia), e sim na primeira linha de `Robot.update()` — pela decisão A2
+isso garante uma limpeza por iteração, antes de toda leitura, sem duplicar. A tarefa foi
+corrigida.
+
+### Fase 2 — concluída (2026-09-03)
+
+Os 6 subsistemas perderam `extends SubsystemBase`; `periodic()` virou `void update()`.
+`robot/Robot.java` criado com a fiação e o laço único. `LedCommand` absorvido por
+`LEDSubsystem.update()` (o subsistema agora recebe o `IndexerSubsystem` no construtor) e o
+arquivo foi deletado. `IntakeSubsystem` ganhou fábricas `Command` (`runCommand`, `stopCommand`,
+`reverseCommand`, `runTriggerCommand`) que reservam os motores, não o subsistema — assim o laço
+contínuo, que não reserva nada, segue rodando em paralelo.
+
+**Erros: 339 → 317, em 28 → 22 arquivos.** `Robot.java` e `RobotOpMode.java` compilam limpos.
+Os 3 erros restantes em `ShooterSubsystem` são o `PIDFController` da FTCLib, adiado para a
+Fase 6 conforme a tarefa 3.4.

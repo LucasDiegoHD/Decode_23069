@@ -1,7 +1,8 @@
 package org.firstinspires.ftc.teamcode.subsystems;
 
-import com.arcrobotics.ftclib.command.SubsystemBase;
 import com.bylazar.telemetry.TelemetryManager;
+import com.pedropathing.ivy.Command;
+import com.pedropathing.ivy.commands.Commands;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
@@ -15,7 +16,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit;
  * It includes a motor for collecting game pieces and a trigger motor.
  */
 //@AutoLog
-public class IntakeSubsystem extends SubsystemBase {
+public class IntakeSubsystem {
     private final DcMotorEx intakeMotor;
     private final DcMotor triggerMotor;
     private final TelemetryManager telemetry;
@@ -35,8 +36,31 @@ public class IntakeSubsystem extends SubsystemBase {
         this.telemetry = telemetry;
     }
 
-    @Override
-    public void periodic() {
+    public void update() {
+    }
+
+    // --- Fabricas de comando ---------------------------------------------------------------
+    // Reservam os motores (nao o subsistema) para que o laco continuo do robo, que nao reserva
+    // nada, siga rodando em paralelo.
+
+    /** Liga o intake. */
+    public Command runCommand() {
+        return Commands.instant(this::run).requiring(intakeMotor);
+    }
+
+    /** Para intake e gatilho. */
+    public Command stopCommand() {
+        return Commands.instant(this::stop).requiring(intakeMotor, triggerMotor);
+    }
+
+    /** Reverte o intake acionando o gatilho ao contrario. */
+    public Command reverseCommand() {
+        return Commands.instant(this::reverse).requiring(intakeMotor, triggerMotor);
+    }
+
+    /** Aciona o motor de gatilho. */
+    public Command runTriggerCommand() {
+        return Commands.instant(this::runTrigger).requiring(intakeMotor, triggerMotor);
     }
 
     private void setIntakePower(double targetPower) {

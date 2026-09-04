@@ -1,6 +1,5 @@
 package org.firstinspires.ftc.teamcode.subsystems.templates;
 
-import com.arcrobotics.ftclib.command.SubsystemBase;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.PwmControl;
 import com.qualcomm.robotcore.hardware.ServoImplEx;
@@ -24,10 +23,12 @@ import com.qualcomm.robotcore.hardware.ServoImplEx;
  * @author LucasDiegoHD - Team #23069
  * @version 1.0
  */
-public class LEDSubsystem extends SubsystemBase {
+public class LEDSubsystem {
 
     private final ServoImplEx led;
+    private final IndexerSubsystem indexer;
     private double targetPosition = 0.0;
+    private int lastBolas = -1;
 
     /** Preset PWM position for solid RED color indicator. */
     public static final double RED = 0.277;
@@ -55,8 +56,10 @@ public class LEDSubsystem extends SubsystemBase {
      * and sets initial state to RED.
      *
      * @param hardwareMap Robot hardware map for device retrieval.
+     * @param indexer Indexer consultado para derivar a cor a partir da contagem de pecas.
      */
-    public LEDSubsystem(HardwareMap hardwareMap) {
+    public LEDSubsystem(HardwareMap hardwareMap, IndexerSubsystem indexer) {
+        this.indexer = indexer;
         led = hardwareMap.get(ServoImplEx.class, "led_indicator");
         led.setPwmRange(new PwmControl.PwmRange(500, 2500));
         this.targetPosition = RED;
@@ -72,10 +75,27 @@ public class LEDSubsystem extends SubsystemBase {
     }
 
     /**
-     * Periodic routine. Continuously transmits the active pattern position to the LED servo controller.
+     * Rotina continua. Mapeia a contagem de pecas do indexer para a cor e transmite a posicao
+     * ativa ao controlador. Absorve o antigo {@code LedCommand}: a cor so e recalculada quando a
+     * contagem muda, para nao reescrever a posicao a cada loop sem necessidade.
      */
-    @Override
-    public void periodic() {
+    public void update() {
+        int bolas = indexer.getPieceCount();
+
+        if (bolas != lastBolas) {
+            if (bolas == 0) {
+                setPattern(OFF);
+            } else if (bolas == 1) {
+                setPattern(BLUE);
+            } else if (bolas == 2) {
+                setPattern(ORANGE);
+            } else if (bolas >= 3) {
+                setPattern(GREEN);
+            }
+
+            lastBolas = bolas;
+        }
+
         led.setPosition(targetPosition);
     }
 }

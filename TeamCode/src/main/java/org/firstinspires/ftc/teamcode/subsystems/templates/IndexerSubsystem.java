@@ -1,6 +1,5 @@
 package org.firstinspires.ftc.teamcode.subsystems.templates;
 
-import com.arcrobotics.ftclib.command.SubsystemBase;
 import com.bylazar.telemetry.TelemetryManager;
 import com.qualcomm.hardware.rev.RevColorSensorV3;
 import com.qualcomm.robotcore.hardware.DistanceSensor;
@@ -35,7 +34,7 @@ import org.firstinspires.ftc.teamcode.utils.DataStorage;
  * @author LucasDiegoHD - Team #23069
  * @version 1.0
  */
-public class IndexerSubsystem extends SubsystemBase {
+public class IndexerSubsystem {
 
     private final TelemetryManager telemetry;
 
@@ -92,8 +91,7 @@ public class IndexerSubsystem extends SubsystemBase {
      * Periodic sensor polling and piece count estimation loop.
      * Executes staggered I2C sensor reads, runs the debounce filtering machine, and publishes debug telemetry.
      */
-    @Override
-    public void periodic() {
+    public void update() {
         long tempoInicio = System.currentTimeMillis();
 
         // Initial warm-up delay before enabling debounce transitions

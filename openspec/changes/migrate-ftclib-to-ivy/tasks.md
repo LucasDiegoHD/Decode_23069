@@ -15,19 +15,19 @@
 
 ## 3. Fase 2 — Subsistemas
 
-- [ ] 3.1 Migrar `subsystems/DrivetrainSubsystem.java`: remover `extends SubsystemBase`, converter `periodic()` em `void update()`, manter `follower.update()`, `Drawing.*`, telemetria e todos os métodos públicos; verificar que a classe compila e que `getFollower()`, `isRobotStopped()`, `driveRobotCentric()`, `stop()`, `restorePoseFromStorage()`, `getVoltage()` seguem presentes
-- [ ] 3.2 Migrar `subsystems/IntakeSubsystem.java` no mesmo padrão e adicionar fábricas `Command` para ligar, parar, reverter e acionar o gatilho; verificar compilação e que cada fábrica reserva o motor correspondente
-- [ ] 3.3 Migrar `subsystems/VisionSubsystem.java` no mesmo padrão, preservando as assinaturas de `getRobotPoseMT1/MT2`, `getTargetTx`, `hasTarget`, `getDirectDistanceToTarget`; verificar compilação
-- [ ] 3.4 Migrar `subsystems/templates/ShooterSubsystem.java` no mesmo padrão, mantendo o `PIDFController` da FTCLib por ora (trocado na Fase 7); verificar compilação e que `isReady()`, `getShooterAtTarget()`, `adjustRpmOffset()`, `resetRpmOffset()`, `stop()` seguem presentes
-- [ ] 3.5 Migrar `subsystems/templates/IndexerSubsystem.java` no mesmo padrão, preservando a contagem de peças por 3 sensores e o limite de capacidade; verificar compilação
-- [ ] 3.6 Migrar `subsystems/templates/LEDSubsystem.java` no mesmo padrão, absorvendo o corpo do antigo `LedCommand` (contagem de peças → cor) em `led.update()`; verificar compilação
-- [ ] 3.7 Criar `robot/Robot.java` com os 6 subsistemas `public final`, construtor `(HardwareMap, TelemetryManager)`, bulk caching manual nos hubs, `clearBulkCache()` e `update()` chamando `clearBulkCache()` e então `drivetrain`, `vision`, `indexer`, `shooter`, `intake`, `led` nessa ordem; verificar que `RobotOpMode` (2.1) passa a compilar contra ele e que o bulk cache é limpo antes de qualquer leitura de sensor do ciclo
+- [x] 3.1 Migrar `subsystems/DrivetrainSubsystem.java`: remover `extends SubsystemBase`, converter `periodic()` em `void update()`, manter `follower.update()`, `Drawing.*`, telemetria e todos os métodos públicos; verificar que a classe compila e que `getFollower()`, `isRobotStopped()`, `driveRobotCentric()`, `stop()`, `restorePoseFromStorage()`, `getVoltage()` seguem presentes
+- [x] 3.2 Migrar `subsystems/IntakeSubsystem.java` no mesmo padrão e adicionar fábricas `Command` para ligar, parar, reverter e acionar o gatilho; verificar compilação e que cada fábrica reserva o motor correspondente
+- [x] 3.3 Migrar `subsystems/VisionSubsystem.java` no mesmo padrão, preservando as assinaturas de `getRobotPoseMT1/MT2`, `getTargetTx`, `hasTarget`, `getDirectDistanceToTarget`; verificar compilação
+- [x] 3.4 Migrar `subsystems/templates/ShooterSubsystem.java` no mesmo padrão, mantendo o `PIDFController` da FTCLib por ora (trocado na Fase 7); verificar compilação e que `isReady()`, `getShooterAtTarget()`, `adjustRpmOffset()`, `resetRpmOffset()`, `stop()` seguem presentes
+- [x] 3.5 Migrar `subsystems/templates/IndexerSubsystem.java` no mesmo padrão, preservando a contagem de peças por 3 sensores e o limite de capacidade; verificar compilação
+- [x] 3.6 Migrar `subsystems/templates/LEDSubsystem.java` no mesmo padrão, absorvendo o corpo do antigo `LedCommand` (contagem de peças → cor) em `led.update()`; verificar compilação
+- [x] 3.7 Criar `robot/Robot.java` com os 6 subsistemas `public final`, construtor `(HardwareMap, TelemetryManager)`, bulk caching manual nos hubs, `clearBulkCache()` e `update()` chamando `clearBulkCache()` e então `drivetrain`, `vision`, `indexer`, `shooter`, `intake`, `led` nessa ordem; verificar que `RobotOpMode` (2.1) passa a compilar contra ele e que o bulk cache é limpo antes de qualquer leitura de sensor do ciclo
 
 ## 4. Fase 3 — Comandos
 
 - [ ] 4.1 Converter `commands/TeleOpDriveCommand.java` em fábrica `static Command` `infinite` lendo `Gamepad` do SDK, com `.requiring(drivetrain).setPriority(0).setInterruptedBehavior(SUSPEND)`; verificar que a lógica de slew, trava de rumo e escala por tensão foi preservada linha a linha
 - [ ] 4.2 Converter `commands/ActiveAimCommand.java` em fábrica `infinite` com `.requiring(shooter).setPriority(0).setInterruptedBehavior(SUSPEND)`, com o estado mutável capturado em objeto `final` local ou via Class API; verificar compilação e que a compensação de tempo de voo e movimento lateral foi preservada
-- [ ] 4.3 Deletar `commands/LedCommand.java` (absorvido por `led.update()` na tarefa 3.6); verificar que o mapeamento contagem→cor sobreviveu idêntico e que nada mais referencia a classe
+- [x] 4.3 Deletar `commands/LedCommand.java` (absorvido por `led.update()` na tarefa 3.6); verificar que o mapeamento contagem→cor sobreviveu idêntico e que nada mais referencia a classe
 - [ ] 4.4 Converter `commands/AlignToAprilTagCommand.java` em fábrica com `.requiring(drivetrain).setPriority(1)`, expondo uma forma de o `Robot` saber que está ativo (flag em `setStart`/`setEnd`); verificar compilação e preservação da condição de término (setpoint ou 20 loops sem alvo)
 - [ ] 4.5 Converter `commands/KinematicAimDriveCommand.java` em fábrica com `.requiring(drivetrain).setPriority(1)`; verificar compilação e preservação da predição de movimento
 - [ ] 4.6 Unificar `commands/ShootCommand.java` e `autos/commands/ShootCommandAutonomous.java` numa fábrica única `shoot(shooter, indexer, intake, IntSupplier n)` com `.requiring(shooter, indexer)`; verificar que os 5 estados da máquina de tiro e seus tempos são idênticos aos atuais

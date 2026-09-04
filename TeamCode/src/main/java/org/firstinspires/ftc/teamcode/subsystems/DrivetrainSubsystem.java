@@ -1,6 +1,5 @@
 package org.firstinspires.ftc.teamcode.subsystems;
 
-import com.arcrobotics.ftclib.command.SubsystemBase;
 import com.bylazar.field.FieldManager;
 import com.bylazar.field.PanelsField;
 import com.bylazar.field.Style;
@@ -24,7 +23,7 @@ import org.slf4j.LoggerFactory;
  * The DrivetrainSubsystem is responsible for the robot's movement and path following.
  * It uses the Pedro Pathing library to control the robot's motion and provides telemetry and visualization.
  */
-public class DrivetrainSubsystem extends SubsystemBase {
+public class DrivetrainSubsystem {
     private static final Logger log = LoggerFactory.getLogger(DrivetrainSubsystem.class);
     private final Follower follower;
     private final TelemetryManager telemetry;
@@ -67,7 +66,7 @@ public class DrivetrainSubsystem extends SubsystemBase {
     public void driveRobotCentric(double strafe, double forward, double turn) {
         follower.setTeleOpDrive(forward, strafe, turn, true);
         // CORRIGIDO: follower.update() removido daqui.
-        // Ele já roda no periodic() — chamá-lo aqui causava double update todo loop.
+        // Ele ja roda no update() - chama-lo aqui causava double update todo loop.
     }
 
     public boolean isRobotStopped() {
@@ -109,8 +108,7 @@ public class DrivetrainSubsystem extends SubsystemBase {
     /**
      * Called periodically to update the subsystem's state.
      */
-    @Override
-    public void periodic() {
+    public void update() {
         follower.update();
         DataStorage.actualPose = follower.getPose();
         if (DataStorage.DEBUG_MODE){telemetry.addData("Robot pose", follower.getPose());}

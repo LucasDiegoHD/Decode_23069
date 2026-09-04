@@ -1,6 +1,5 @@
 package org.firstinspires.ftc.teamcode.subsystems;
 
-import com.arcrobotics.ftclib.command.SubsystemBase;
 import com.bylazar.telemetry.TelemetryManager;
 import com.pedropathing.ftc.FTCCoordinates;
 import com.pedropathing.geometry.Pose;
@@ -10,7 +9,7 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
 import java.util.Optional;
 
-public class VisionSubsystem extends SubsystemBase {
+public class VisionSubsystem {
     private final Limelight3A limelight;
     private LLResult latestResult;
     private final TelemetryManager telemetry;
@@ -23,8 +22,7 @@ public class VisionSubsystem extends SubsystemBase {
         limelight.pipelineSwitch(0);
     }
 
-    @Override
-    public void periodic() {latestResult = limelight.getLatestResult();}
+    public void update() {latestResult = limelight.getLatestResult();}
 
     public Optional<Pose> getRobotPoseMT1() {
         if (!hasTarget()) return Optional.empty();

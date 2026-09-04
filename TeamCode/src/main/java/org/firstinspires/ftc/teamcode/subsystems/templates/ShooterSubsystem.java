@@ -1,6 +1,5 @@
 package org.firstinspires.ftc.teamcode.subsystems.templates;
 
-import com.arcrobotics.ftclib.command.SubsystemBase;
 import com.arcrobotics.ftclib.controller.PIDFController;
 import com.bylazar.telemetry.TelemetryManager;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
@@ -41,7 +40,7 @@ import org.firstinspires.ftc.teamcode.utils.DataStorage;
  * @author LucasDiegoHD - Team #23069
  * @version 1.0
  */
-public class ShooterSubsystem extends SubsystemBase {
+public class ShooterSubsystem {
 
     private final DcMotorEx rShooterMotor, lShooterMotor;
     private final VoltageSensor voltageSensor;
@@ -245,8 +244,7 @@ public class ShooterSubsystem extends SubsystemBase {
      * Periodic closed-loop control loop. Calculates feedforward, PIDF feedback, voltage compensation,
      * dynamic hood angle trimming, and publishes telemetry.
      */
-    @Override
-    public void periodic() {
+    public void update() {
         double currentRPM = getCurrentRPM();
         double rpmError = targetRPM - currentRPM;
 
