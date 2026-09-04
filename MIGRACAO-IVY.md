@@ -798,3 +798,19 @@ Detalhe de paridade: `GamepadEx.getLeftY()` da FTCLib **inverte** o eixo Y do SD
 usam `-gamepad.left_stick_y` para manter a direção da condução.
 
 **Erros: 249 → 153, em 7 → 5 arquivos.** `teleop`, `Robot` e `RobotOpMode` compilam limpos.
+
+### Fase 5 — concluída (2026-09-03)
+
+As três `SequentialCommandGroup` viraram `autos/AutoRoutines.java`, com fábricas `static`
+`rearNormal` / `front` / `rearNoGate`. A tradução é 1:1: `addCommands(...)` →
+`Groups.sequential`, `ParallelCommandGroup` → `Groups.parallel`, `.withTimeout(t)` →
+`.raceWith(Commands.waitMs(t))` (extraído num helper `withTimeout`). O parâmetro `LEDSubsystem`
+foi removido — nenhuma das três o usava.
+
+`Autos.java` reescrito sobre `RobotOpMode`. O laço bloqueante de configuração que vivia no
+`initialize()` virou máquina de estado no `init_loop()`, com a flag `isConfigured`. Como a base
+é iterativa, o escalonador segue avançando durante a espera pelo play e a odometria assenta
+sozinha — sem precisar do laço manual de `CommandScheduler.run()` que o código antigo tinha.
+A rotina é agendada só no `start()`.
+
+**Erros: 153 → 3, em 5 → 1 arquivo.**

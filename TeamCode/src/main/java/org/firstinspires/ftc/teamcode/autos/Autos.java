@@ -1,12 +1,7 @@
 package org.firstinspires.ftc.teamcode.autos;
 
-import com.arcrobotics.ftclib.command.Command;
-import com.arcrobotics.ftclib.command.CommandOpMode;
-import com.arcrobotics.ftclib.command.CommandScheduler;
-import com.bylazar.configurables.annotations.IgnoreConfigurable;
-import com.bylazar.telemetry.PanelsTelemetry;
-import com.bylazar.telemetry.TelemetryManager;
 import com.pedropathing.geometry.Pose;
+import com.pedropathing.ivy.Command;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 
 import org.firstinspires.ftc.teamcode.autos.paths.BlueFrontPoses;
@@ -14,121 +9,120 @@ import org.firstinspires.ftc.teamcode.autos.paths.BlueRearPoses;
 import org.firstinspires.ftc.teamcode.autos.paths.PosesNames;
 import org.firstinspires.ftc.teamcode.autos.paths.RedFrontPoses;
 import org.firstinspires.ftc.teamcode.autos.paths.RedRearPoses;
-import org.firstinspires.ftc.teamcode.robot.RobotContainer;
+import org.firstinspires.ftc.teamcode.robot.RobotOpMode;
 import org.firstinspires.ftc.teamcode.utils.AllianceEnum;
 import org.firstinspires.ftc.teamcode.utils.DataStorage;
 
+/**
+ * Seletor de autônomo: aliança e estratégia escolhidas antes do play.
+ *
+ * <p>A configuração roda no {@link #init_loop()}, não num laço bloqueante: a base
+ * {@link RobotOpMode} é iterativa, então o escalonador segue avançando durante a espera e a
+ * odometria assenta antes do play. Nada é agendado até o {@link #start()}.
+ */
 @Autonomous(name = "⭐️ Autônomo Geral (Seletor)", group = "Competição")
-public class Autos extends CommandOpMode {
+public class Autos extends RobotOpMode {
 
-    @IgnoreConfigurable
-    static TelemetryManager telemetryM;
     enum Strategy { FRONT, REAR_NORMAL, REAR_NO_GATE }
 
-    AllianceEnum selectedAlliance = AllianceEnum.Red;
-    Strategy selectedStrategy = Strategy.REAR_NORMAL;
+    private AllianceEnum selectedAlliance = AllianceEnum.Red;
+    private Strategy selectedStrategy = Strategy.REAR_NORMAL;
+    private boolean isConfigured = false;
 
-    boolean isConfigured = false;
-
-    boolean xAnt = false, bAnt = false;
-    boolean upAnt = false, downAnt = false, rightAnt = false, leftAnt = false;
-    private RobotContainer robot;
+    private Command autonomousCommand;
 
     @Override
-    public void initialize() {
-        CommandScheduler.getInstance().reset();
-        telemetryM = PanelsTelemetry.INSTANCE.getTelemetry();
-
-        while (!isStarted() && !isStopRequested() && !isConfigured) {
-
-            if (gamepad2.x && !xAnt) selectedAlliance = AllianceEnum.Blue;
-            if (gamepad2.b && !bAnt) selectedAlliance = AllianceEnum.Red;
-
-            if (gamepad2.dpad_up && !upAnt) selectedStrategy = Strategy.FRONT;
-            if (gamepad2.dpad_down && !downAnt) selectedStrategy = Strategy.REAR_NORMAL;
-            if (gamepad2.dpad_right && !rightAnt) selectedStrategy = Strategy.REAR_NO_GATE;
-            if (gamepad2.dpad_left && !leftAnt) selectedStrategy = Strategy.REAR_NORMAL;
-
-            if (gamepad2.a) {
-                isConfigured = true;
-            }
-
-            xAnt = gamepad2.x; bAnt = gamepad2.b;
-            upAnt = gamepad2.dpad_up; downAnt = gamepad2.dpad_down;
-            rightAnt = gamepad2.dpad_right; leftAnt = gamepad2.dpad_left;
-
-            telemetry.addData("=== CONFIGURAÇÃO DO AUTÔNOMO ===", "");
-            telemetry.addData("Aliança [X / B]", selectedAlliance == AllianceEnum.Red ? "🔴 VERMELHA" : "🔵 AZUL");
-            String stratText = "";
-            if (selectedStrategy == Strategy.FRONT) stratText = "🔼 FRENTE (Triângulo Grande)";
-            else if (selectedStrategy == Strategy.REAR_NORMAL) stratText = "🔽/◀️ TRÁS (Com Gate / Padrão)";
-            else if (selectedStrategy == Strategy.REAR_NO_GATE) stratText = "▶️ TRÁS (Sem Gate / 15 Artefatos)";
-
-            telemetry.addData("Posição [Setas D-PAD]", stratText);
-            telemetry.addData("--------------------------------", "");
-            telemetry.addData(">> APERTE 'A' PARA CONFIRMAR <<", "");
-            telemetry.update();
+    public void init_loop() {
+        if (!isConfigured) {
+            readConfiguration();
+            showConfiguration();
         }
 
-        if (isStopRequested()) return;
+        super.init_loop();
+    }
 
-        telemetry.addData("Status", "⏳ Carregando Hardware... Não mexa no robô!");
-        telemetry.update();
+    /** Lê o gamepad2 e atualiza a seleção. `A` confirma e prepara a rotina. */
+    private void readConfiguration() {
+        if (gamepad2.xWasPressed()) selectedAlliance = AllianceEnum.Blue;
+        if (gamepad2.bWasPressed()) selectedAlliance = AllianceEnum.Red;
 
-        DataStorage.alliance = selectedAlliance;
-        robot = new RobotContainer(hardwareMap, telemetryM, null, null, selectedAlliance);
+        if (gamepad2.dpadUpWasPressed()) selectedStrategy = Strategy.FRONT;
+        if (gamepad2.dpadDownWasPressed()) selectedStrategy = Strategy.REAR_NORMAL;
+        if (gamepad2.dpadLeftWasPressed()) selectedStrategy = Strategy.REAR_NORMAL;
+        if (gamepad2.dpadRightWasPressed()) selectedStrategy = Strategy.REAR_NO_GATE;
 
-        Command autonomousCommand = null;
-        Pose startPose = null;
-
-        if (selectedAlliance == AllianceEnum.Red) {
-            if (selectedStrategy == Strategy.FRONT) {
-                autonomousCommand = robot.getAutonomousRedFrontCommand();
-                startPose = RedFrontPoses.getPose(PosesNames.StartPose);
-            } else if (selectedStrategy == Strategy.REAR_NORMAL) {
-                autonomousCommand = robot.getAutonomousRedRearCommand();
-                startPose = RedRearPoses.getPose(PosesNames.StartPose);
-            } else if (selectedStrategy == Strategy.REAR_NO_GATE) {
-                autonomousCommand = robot.getAutonomousRedTuffCommand();
-                startPose = RedRearPoses.getPose(PosesNames.StartPose);
-            }
-        } else {
-            if (selectedStrategy == Strategy.FRONT) {
-                autonomousCommand = robot.getAutonomousBlueFrontCommand();
-                startPose = BlueFrontPoses.getPose(PosesNames.StartPose);
-            } else if (selectedStrategy == Strategy.REAR_NORMAL) {
-                autonomousCommand = robot.getAutonomousBlueRearCommand();
-                startPose = BlueRearPoses.getPose(PosesNames.StartPose);
-            } else if (selectedStrategy == Strategy.REAR_NO_GATE) {
-                autonomousCommand = robot.getAutonomousBlueTuffCommand();
-                startPose = BlueRearPoses.getPose(PosesNames.StartPose);
-            }
-        }
-
-        if (startPose != null) {
-            robot.setAutoStartPose(startPose);
-        }
-        while (!isStarted() && !isStopRequested()) {
-            CommandScheduler.getInstance().run();
-
-            telemetry.addData("Status", "✅ Pinpoint Rastreando! PRONTO! PODE DAR O PLAY ▶️");
-            telemetry.update();
-        }
-
-        if (autonomousCommand != null) {
-            schedule(autonomousCommand);
+        if (gamepad2.a) {
+            isConfigured = true;
+            prepareRoutine();
         }
     }
 
-    @Override
-    public void run() {
-        if (robot != null) {
-            robot.clearBulkCache();
-        }
-        super.run();
+    private void showConfiguration() {
+        telemetry.addData("=== CONFIGURAÇÃO DO AUTÔNOMO ===", "");
+        telemetry.addData("Aliança [X / B]",
+                selectedAlliance == AllianceEnum.Red ? "🔴 VERMELHA" : "🔵 AZUL");
 
-        if (telemetryM != null) {
-            telemetryM.update();
+        String stratText = "";
+        if (selectedStrategy == Strategy.FRONT) stratText = "🔼 FRENTE (Triângulo Grande)";
+        else if (selectedStrategy == Strategy.REAR_NORMAL) stratText = "🔽/◀️ TRÁS (Com Gate / Padrão)";
+        else if (selectedStrategy == Strategy.REAR_NO_GATE) stratText = "▶️ TRÁS (Sem Gate / 15 Artefatos)";
+
+        telemetry.addData("Posição [Setas D-PAD]", stratText);
+        telemetry.addData("--------------------------------", "");
+        telemetry.addData(">> APERTE 'A' PARA CONFIRMAR <<", "");
+        telemetry.update();
+    }
+
+    /** Escolhe rotina e pose inicial pela combinação aliança × estratégia. */
+    private void prepareRoutine() {
+        DataStorage.alliance = selectedAlliance;
+
+        Pose startPose;
+
+        if (selectedAlliance == AllianceEnum.Red) {
+            switch (selectedStrategy) {
+                case FRONT:
+                    autonomousCommand = AutoRoutines.front(robot, RedFrontPoses.asList());
+                    startPose = RedFrontPoses.getPose(PosesNames.StartPose);
+                    break;
+                case REAR_NO_GATE:
+                    autonomousCommand = AutoRoutines.rearNoGate(robot, RedRearPoses.asList());
+                    startPose = RedRearPoses.getPose(PosesNames.StartPose);
+                    break;
+                case REAR_NORMAL:
+                default:
+                    autonomousCommand = AutoRoutines.rearNormal(robot, RedRearPoses.asList());
+                    startPose = RedRearPoses.getPose(PosesNames.StartPose);
+                    break;
+            }
+        } else {
+            switch (selectedStrategy) {
+                case FRONT:
+                    autonomousCommand = AutoRoutines.front(robot, BlueFrontPoses.asList());
+                    startPose = BlueFrontPoses.getPose(PosesNames.StartPose);
+                    break;
+                case REAR_NO_GATE:
+                    autonomousCommand = AutoRoutines.rearNoGate(robot, BlueRearPoses.asList());
+                    startPose = BlueRearPoses.getPose(PosesNames.StartPose);
+                    break;
+                case REAR_NORMAL:
+                default:
+                    autonomousCommand = AutoRoutines.rearNormal(robot, BlueRearPoses.asList());
+                    startPose = BlueRearPoses.getPose(PosesNames.StartPose);
+                    break;
+            }
+        }
+
+        robot.setAutoStartPose(startPose);
+
+        telemetry.addData("Status", "✅ Pinpoint Rastreando! PRONTO! PODE DAR O PLAY ▶️");
+        telemetry.update();
+    }
+
+    @Override
+    public void start() {
+        if (autonomousCommand != null) {
+            autonomousCommand.schedule();
         }
     }
 }

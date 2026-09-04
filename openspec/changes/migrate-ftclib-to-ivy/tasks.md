@@ -50,10 +50,10 @@
 
 ## 6. Fase 5 — Autônomo
 
-- [ ] 6.1 Converter `AutonomousCommands`, `AutonomousFrontCommands` e `AutonomousTuffCommand` em fábricas `static` (`AutoRoutines.rearNormal/front/rearNoGate(Robot, List<Pose>)`) usando `Groups.sequential`/`Groups.parallel`, traduzindo `withTimeout(t)` para `.raceWith(Commands.waitMs(t))` e removendo o parâmetro `led` não usado; verificar passo a passo que a ordem de comandos é idêntica às versões atuais
-- [ ] 6.2 Reescrever `autos/Autos.java` como `extends RobotOpMode`, movendo o loop de configuração pré-play de `initialize()` para `init_loop()` como máquina de estado com flag `isConfigured` e edge-helpers do `gamepad2`; verificar compilação
-- [ ] 6.3 Implementar no `Autos` a seleção de rotina e pose inicial por aliança × estratégia, `robot.setAutoStartPose(startPose)` e persistência de `DataStorage.alliance`; verificar contra `specs/autonomous-selector/spec.md` que as 6 combinações mapeiam para a rotina e a lista de poses corretas
-- [ ] 6.4 Agendar a rotina escolhida no `start()` do `Autos`, mantendo o `Scheduler.execute()` rodando durante o pré-play para a odometria assentar; verificar por leitura que nada é agendado antes do `play`
+- [x] 6.1 Converter `AutonomousCommands`, `AutonomousFrontCommands` e `AutonomousTuffCommand` em fábricas `static` (`AutoRoutines.rearNormal/front/rearNoGate(Robot, List<Pose>)`) usando `Groups.sequential`/`Groups.parallel`, traduzindo `withTimeout(t)` para `.raceWith(Commands.waitMs(t))` e removendo o parâmetro `led` não usado; verificar passo a passo que a ordem de comandos é idêntica às versões atuais
+- [x] 6.2 Reescrever `autos/Autos.java` como `extends RobotOpMode`, movendo o loop de configuração pré-play de `initialize()` para `init_loop()` como máquina de estado com flag `isConfigured` e edge-helpers do `gamepad2`; verificar compilação
+- [x] 6.3 Implementar no `Autos` a seleção de rotina e pose inicial por aliança × estratégia, `robot.setAutoStartPose(startPose)` e persistência de `DataStorage.alliance`; verificar contra `specs/autonomous-selector/spec.md` que as 6 combinações mapeiam para a rotina e a lista de poses corretas
+- [x] 6.4 Agendar a rotina escolhida no `start()` do `Autos`, mantendo o `Scheduler.execute()` rodando durante o pré-play para a odometria assentar; verificar por leitura que nada é agendado antes do `play`
 
 ## 7. Fase 6 — Controladores
 
