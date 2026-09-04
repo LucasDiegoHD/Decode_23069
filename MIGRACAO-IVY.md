@@ -776,3 +776,25 @@ a partir da pose real do robô naquele instante.
 **Erros: 317 → 249, em 22 → 7 arquivos.** Os 7 restantes são exatamente o escopo das fases
 seguintes: `RobotContainer` e `teleop` (Fase 4), `Autos` e as três `Autonomous*` (Fase 5),
 `ShooterSubsystem` (Fase 6).
+
+### Fase 4 — concluída (2026-09-03)
+
+`RobotContainer.java` deletado. A fiação já estava em `Robot.java` (Fase 2); o que restava —
+pose inicial do teleop, `setAutoStartPose`, `tryRelocalizeLimelight`, `hasLimelightFix`,
+`updateRobotPose`, `printLoopTime` e a flag `shooterAutoAdjust` — foi para lá.
+
+**D7 resolvida.** `Robot.isShooting()` lê `AlignToAprilTagCommand.isAligning()`, uma flag
+`volatile` que o comando de alinhamento mantém no `setStart`/`setEnd`. Substitui o
+`drivetrain.getCurrentCommand() instanceof AlignToAprilTagCommand`, que não tem equivalente no
+Ivy.
+
+`teleop.java` reescrito sobre `RobotOpMode`. Os comandos contínuos (condução e mira) e o laço de
+relocalização são agendados no `start()`; os bindings viraram polling no `loop()` com os
+edge-helpers do SDK, sem `GamepadEx`. Os comandos "de segurar" são construídos uma vez no
+`start()` e guardados em campo, porque `schedule()` no aperto e `cancel()` no soltar precisam
+referenciar a mesma instância.
+
+Detalhe de paridade: `GamepadEx.getLeftY()` da FTCLib **inverte** o eixo Y do SDK. As conversões
+usam `-gamepad.left_stick_y` para manter a direção da condução.
+
+**Erros: 249 → 153, em 7 → 5 arquivos.** `teleop`, `Robot` e `RobotOpMode` compilam limpos.

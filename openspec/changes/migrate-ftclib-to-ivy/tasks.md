@@ -39,14 +39,14 @@
 
 ## 5. Fase 4 — Robot e teleop
 
-- [ ] 5.1 Completar `robot/Robot.java` (criado em 3.7) com o que resta do antigo `RobotContainer`: poses de início, helpers de Limelight e o campo de auto-ajuste; verificar compilação
-- [ ] 5.2 Mover para `Robot` o campo `shooterAutoAdjust`, a lógica de pose inicial (`DataStorage.actualPose` → `PoseStorage` → pose padrão da aliança), `setAutoStartPose`, `tryRelocalizeLimelight`, `hasLimelightFix` e `updateRobotPose`; verificar compilação
-- [ ] 5.3 Implementar `Robot.isShooting()` sem `getCurrentCommand()` (flag do comando de align ou `Scheduler.isRunning`); verificar por leitura que o laço de resync o consulta corretamente
-- [ ] 5.4 Reescrever `teleop.java` como `extends RobotOpMode`, agendando no `start()` os contínuos de condução e auto-mira e o laço de resync via `Groups.loop(Groups.sequential(waitMs(1000), conditional(...)))`; verificar compilação
-- [ ] 5.5 Implementar no `loop()` do teleop os bindings do piloto (Y, X, START, LB, RB) por polling com `gamepad1.*WasPressed()/WasReleased()`; verificar contra a tabela em `specs/teleop-control/spec.md` que cada botão tem o efeito especificado
-- [ ] 5.6 Implementar no `loop()` do teleop os bindings do operador (RB, LB, A, X, D-PAD ▲▼◀▶, botão do analógico esquerdo); verificar contra a tabela em `specs/teleop-control/spec.md`
-- [ ] 5.7 Preservar no `loop()` do teleop a telemetria de tempo de loop sob `DataStorage.DEBUG_MODE`; verificar que os mesmos campos de antes são publicados
-- [ ] 5.8 Deletar `robot/RobotContainer.java`; verificar `grep -rn "RobotContainer" TeamCode/src` vazio
+- [x] 5.1 Completar `robot/Robot.java` (criado em 3.7) com o que resta do antigo `RobotContainer`: poses de início, helpers de Limelight e o campo de auto-ajuste; verificar compilação
+- [x] 5.2 Mover para `Robot` o campo `shooterAutoAdjust`, a lógica de pose inicial (`DataStorage.actualPose` → `PoseStorage` → pose padrão da aliança), `setAutoStartPose`, `tryRelocalizeLimelight`, `hasLimelightFix` e `updateRobotPose`; verificar compilação
+- [x] 5.3 Implementar `Robot.isShooting()` sem `getCurrentCommand()` (flag do comando de align ou `Scheduler.isRunning`); verificar por leitura que o laço de resync o consulta corretamente
+- [x] 5.4 Reescrever `teleop.java` como `extends RobotOpMode`, agendando no `start()` os contínuos de condução e auto-mira e o laço de resync via `Groups.loop(Groups.sequential(waitMs(1000), conditional(...)))`; verificar compilação
+- [x] 5.5 Implementar no `loop()` do teleop os bindings do piloto (Y, X, START, LB, RB) por polling com `gamepad1.*WasPressed()/WasReleased()`; verificar contra a tabela em `specs/teleop-control/spec.md` que cada botão tem o efeito especificado
+- [x] 5.6 Implementar no `loop()` do teleop os bindings do operador (RB, LB, A, X, D-PAD ▲▼◀▶, botão do analógico esquerdo); verificar contra a tabela em `specs/teleop-control/spec.md`
+- [x] 5.7 Preservar no `loop()` do teleop a telemetria de tempo de loop sob `DataStorage.DEBUG_MODE`; verificar que os mesmos campos de antes são publicados
+- [x] 5.8 Deletar `robot/RobotContainer.java`; verificar `grep -rn "RobotContainer" TeamCode/src` vazio
 
 ## 6. Fase 5 — Autônomo
 
