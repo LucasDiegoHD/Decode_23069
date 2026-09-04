@@ -443,3 +443,92 @@ diferença é bug de migração, não "melhoria".
 - O critério de sucesso é **paridade** — muito trabalho pra chegar no mesmo comportamento observável. Nenhuma capacidade nova de robô sai disso.
 
 **Recomendação:** se o time tem tempo de bancada antes do próximo evento e alguém quer ser dono do código de framework, faça — vocês saem com uma base mais limpa e integrada. Se a agenda está apertada, o retorno não justifica o risco agora; dá pra capturar 60% do valor só deletando o código morto e consertando os imports do `master`, sem trocar de framework.
+---
+
+## 10. Anexo — avaliação do `kleongf/FTC_Decode` (time 23641)
+
+Repo de referência em autônomo (`github.com/kleongf/FTC_Decode`, DECODE 2025-26).
+**Conclusão: não muda o escopo desta migração** — valida decisões de ciclo de vida e gera
+quatro melhorias ortogonais, registradas como trabalho futuro.
+
+### 10.1 Correção de premissa
+
+O 23641 **não usa FTCLib**. O `build.dependencies.gradle` deles tem SDK 11.0.0 +
+`com.pedropathing:ftc:2.1.0` + `telemetry` + Panels + Dashboard. Zero `org.ftclib`.
+
+E **não usa command-based**. O `lib/robot/{Robot,Subsystem,Command}.java` são três classes
+abstratas de ~10 linhas cada. `Command` tem um único método, `build()`, que devolve um
+`StateMachine`. Não há scheduler, requirements, prioridade nem composição de comandos.
+
+### 10.2 A arquitetura deles
+
+**Subsistema = campos públicos de estado desejado + `update()`.** `intake.wantedMode`,
+`shooter.wantedVelocity` / `wantedPitch`, `turret.wantedAngle`. Quem quer agir **escreve no
+campo**; o `update()` do subsistema aplica no hardware. É o padrão "want state" (estilo FRC
+254). Ninguém reserva subsistema — daí não precisarem de resolução de conflito.
+
+**`CurrentRobot.update()` é um laço plano e determinístico:**
+
+```java
+dt = loopTimer.seconds(); loopTimer.reset();
+bulkRead.clearCache();
+for (Subsystem s : subsystems) s.update();
+for (StateMachine c : commands) c.update();
+```
+
+**"Comandos" = `StateMachine` pré-construídos** uma vez em `registerCommands()` e
+re-`start()`ados sob demanda. Ficam sempre na lista de update; quando terminam, viram inertes.
+
+**Autos = um `StateMachine` gigante** de `State` com `onEnter` / `onExit` / `minTime` /
+`maxTime` / `transition(cond)` / `fallbackState`, montado no `init()`, `.start()` no `start()`,
+`.update()` no `loop()`. OpModes são iterativos (`extends OpMode`).
+
+### 10.3 O que valida do nosso plano
+
+| Nossa decisão | 23641 |
+|---|---|
+| Fase 1 — `OpMode` iterativo, não `LinearOpMode` / `CommandOpMode` | idêntico |
+| Fase 5 — configuração pré-play em `init_loop()` | idêntico (`gamepad1.dpadRightWasPressed()` no `init_loop`) |
+| Padrão D — bindings por polling com `WasPressed()` | idêntico; teleop inteiro assim |
+| Padrão A — controle contínuo por subsistema | é o `update()` deles |
+
+### 10.4 Por que o FSM deles não substitui o `Groups` do Ivy
+
+| FSM (23641) | Ivy |
+|---|---|
+| `.onEnter(r)` / `.onExit(r)` | `.setStart(r)` / `.setEnd(r)` |
+| `.maxTime(t)` | `.raceWith(Commands.waitMs(t))` |
+| `.minTime(t)` | `Groups.sequential(Commands.waitMs(t), ...)` |
+| `.transition(cond)` | `Commands.waitUntil(cond)` |
+| `fallbackState` / branch | `Commands.conditional` / `branch` / `match` |
+
+O Ivy expressa tudo. Não importar o FSM deles.
+
+### 10.5 O que NÃO copiar
+
+- Camada de "command" vestigial; `Subsystem` duplicado em `lib/robot` **e** `util/decodeutil`;
+  comentários do tipo `// todo: adapt to this or something lol`. É código de competição, não
+  framework.
+- Autos com paths hardcoded por OpMode — 8 arquivos, `RedClose24.java` com 538 linhas.
+- A ausência de resolução de conflito só funciona porque o drive em teleop é chamada direta.
+  Nós temos `align` e `kinematicAimDrive` disputando o drivetrain, então o mecanismo de
+  prioridade + `SUSPEND` (§4, Padrão B) continua necessário.
+
+### 10.6 Trabalho futuro registrado (fora desta migração)
+
+Decisão: **apenas registrar**. Não entram no escopo da migração — aumentariam a janela de
+não-compilação e quebrariam o critério de aceite de paridade (§7). Abrir change(s) OpenSpec
+separadas depois.
+
+1. **`blackboard` do SDK para handoff de pose entre OpModes.** Eles fazem
+   `blackboard.put(END_POSE_KEY, follower.getPose())` no `stop()` do auto e leem no teleop.
+   Substituiria `utils/PoseStorage.java` (arquivo em `/sdcard/stored_robot_pose.txt`) e
+   `DataStorage.actualPose`. Duas classes a menos, sem I/O de arquivo.
+2. **`Flipper` / `Mirrorer` — um auto, duas alianças por espelhamento.** Hoje mantemos quatro
+   `autos/paths/*Poses.java` em lockstep com `PosesNames` por ordinal, o que é frágil por
+   construção.
+3. **Caching de potência de motor** — `if (|prevSetPower − wanted| > threshold) setPower(...)`
+   em `Intake` / `Shooter`. Corta escritas redundantes; ganho de loop-time.
+4. **`SOTMUtil` unificado** — uma classe que, de pose + velocidade + aceleração, devolve
+   `{turretAngle, hoodAngle, wheelVelocity, feedforwards}`. Nossa lógica equivalente está
+   espalhada entre `ActiveAimCommand` e `KinematicAimDriveCommand`.
