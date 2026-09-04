@@ -1,39 +1,33 @@
 package org.firstinspires.ftc.teamcode.commands;
 
-import com.arcrobotics.ftclib.command.SequentialCommandGroup;
-import com.arcrobotics.ftclib.gamepad.GamepadEx;
 import com.pedropathing.geometry.Pose;
+import com.pedropathing.ivy.Command;
+import com.pedropathing.ivy.groups.Groups;
+import com.qualcomm.robotcore.hardware.Gamepad;
 
 import org.firstinspires.ftc.teamcode.subsystems.DrivetrainSubsystem;
-import org.firstinspires.ftc.teamcode.subsystems.templates.IndexerSubsystem;
 import org.firstinspires.ftc.teamcode.subsystems.IntakeSubsystem;
-import org.firstinspires.ftc.teamcode.subsystems.templates.LEDSubsystem;
-import org.firstinspires.ftc.teamcode.subsystems.templates.ShooterSubsystem;
 import org.firstinspires.ftc.teamcode.subsystems.VisionSubsystem;
+import org.firstinspires.ftc.teamcode.subsystems.templates.IndexerSubsystem;
+import org.firstinspires.ftc.teamcode.subsystems.templates.ShooterSubsystem;
 
 /**
- * This command automates the entire shooting sequence with a single button press.
- * It aligns to the target, adjusts the shooter, waits for it to be ready, and then launches the note.
+ * Macro de tiro do teleop, num botão só.
+ *
+ * <p>Hoje é apenas o {@link ShootCommand}: os passos de relocalização e de ajuste de capô e
+ * velocidade estavam comentados no original e continuam fora — o ajuste contínuo já é feito pelo
+ * {@link ActiveAimCommand}, que roda o tempo todo.
  */
-public class AutoShootCommand extends SequentialCommandGroup {
+public final class AutoShootCommand {
 
-    /**
-     * Creates a new AutoShootCommand.
-     *
-     * @param drivetrain The drivetrain subsystem for alignment.
-     * @param vision     The vision subsystem for target detection.
-     * @param shooter    The shooter subsystem for launching the note.
-     * @param intake     The intake subsystem for feeding the note.
-     */
-    public AutoShootCommand(DrivetrainSubsystem drivetrain, VisionSubsystem vision, ShooterSubsystem shooter, IntakeSubsystem intake, IndexerSubsystem indexer, Pose fallbackPose, LEDSubsystem ledSubsystem,  GamepadEx driver) {
-        addCommands(
+    private AutoShootCommand() {
+    }
 
-                //new UpdatePoseLimelightCommand(drivetrain, vision, fallbackPose),
-                //new AdjustHoodCommand(shooter, vision),
-
-                //new AdjustShooterCommand(shooter, vision),
-
-                new ShootCommand(shooter, intake, indexer, driver)
+    public static Command autoShoot(DrivetrainSubsystem drivetrain, VisionSubsystem vision,
+                                    ShooterSubsystem shooter, IntakeSubsystem intake,
+                                    IndexerSubsystem indexer, Pose fallbackPose, Gamepad driver) {
+        return Groups.sequential(
+                ShootCommand.shoot(shooter, intake, indexer, driver)
         );
     }
 }

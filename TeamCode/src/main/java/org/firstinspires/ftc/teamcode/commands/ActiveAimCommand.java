@@ -1,7 +1,8 @@
 package org.firstinspires.ftc.teamcode.commands;
 
-import com.arcrobotics.ftclib.command.CommandBase;
 import com.pedropathing.follower.Follower;
+import com.pedropathing.ivy.Command;
+import com.pedropathing.ivy.behaviors.InterruptedBehavior;
 import com.pedropathing.geometry.Pose;
 import com.pedropathing.math.Vector;
 
@@ -13,15 +14,19 @@ import org.firstinspires.ftc.teamcode.subsystems.VisionSubsystem;
 
 import java.util.function.BooleanSupplier;
 
-public class ActiveAimCommand extends CommandBase {
+/**
+ * Mira continua do atirador: calcula capo e RPM a partir da distancia ate a meta, com
+ * compensacao de tempo de voo e de movimento lateral do robo.
+ *
+ * <p>Comando continuo do atirador. Prioridade base e {@link InterruptedBehavior#SUSPEND}, para
+ * que comandos de botao que reservem o atirador o suspendam e o escalonador o retome sozinho.
+ *
+ * <p>Nao guarda estado entre iteracoes: tudo e derivado da pose e da velocidade do ciclo.
+ */
+public final class ActiveAimCommand {
 
-    private final ShooterSubsystem shooter;
-    private final VisionSubsystem vision;
-    private final DrivetrainSubsystem drivetrain;
-    private final Follower follower;
-    private final double targetX;
-    private final double targetY;
-    private final BooleanSupplier isReadyToSpin;
+    private ActiveAimCommand() {
+    }
 
     private static final double RPM_FORWARD_MULT = -6.0;
     private static final double RPM_BACKWARD_MULT = 7.5;
@@ -31,19 +36,12 @@ public class ActiveAimCommand extends CommandBase {
     private static final double DELTA_Z = 38.75;
     private static final double INCHES_TO_METERS = 1.0 / 39.3701;
 
-    public ActiveAimCommand(ShooterSubsystem shooter, VisionSubsystem vision, DrivetrainSubsystem drivetrain, double targetX, double targetY, BooleanSupplier isReadyToSpin) {
-        this.shooter = shooter;
-        this.vision = vision;
-        this.drivetrain = drivetrain;
-        this.follower = drivetrain.getFollower();
-        this.targetX = targetX;
-        this.targetY = targetY;
-        this.isReadyToSpin = isReadyToSpin;
-        addRequirements(shooter);
-    }
+    public static Command activeAim(ShooterSubsystem shooter, VisionSubsystem vision,
+                                    DrivetrainSubsystem drivetrain, double targetX, double targetY,
+                                    BooleanSupplier isReadyToSpin) {
+        final Follower follower = drivetrain.getFollower();
 
-    @Override
-    public void execute() {
+        return Command.build().setExecute(() -> {
         Pose pose = follower.getPose();
         Vector velocity = follower.getVelocity();
 
@@ -118,10 +116,10 @@ public class ActiveAimCommand extends CommandBase {
         } else {
             shooter.setTargetVelocity(0.0);
         }
-    }
-
-    @Override
-    public boolean isFinished() {
-        return false;
+        })
+                .setDone(() -> false)
+                .requiring(shooter)
+                .setPriority(0)
+                .setInterruptedBehavior(InterruptedBehavior.SUSPEND);
     }
 }

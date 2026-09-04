@@ -1,25 +1,33 @@
 package org.firstinspires.ftc.teamcode.commands;
 
-import com.arcrobotics.ftclib.command.CommandBase;
-import com.arcrobotics.ftclib.gamepad.GamepadEx;
 import com.bylazar.telemetry.PanelsTelemetry;
 import com.bylazar.telemetry.TelemetryManager;
+import com.pedropathing.ivy.Command;
+import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-import org.firstinspires.ftc.teamcode.subsystems.templates.IndexerSubsystem;
 import org.firstinspires.ftc.teamcode.subsystems.IntakeSubsystem;
+import org.firstinspires.ftc.teamcode.subsystems.templates.IndexerSubsystem;
 import org.firstinspires.ftc.teamcode.subsystems.templates.ShooterConstants;
 import org.firstinspires.ftc.teamcode.subsystems.templates.ShooterSubsystem;
 
-public class ShootCommand extends CommandBase {
+import java.util.function.IntSupplier;
 
-    private final ShooterSubsystem shooter;
-    private final IntakeSubsystem intake;
-    private final GamepadEx driver;
+/**
+ * Máquina de estados de alimentação e disparo, em cinco passos:
+ * esteira → aceleração → disparo → acompanhamento → resfriamento.
+ *
+ * <p>Unifica o antigo {@code ShootCommand} (teleop) e {@code ShootCommandAutonomous}: as duas
+ * máquinas eram funcionalmente idênticas, diferindo só no rótulo de telemetria, no rumble do
+ * piloto e em o autônomo receber a contagem por {@link IntSupplier}. A contagem é lida no
+ * {@code start()}, então um supplier permite decidi-la no momento do disparo.
+ */
+public final class ShootCommand {
 
-    private final ElapsedTime timer = new ElapsedTime();
-    private final ElapsedTime cooldownTimer = new ElapsedTime();
-    private enum SHOOT_STATES {
+    private ShootCommand() {
+    }
+
+    private enum ShootState {
         Conveyor,
         Acceleration,
         Shooting,
@@ -27,135 +35,136 @@ public class ShootCommand extends CommandBase {
         Cooldown
     }
 
-    private SHOOT_STATES state;
-    private int shooterCounter;
-    private final TelemetryManager telemetryM;
-    private final IndexerSubsystem indexer;
-
-    public ShootCommand(ShooterSubsystem shooter, IntakeSubsystem intake, IndexerSubsystem indexer, int shoots, GamepadEx driver) {
-        telemetryM = PanelsTelemetry.INSTANCE.getTelemetry();
-        this.indexer = indexer;
-        this.shooterCounter = shoots;
-        this.shooter = shooter;
-        this.intake = intake;
-        this.driver = driver;
-        addRequirements(shooter, indexer);
+    /** Estado que persiste entre iterações. Um por comando construído. */
+    private static final class State {
+        final ElapsedTime timer = new ElapsedTime();
+        final ElapsedTime cooldownTimer = new ElapsedTime();
+        ShootState state;
+        int shooterCounter;
     }
 
-    public ShootCommand(ShooterSubsystem shooter, IntakeSubsystem intake, IndexerSubsystem indexer, GamepadEx driver) {
-        this(shooter, intake, indexer, 500, driver);
+    /** Dispara continuamente até ser interrompido (contagem efetivamente infinita). */
+    public static Command shoot(ShooterSubsystem shooter, IntakeSubsystem intake,
+                                IndexerSubsystem indexer, Gamepad driver) {
+        return shoot(shooter, intake, indexer, () -> 500, driver);
     }
 
-    @Override
-    public void initialize() {
-        intake.run();
-        intake.stopTrigger();
-        state = SHOOT_STATES.Conveyor;
-        timer.reset();
-        indexer.setShootingState(true);
-        if (driver != null && driver.gamepad != null) {
-            driver.gamepad.rumble(150);
-        }
+    /** Dispara uma quantidade fixa de peças. */
+    public static Command shoot(ShooterSubsystem shooter, IntakeSubsystem intake,
+                                IndexerSubsystem indexer, int shootCount) {
+        return shoot(shooter, intake, indexer, () -> shootCount, null);
     }
 
-    @Override
-    public void execute() {
+    /**
+     * Dispara a quantidade que o supplier informar no momento do início.
+     *
+     * @param driver controle a vibrar ao iniciar; {@code null} no autônomo.
+     */
+    public static Command shoot(ShooterSubsystem shooter, IntakeSubsystem intake,
+                                IndexerSubsystem indexer, IntSupplier shootCount, Gamepad driver) {
+        final TelemetryManager telemetryM = PanelsTelemetry.INSTANCE.getTelemetry();
+        final State s = new State();
 
-        switch (state) {
-            case Conveyor:
-                if (indexer.getExitSensor()) {
+        return Command.build()
+                .setStart(() -> {
+                    s.shooterCounter = shootCount.getAsInt();
+                    intake.run();
+                    intake.stopTrigger();
+                    s.state = ShootState.Conveyor;
+                    s.timer.reset();
+                    indexer.setShootingState(true);
+                    if (driver != null) {
+                        driver.rumble(150);
+                    }
+                })
+                .setExecute(() -> {
+                    switch (s.state) {
+                        case Conveyor:
+                            if (indexer.getExitSensor()) {
+                                intake.stop();
+                            } else {
+                                intake.run();
+                            }
+
+                            if (indexer.getExitSensor()
+                                    || s.timer.milliseconds() > ShooterConstants.TRIGGER_TIMER_TO_SHOOT) {
+                                if (shooter.getShooterAtTarget()) {
+                                    s.state = ShootState.Shooting;
+                                    shooter.anticipateShot();
+                                    intake.runTrigger();
+                                    intake.run();
+
+                                    s.timer.reset();
+                                } else {
+                                    s.state = ShootState.Acceleration;
+                                }
+                            }
+                            break;
+
+                        case Acceleration:
+                            if (indexer.getExitSensor()) {
+                                intake.stop();
+                            } else {
+                                intake.run();
+                            }
+
+                            if (shooter.getShooterAtTarget()) {
+                                s.state = ShootState.Shooting;
+                                shooter.anticipateShot();
+                                intake.runTrigger();
+                                intake.run();
+
+                                s.timer.reset();
+                            }
+                            break;
+
+                        case Shooting:
+                            boolean pieceHasLeft = !indexer.getExitSensor();
+
+                            if (pieceHasLeft
+                                    || s.timer.milliseconds() > ShooterConstants.TRIGGER_TIMER_TRIGGERING) {
+                                if (s.shooterCounter > 0) {
+                                    s.shooterCounter--;
+                                }
+
+                                s.state = ShootState.FollowThrough;
+                                s.timer.reset();
+                            }
+                            break;
+
+                        case FollowThrough:
+                            if (s.timer.milliseconds() > ShooterConstants.TRIGGER_FOLLOW_THROUGH_MS) {
+                                intake.stopTrigger();
+                                intake.stop();
+
+                                if (s.shooterCounter > 0) {
+                                    s.state = ShootState.Cooldown;
+                                    s.cooldownTimer.reset();
+                                } else {
+                                    s.state = ShootState.Conveyor;
+                                }
+                            }
+                            break;
+
+                        case Cooldown:
+                            if (s.cooldownTimer.milliseconds() > ShooterConstants.DELAY_BETWEEN_SHOTS_MS) {
+                                s.state = ShootState.Conveyor;
+
+                                if (indexer.getExitSensor()) intake.stop();
+                                s.timer.reset();
+                            }
+                            break;
+                    }
+
+                    telemetryM.addData("Shoot State", s.state);
+                    telemetryM.addData("Shots Left", s.shooterCounter);
+                })
+                .setDone(() -> s.shooterCounter <= 0)
+                .setEnd(endCondition -> {
+                    intake.stopTrigger();
                     intake.stop();
-                } else {
-                    intake.run();
-                }
-
-                if (indexer.getExitSensor() || timer.milliseconds() > ShooterConstants.TRIGGER_TIMER_TO_SHOOT) {
-                    if (shooter.getShooterAtTarget()) {
-                        state = SHOOT_STATES.Shooting;
-                        shooter.anticipateShot();
-                        intake.runTrigger();
-                        intake.run();
-
-                        timer.reset();
-                    } else {
-                        state = SHOOT_STATES.Acceleration;
-                    }
-                }
-                break;
-
-            case Acceleration:
-                if (indexer.getExitSensor()) {
-                    intake.stop();
-                } else {
-                    intake.run();
-                }
-
-                if (shooter.getShooterAtTarget()) {
-                    state = SHOOT_STATES.Shooting;
-                    shooter.anticipateShot();
-                    intake.runTrigger();
-                    intake.run();
-
-                    timer.reset();
-                }
-                break;
-
-            case Shooting:
-                boolean pieceHasLeft = !indexer.getExitSensor();
-
-                if (pieceHasLeft || timer.milliseconds() > ShooterConstants.TRIGGER_TIMER_TRIGGERING) {
-                    if (shooterCounter > 0) {
-                        shooterCounter--;
-                    }
-
-                    state = SHOOT_STATES.FollowThrough;
-                    timer.reset();
-                }
-                break;
-
-            case FollowThrough:
-
-                if (timer.milliseconds() > ShooterConstants.TRIGGER_FOLLOW_THROUGH_MS) {
-
-                    if (shooterCounter > 0) {
-                        state = SHOOT_STATES.Cooldown;
-
-                        intake.stopTrigger();
-                        intake.stop();
-                        cooldownTimer.reset();
-                    } else {
-                        state = SHOOT_STATES.Conveyor;
-                        intake.stopTrigger();
-                        intake.stop();
-                    }
-                }
-                break;
-
-            case Cooldown:
-                double time = cooldownTimer.milliseconds();
-
-                if (time > ShooterConstants.DELAY_BETWEEN_SHOTS_MS) {
-                    state = SHOOT_STATES.Conveyor;
-
-                    if (indexer.getExitSensor()) intake.stop();
-                    timer.reset();
-                }
-                break;
-        }
-
-        telemetryM.addData("Shoot State", state);
-        telemetryM.addData("Shots Left", shooterCounter);
-    }
-
-    @Override
-    public boolean isFinished() {
-        return shooterCounter <= 0;
-    }
-
-    @Override
-    public void end(boolean interrupted){
-        intake.stopTrigger();
-        intake.stop();
-        indexer.setShootingState(false);
+                    indexer.setShootingState(false);
+                })
+                .requiring(shooter, indexer);
     }
 }

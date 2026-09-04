@@ -1,115 +1,128 @@
 package org.firstinspires.ftc.teamcode.commands;
 
-import com.arcrobotics.ftclib.command.CommandBase;
-import com.arcrobotics.ftclib.controller.PIDFController;
-import com.arcrobotics.ftclib.gamepad.GamepadEx;
 import com.bylazar.telemetry.TelemetryManager;
+import com.pedropathing.control.PIDFCoefficients;
+import com.pedropathing.control.PIDFController;
 import com.pedropathing.follower.Follower;
+import com.pedropathing.ivy.Command;
+import com.qualcomm.robotcore.hardware.Gamepad;
+
 import org.firstinspires.ftc.teamcode.subsystems.DrivetrainSubsystem;
 import org.firstinspires.ftc.teamcode.subsystems.VisionConstants;
 import org.firstinspires.ftc.teamcode.subsystems.VisionSubsystem;
 
 /**
- * A command to automatically align the robot to an AprilTag target.
- * Logic:
- * 1. Locks X and Y movement (Robot stays in place).
- * 2. Rotates to align Tx to 0.
- * 3. Rumbles the operator controller once when alignment is reached.
- * 4. Re-arms the rumble if the robot loses alignment and realigns.
+ * Alinha o robô a um AprilTag girando no lugar até zerar o {@code tx} da Limelight.
+ *
+ * <p>Trava translação (X e Y ficam em zero), gira por PIDF, e vibra o controle do operador uma
+ * vez ao travar no alvo — rearmando a vibração se o alinhamento se perder.
+ *
+ * <p>Reserva o drivetrain com prioridade 1, acima do comando contínuo de condução: agendá-lo
+ * suspende a condução manual, que o escalonador retoma sozinha quando este termina.
  */
-public class AlignToAprilTagCommand extends CommandBase {
+public final class AlignToAprilTagCommand {
 
-    private final Follower follower;
-    private final VisionSubsystem vision;
-    private final TelemetryManager telemetry;
-    private final PIDFController turnController;
-    private int IsAprilTagNotSeemCounter = 0;
-    private static final int ApriltagNotSeemMaximumCounter = 20;
-    private final GamepadEx operator;
-    boolean hasVibrated = false;
-
-    public AlignToAprilTagCommand(DrivetrainSubsystem drivetrain, VisionSubsystem vision, TelemetryManager telemetry, GamepadEx operator) {
-        this.follower = drivetrain.getFollower();
-        this.vision = vision;
-        this.telemetry = telemetry;
-        this.operator = operator;
-        this.turnController = new PIDFController(VisionConstants.TURN_KP, VisionConstants.TURN_KI, VisionConstants.TURN_KD, VisionConstants.TURN_KF);
-        addRequirements(drivetrain);
+    private AlignToAprilTagCommand() {
     }
 
-    @Override
-    public void initialize() {
-        turnController.reset();
-        // Explicitly set the target to 0 (center of the image)
-        turnController.setSetPoint(0);
+    private static final int APRILTAG_NOT_SEEN_MAXIMUM_COUNTER = 20;
 
-        // If it oscillates too much, increase this slightly.
-        turnController.setTolerance(0.1);
-        hasVibrated = false;
+    /** Tolerância de {@code tx} para considerar alinhado, em graus. */
+    private static final double TX_TOLERANCE = 0.1;
+
+    /**
+     * Verdadeiro enquanto um alinhamento está em execução.
+     *
+     * <p>O Ivy não expõe o comando que detém um recurso (não há {@code getCurrentCommand()}), e o
+     * laço periódico de relocalização precisa saber se o robô está mirando para não relocalizar no
+     * meio de um tiro. Esta flag substitui o antigo
+     * {@code drivetrain.getCurrentCommand() instanceof AlignToAprilTagCommand}.
+     */
+    private static volatile boolean aligning = false;
+
+    /** Se há um alinhamento em andamento. */
+    public static boolean isAligning() {
+        return aligning;
     }
 
-    @Override
-    public void execute() {
-
-        turnController.setPIDF(
+    public static Command alignToAprilTag(DrivetrainSubsystem drivetrain, VisionSubsystem vision,
+                                          TelemetryManager telemetry, Gamepad operator) {
+        final Follower follower = drivetrain.getFollower();
+        final PIDFController turnController = new PIDFController(new PIDFCoefficients(
                 VisionConstants.TURN_KP,
                 VisionConstants.TURN_KI,
                 VisionConstants.TURN_KD,
-                VisionConstants.TURN_KF
-        );
+                VisionConstants.TURN_KF));
 
-        if (!vision.hasTarget()) {
+        final State s = new State();
 
-            follower.setTeleOpDrive(0, 0, 0, true);
-            telemetry.debug("No AprilTag detected");
+        return Command.build()
+                .setStart(() -> {
+                    turnController.reset();
+                    s.hasVibrated = false;
+                    s.notSeenCounter = 0;
+                    s.atSetPoint = false;
+                    aligning = true;
+                })
+                .setExecute(() -> {
+                    turnController.setCoefficients(new PIDFCoefficients(
+                            VisionConstants.TURN_KP,
+                            VisionConstants.TURN_KI,
+                            VisionConstants.TURN_KD,
+                            VisionConstants.TURN_KF));
 
-            hasVibrated = false;
+                    if (!vision.hasTarget()) {
+                        follower.setTeleOpDrive(0, 0, 0, true);
+                        telemetry.debug("No AprilTag detected");
 
-            IsAprilTagNotSeemCounter++;
-        } else {
-            IsAprilTagNotSeemCounter = 0;
+                        s.hasVibrated = false;
+                        s.atSetPoint = false;
+                        s.notSeenCounter++;
+                    } else {
+                        s.notSeenCounter = 0;
 
-            // PID Calculation
-            double currentTx = vision.getTargetTx().orElse(0.0);
-            double turnPower = turnController.calculate(currentTx);
+                        double currentTx = vision.getTargetTx().orElse(0.0);
 
-            turnPower = Math.max(-0.8, Math.min(0.8, turnPower));
+                        // O alvo é tx = 0, então o erro é -tx.
+                        turnController.updateError(-currentTx);
+                        double turnPower = turnController.run();
 
+                        turnPower = Math.max(-0.8, Math.min(0.8, turnPower));
 
-            if (turnController.atSetPoint()) {
-                if (!hasVibrated && operator != null) {
-                    operator.gamepad.rumble(1, 1, 500); // Vibrate for 500ms
-                    hasVibrated = true; // Mark as vibrated
-                }
-            } else {
+                        s.atSetPoint = Math.abs(currentTx) < TX_TOLERANCE;
 
-                hasVibrated = false;
-            }
+                        if (s.atSetPoint) {
+                            if (!s.hasVibrated && operator != null) {
+                                operator.rumble(1, 1, 500); // Vibrate for 500ms
+                                s.hasVibrated = true;
+                            }
+                        } else {
+                            s.hasVibrated = false;
+                        }
 
-            telemetry.debug("Align TX", currentTx);
-            telemetry.debug("Turn Power", turnPower);
-            telemetry.debug("At SetPoint", turnController.atSetPoint());
+                        telemetry.debug("Align TX", currentTx);
+                        telemetry.debug("Turn Power", turnPower);
+                        telemetry.debug("At SetPoint", s.atSetPoint);
 
-            follower.setTeleOpDrive(0, 0, turnPower, true);
-        }
+                        follower.setTeleOpDrive(0, 0, turnPower, true);
+                    }
+                })
+                .setDone(() -> (vision.hasTarget() && s.atSetPoint)
+                        || s.notSeenCounter >= APRILTAG_NOT_SEEN_MAXIMUM_COUNTER)
+                .setEnd(endCondition -> {
+                    aligning = false;
+                    follower.setTeleOpDrive(0, 0, 0, true);
+                    telemetry.debug("Alignment finished.");
+                    telemetry.update();
+                })
+                .requiring(drivetrain)
+                .setPriority(1);
     }
 
-
-    @Override
-    public void end(boolean interrupted) {
-        follower.setTeleOpDrive(0, 0, 0, true);
-        telemetry.debug("Alignment finished.");
-        telemetry.update();
-    }
-    @Override
-    public boolean isFinished() {
-        if (vision.hasTarget() && turnController.atSetPoint()) {
-            return true;
-        }
-
-        if (IsAprilTagNotSeemCounter >= ApriltagNotSeemMaximumCounter) {
-            return true;
-        }
-        return false;
+    /** Estado que persiste entre iterações. Um por comando construído. */
+    private static final class State {
+        int notSeenCounter;
+        boolean hasVibrated;
+        boolean atSetPoint;
     }
 }

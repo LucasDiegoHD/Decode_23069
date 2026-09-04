@@ -1,9 +1,9 @@
 package org.firstinspires.ftc.teamcode.autos.commands;
 
-import com.arcrobotics.ftclib.command.CommandBase;
 import com.pedropathing.geometry.BezierCurve;
 import com.pedropathing.geometry.BezierLine;
 import com.pedropathing.geometry.Pose;
+import com.pedropathing.ivy.Command;
 import com.pedropathing.paths.PathBuilder;
 import com.pedropathing.paths.PathChain;
 import com.pedropathing.paths.PathConstraints;
@@ -13,7 +13,13 @@ import org.firstinspires.ftc.teamcode.subsystems.DrivetrainSubsystem;
 import java.util.Arrays;
 import java.util.List;
 
-public class GoToPoseCommand extends CommandBase {
+/**
+ * Constroi e segue um caminho da pose atual ate um a tres waypoints.
+ *
+ * <p>E um builder: configure com os metodos fluentes e chame {@link #toCommand()} no fim. O
+ * caminho so e montado quando o comando inicia, para partir da pose real do robo naquele momento.
+ */
+public class GoToPoseCommand {
     private final DrivetrainSubsystem drivetrain;
     private final List<Pose> waypoints;
     private final boolean holdEnd;
@@ -40,7 +46,6 @@ public class GoToPoseCommand extends CommandBase {
         this.holdEnd = holdEnd;
         this.waypoints = Arrays.asList(poses);
         this.constraints = Constants.pathConstraints;
-        addRequirements(drivetrain);
     }
 
     // Builder para Constraints
@@ -88,8 +93,16 @@ public class GoToPoseCommand extends CommandBase {
         return this;
     }
 
-    @Override
-    public void initialize() {
+    /** Fecha o builder e devolve o comando agendavel. */
+    public Command toCommand() {
+        return Command.build()
+                .setStart(this::followPath)
+                .setDone(this::isDone)
+                .setEnd(endCondition -> drivetrain.getFollower().setMaxPower(1.0))
+                .requiring(drivetrain);
+    }
+
+    private void followPath() {
         if (waypoints.isEmpty()) return;
 
         Pose startPose = drivetrain.getFollower().getPose();
@@ -147,13 +160,7 @@ public class GoToPoseCommand extends CommandBase {
         }
     }
 
-    @Override
-    public void end(boolean interrupted) {
-        drivetrain.getFollower().setMaxPower(1.0);
-    }
-
-    @Override
-    public boolean isFinished() {
+    private boolean isDone() {
         if (exitTolerance > 0 && !waypoints.isEmpty()) {
             Pose currentPose = drivetrain.getFollower().getPose();
             Pose targetPose = waypoints.get(waypoints.size() - 1);

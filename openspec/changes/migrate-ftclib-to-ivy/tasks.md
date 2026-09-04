@@ -25,17 +25,17 @@
 
 ## 4. Fase 3 — Comandos
 
-- [ ] 4.1 Converter `commands/TeleOpDriveCommand.java` em fábrica `static Command` `infinite` lendo `Gamepad` do SDK, com `.requiring(drivetrain).setPriority(0).setInterruptedBehavior(SUSPEND)`; verificar que a lógica de slew, trava de rumo e escala por tensão foi preservada linha a linha
-- [ ] 4.2 Converter `commands/ActiveAimCommand.java` em fábrica `infinite` com `.requiring(shooter).setPriority(0).setInterruptedBehavior(SUSPEND)`, com o estado mutável capturado em objeto `final` local ou via Class API; verificar compilação e que a compensação de tempo de voo e movimento lateral foi preservada
+- [x] 4.1 Converter `commands/TeleOpDriveCommand.java` em fábrica `static Command` `infinite` lendo `Gamepad` do SDK, com `.requiring(drivetrain).setPriority(0).setInterruptedBehavior(SUSPEND)`; verificar que a lógica de slew, trava de rumo e escala por tensão foi preservada linha a linha
+- [x] 4.2 Converter `commands/ActiveAimCommand.java` em fábrica `infinite` com `.requiring(shooter).setPriority(0).setInterruptedBehavior(SUSPEND)`, com o estado mutável capturado em objeto `final` local ou via Class API; verificar compilação e que a compensação de tempo de voo e movimento lateral foi preservada
 - [x] 4.3 Deletar `commands/LedCommand.java` (absorvido por `led.update()` na tarefa 3.6); verificar que o mapeamento contagem→cor sobreviveu idêntico e que nada mais referencia a classe
-- [ ] 4.4 Converter `commands/AlignToAprilTagCommand.java` em fábrica com `.requiring(drivetrain).setPriority(1)`, expondo uma forma de o `Robot` saber que está ativo (flag em `setStart`/`setEnd`); verificar compilação e preservação da condição de término (setpoint ou 20 loops sem alvo)
-- [ ] 4.5 Converter `commands/KinematicAimDriveCommand.java` em fábrica com `.requiring(drivetrain).setPriority(1)`; verificar compilação e preservação da predição de movimento
-- [ ] 4.6 Unificar `commands/ShootCommand.java` e `autos/commands/ShootCommandAutonomous.java` numa fábrica única `shoot(shooter, indexer, intake, IntSupplier n)` com `.requiring(shooter, indexer)`; verificar que os 5 estados da máquina de tiro e seus tempos são idênticos aos atuais
-- [ ] 4.7 Converter `commands/AutoShootCommand.java` em `Groups.sequential(...)` sobre a fábrica de tiro, migrando só o caminho ativo (não ressuscitar o código comentado); verificar compilação
-- [ ] 4.8 Unificar `SpinShooterCommand`, `AdjustHoodCommand`, `AdjustShooterCommand`, `AdjustHoodCommandAuto`, `AdjustShooterCommandAuto` em fábricas one-shot via `Commands.instant(...)` com `.requiring(shooter)`; verificar que os polinômios de distância→RPM e distância→capô e o clamp 1000–4500 RPM foram preservados
-- [ ] 4.9 Converter `commands/UpdatePoseLimelightCommand.java` em fábrica via `Commands.instant(...)` sem requirements, mantendo `forceHardReset` como método `static`; verificar que a fusão ponderada odo/LL, o caso de primeiro boot e a rejeição de salto grande foram preservados
-- [ ] 4.10 Converter `autos/commands/GoToPoseCommand.java` em builder `GoToPose` com `toCommand()`, construindo o `PathChain` via `Commands.lazy(() -> PedroCommands.follow(follower, chain))` e `.requiring(drivetrain)`; verificar que a API fluente (`setConstraints`, `withMaxPower`, `withNoDeceleration`, `withGlobalDeceleration`, `withTangentHeading`, `withConstantHeading`, `withExitTolerance`) segue disponível
-- [ ] 4.11 Converter `autos/commands/AlignAndAdjustAutoCommand.java` em `Groups.sequential(adjustShooter, adjustHood)`; verificar compilação
+- [x] 4.4 Converter `commands/AlignToAprilTagCommand.java` em fábrica com `.requiring(drivetrain).setPriority(1)`, expondo uma forma de o `Robot` saber que está ativo (flag em `setStart`/`setEnd`); verificar compilação e preservação da condição de término (setpoint ou 20 loops sem alvo)
+- [x] 4.5 Converter `commands/KinematicAimDriveCommand.java` em fábrica com `.requiring(drivetrain).setPriority(1)`; verificar compilação e preservação da predição de movimento
+- [x] 4.6 Unificar `commands/ShootCommand.java` e `autos/commands/ShootCommandAutonomous.java` numa fábrica única `shoot(shooter, indexer, intake, IntSupplier n)` com `.requiring(shooter, indexer)`; verificar que os 5 estados da máquina de tiro e seus tempos são idênticos aos atuais
+- [x] 4.7 Converter `commands/AutoShootCommand.java` em `Groups.sequential(...)` sobre a fábrica de tiro, migrando só o caminho ativo (não ressuscitar o código comentado); verificar compilação
+- [x] 4.8 Unificar `SpinShooterCommand`, `AdjustHoodCommand`, `AdjustShooterCommand`, `AdjustHoodCommandAuto`, `AdjustShooterCommandAuto` em fábricas one-shot via `Commands.instant(...)` com `.requiring(shooter)`; verificar que os polinômios de distância→RPM e distância→capô e o clamp 1000–4500 RPM foram preservados
+- [x] 4.9 Converter `commands/UpdatePoseLimelightCommand.java` em fábrica via `Commands.instant(...)` sem requirements, mantendo `forceHardReset` como método `static`; verificar que a fusão ponderada odo/LL, o caso de primeiro boot e a rejeição de salto grande foram preservados
+- [x] 4.10 Converter `autos/commands/GoToPoseCommand.java` em builder `GoToPose` com `toCommand()`, construindo o `PathChain` via `Commands.lazy(() -> PedroCommands.follow(follower, chain))` e `.requiring(drivetrain)`; verificar que a API fluente (`setConstraints`, `withMaxPower`, `withNoDeceleration`, `withGlobalDeceleration`, `withTangentHeading`, `withConstantHeading`, `withExitTolerance`) segue disponível
+- [x] 4.11 Converter `autos/commands/AlignAndAdjustAutoCommand.java` em `Groups.sequential(adjustShooter, adjustHood)`; verificar compilação
 
 ## 5. Fase 4 — Robot e teleop
 
@@ -57,8 +57,8 @@
 
 ## 7. Fase 6 — Controladores
 
-- [ ] 7.1 Trocar `com.arcrobotics.ftclib.controller.PIDFController` por `com.pedropathing.control.PIDFController` em `AlignToAprilTagCommand`, ajustando `calculate(measured, setpoint)` para `updateError(setpoint - measured)` + `run()`; verificar compilação e conferir o sinal do erro por leitura
-- [ ] 7.2 Fazer a mesma troca em `KinematicAimDriveCommand`; verificar compilação e sinal do erro
+- [x] 7.1 Trocar `com.arcrobotics.ftclib.controller.PIDFController` por `com.pedropathing.control.PIDFController` em `AlignToAprilTagCommand`, ajustando `calculate(measured, setpoint)` para `updateError(setpoint - measured)` + `run()`; verificar compilação e conferir o sinal do erro por leitura
+- [x] 7.2 Fazer a mesma troca em `KinematicAimDriveCommand`; verificar compilação e sinal do erro
 - [ ] 7.3 Fazer a mesma troca em `ShooterSubsystem`, preservando kS/kV, o boost de feedforward de tiro e a compensação de tensão; verificar compilação
 - [ ] 7.4 Confirmar que `grep -rn "com.arcrobotics.ftclib" TeamCode/src` retorna vazio e que `build.dependencies.gradle` não menciona ftclib
 

@@ -737,3 +737,42 @@ contínuo, que não reserva nada, segue rodando em paralelo.
 **Erros: 339 → 317, em 28 → 22 arquivos.** `Robot.java` e `RobotOpMode.java` compilam limpos.
 Os 3 erros restantes em `ShooterSubsystem` são o `PIDFController` da FTCLib, adiado para a
 Fase 6 conforme a tarefa 3.4.
+
+### Fase 3 — concluída (2026-09-03)
+
+Os 10 comandos vivos viraram fábricas `static` que retornam `com.pedropathing.ivy.Command`.
+Todos compilam limpos.
+
+**Consolidações.** Cinco classes de ajuste do atirador (`SpinShooterCommand`,
+`AdjustHoodCommand`, `AdjustShooterCommand`, `AdjustHoodCommandAuto`,
+`AdjustShooterCommandAuto`) e o `AlignAndAdjustAutoCommand` viraram um único
+`commands/ShooterCommands.java`. As variantes de teleop e autônomo **não** foram fundidas: o
+teleop cai para a geometria da pose quando a Limelight não vê alvo e compensa a velocidade do
+robô em direção à meta, o autônomo usa valores fixos de segurança. Fundir mudaria o
+comportamento em quadra.
+
+`ShootCommand` e `ShootCommandAutonomous` viraram uma fábrica só. As duas máquinas de cinco
+estados eram funcionalmente idênticas — as diferenças eram formatação, o rótulo de telemetria, o
+rumble (só teleop) e a contagem por `IntSupplier` (só autônomo). A fábrica unificada aceita
+`IntSupplier` e um `Gamepad` anulável.
+
+**Estado mutável.** `TeleOpDriveCommand`, `AlignToAprilTagCommand`, `KinematicAimDriveCommand`
+e `ShootCommand` guardam estado entre iterações numa classe `State` privada capturada pelo
+builder — uma instância por comando construído, então não há estado residual entre execuções.
+`ActiveAimCommand` acabou não precisando: tudo nele é derivado da pose e da velocidade do ciclo.
+
+**Desvio de ordem: 7.1 e 7.2 foram adiantadas.** `AlignToAprilTagCommand` e
+`KinematicAimDriveCommand` usavam `atSetPoint()` e `setTolerance()`, que não existem no
+`PIDFController` da Pedro. Converter a estrutura sem trocar o controlador produziria código
+descartável, então a troca foi feita junto. O mapeamento é
+`calculate(pv, sp)` → `updateError(sp - pv)` + `run()`, e a tolerância virou comparação
+explícita (`Math.abs(erro) < tolerância`). Resta só a 7.3 (`ShooterSubsystem`) na Fase 6.
+
+**`GoToPoseCommand`** continua builder, com a API fluente intacta e um `toCommand()` no fim. Não
+usa `Commands.lazy` + `PedroCommands.follow` como o plano sugeria: isso perderia o
+`exitTolerance` e o modo de desaceleração. O caminho segue sendo montado no início do comando,
+a partir da pose real do robô naquele instante.
+
+**Erros: 317 → 249, em 22 → 7 arquivos.** Os 7 restantes são exatamente o escopo das fases
+seguintes: `RobotContainer` e `teleop` (Fase 4), `Autos` e as três `Autonomous*` (Fase 5),
+`ShooterSubsystem` (Fase 6).
