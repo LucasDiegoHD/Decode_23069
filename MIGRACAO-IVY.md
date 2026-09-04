@@ -422,3 +422,24 @@ diferença é bug de migração, não "melhoria".
 | `utils/DataStorage.java`, `utils/PoseStorage.java` | inalterados |
 | `pedroPathing/Constants.java`, `Tuning.java`, `MotorDirections.java` | inalterados |
 | lista "A DELETAR" (§3) | deletados |
+
+---
+
+## 9. Resposta honesta: os ganhos são **moderados**, não transformadores. Vale a pena principalmente se você valoriza consolidação e integração com a Pedro.
+
+**Ganhos reais:**
+
+- **Um framework só.** Hoje o projeto carrega FTCLib *e* Pedro Pathing. O Ivy elimina a sobreposição — menos dependências, menos "qual PIDFController é esse?", menos superfície pra manter.
+- **Integração nativa com o Follower.** `PedroCommands.follow/hold/turnTo` já vêm prontos. O `GoToPoseCommand` de vocês (o maior comando de autônomo) hoje reimplementa à mão o que o Ivy dá de graça.
+- **Scheduler mais simples e previsível.** ~200 linhas legíveis vs. a caixa-preta da FTCLib. O modelo de `requirements` + `priority` + `SUSPEND/resume` é mais explícito que os "default commands" mágicos.
+- **Força uma faxina.** A migração já deleta ~13 arquivos mortos, conserta o `master` quebrado e tira imports podres. Parte do "ganho" é isso, e podia ser feito sem migrar.
+- **Alinhamento com a comunidade.** Os times de referência da Pedro na DECODE (MOE, Code Blooded, Traffic Cones) já usam Ivy — mais exemplos e suporte no Discord.
+
+**Custos / riscos:**
+
+- É **grande**: ~25 arquivos, 6 subsistemas, 19 comandos, os 2 OpModes principais reescritos. Robô de competição.
+- O Ivy é **novo** (v1.0.0, coordenada Maven ainda incerta). Menos maduro que a FTCLib.
+- Você **perde conveniências**: `GamepadEx`, DSL de bindings (`.whenPressed()`), `SubsystemBase.periodic()` automático. Vira polling manual e agendamento explícito — mais verboso em alguns pontos.
+- O critério de sucesso é **paridade** — muito trabalho pra chegar no mesmo comportamento observável. Nenhuma capacidade nova de robô sai disso.
+
+**Recomendação:** se o time tem tempo de bancada antes do próximo evento e alguém quer ser dono do código de framework, faça — vocês saem com uma base mais limpa e integrada. Se a agenda está apertada, o retorno não justifica o risco agora; dá pra capturar 60% do valor só deletando o código morto e consertando os imports do `master`, sem trocar de framework.
